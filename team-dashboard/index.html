@@ -1,478 +1,321 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><script src="../auth.js"></script><link rel="stylesheet" href="../responsive.css">
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kit's Team - Command Center</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Command Center — Kit's War Room</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<style>
+:root {
+  --bg: #0D1117;
+  --card: #161B22;
+  --border: #2D333B;
+  --accent: #2B4C7E;
+  --text: #E6EDF3;
+  --text-secondary: #8B949E;
+  --text-muted: #6B7280;
+  --text-body: #C9D1D9;
+  --green: #10B981;
+  --blue: #3B82F6;
+  --red: #EF4444;
+  --time-blue: #5B8FD4;
+  --radius: 12px;
+  --font: 'Inter', -apple-system, sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  min-height: 100vh;
+  background-image: radial-gradient(rgba(255,255,255,.015) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #0a0a0a;
-      color: #e0e0e0;
-      height: 100vh;
-      overflow: hidden;
-    }
+/* Header */
+.header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 28px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(13,17,23,.95), rgba(13,17,23,1));
+  position: sticky; top: 0; z-index: 10;
+  backdrop-filter: blur(12px);
+}
+.header::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+}
+.header-left { display: flex; align-items: center; gap: 16px; }
+.header-title { font-size: 20px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
+.live-badge {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(16,185,129,.08); border: 1px solid rgba(16,185,129,.2);
+  border-radius: 20px; padding: 4px 12px 4px 8px; font-size: 13px; font-weight: 500; color: var(--green);
+}
+.live-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--green);
+  animation: pulse 2s ease-in-out infinite;
+}
+.offline .live-dot { background: var(--red); animation: none; }
+.offline .live-badge { color: var(--red); background: rgba(239,68,68,.08); border-color: rgba(239,68,68,.2); }
+.clock { font-family: var(--mono); font-size: 15px; color: var(--text-secondary); font-weight: 600; }
 
-    .grid-background {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background-image: 
-        linear-gradient(rgba(255, 215, 0, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 215, 0, 0.03) 1px, transparent 1px);
-      background-size: 50px 50px;
-      z-index: 0;
-      animation: gridMove 20s linear infinite;
-    }
-    @keyframes gridMove { 0% { transform: translate(0,0); } 100% { transform: translate(50px,50px); } }
+@keyframes pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(16,185,129,.4); }
+  50% { opacity: .7; box-shadow: 0 0 0 6px rgba(16,185,129,0); }
+}
 
-    .container {
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      padding: 12px 16px;
-      position: relative;
-      z-index: 1;
-      gap: 10px;
-    }
+/* Layout */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 0;
+  min-height: calc(100vh - 57px);
+}
+.main { padding: 24px 28px; overflow-y: auto; }
 
-    /* Header - compact */
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-shrink: 0;
-    }
+/* Stats */
+.stats-grid {
+  display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 28px;
+}
+.stat-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 16px 18px; transition: all .2s ease; cursor: default;
+}
+.stat-card:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 4px 20px rgba(43,76,126,.15); }
+.stat-value { font-family: var(--mono); font-size: 28px; font-weight: 700; color: var(--text); line-height: 1.2; }
+.stat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; color: var(--text-secondary); margin-top: 4px; }
 
-    .header-left {
-      display: flex;
-      align-items: baseline;
-      gap: 12px;
-    }
+/* Agents */
+.agents-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+}
+.agent-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 20px; display: flex; flex-direction: column; gap: 6px;
+  transition: all .25s ease; cursor: default; min-height: 180px; position: relative;
+}
+.agent-card:hover { border-color: var(--accent); box-shadow: 0 4px 24px rgba(43,76,126,.12); }
+.agent-card.pulse-green { animation: cardPulse .6s ease; }
+@keyframes cardPulse {
+  0% { border-color: var(--border); }
+  50% { border-color: var(--green); box-shadow: 0 0 20px rgba(16,185,129,.15); }
+  100% { border-color: var(--border); }
+}
+.agent-emoji { font-size: 28px; line-height: 1; }
+.agent-name { font-size: 16px; font-weight: 600; color: var(--text); }
+.agent-role { font-size: 12px; color: var(--text-secondary); }
+.agent-model { font-family: var(--mono); font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+.agent-task { font-size: 13px; color: var(--text-body); margin-top: auto; line-height: 1.4;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.agent-status {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px;
+  padding: 4px 10px; border-radius: 6px; width: fit-content; margin-top: 8px;
+}
+.status-working { color: var(--green); background: rgba(16,185,129,.1); }
+.status-working .status-dot { background: var(--green); animation: pulse 2s ease-in-out infinite; }
+.status-complete { color: var(--blue); background: rgba(59,130,246,.1); }
+.status-idle { color: var(--text-muted); background: rgba(107,114,128,.1); }
+.status-error { color: var(--red); background: rgba(239,68,68,.1); }
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
 
-    h1 {
-      font-size: 1.4rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
+/* Activity Feed */
+.activity {
+  border-left: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column;
+  max-height: calc(100vh - 57px); position: sticky; top: 57px;
+}
+.activity-header {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 14px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;
+  letter-spacing: .8px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
+}
+.activity-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0; }
+.activity-list::-webkit-scrollbar { width: 4px; }
+.activity-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.activity-item {
+  padding: 10px 0; border-bottom: 1px solid rgba(45,51,59,.5);
+  animation: slideIn .3s ease;
+}
+@keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+.activity-time { font-family: var(--mono); font-size: 12px; color: var(--time-blue); margin-bottom: 3px; }
+.activity-text { font-size: 13px; color: var(--text-body); line-height: 1.4; margin-bottom: 4px; }
+.activity-agent {
+  display: inline-block; font-size: 10px; font-weight: 600; color: var(--accent);
+  background: rgba(43,76,126,.15); border-radius: 4px; padding: 1px 6px; letter-spacing: .3px;
+}
 
-    .subtitle { color: #666; font-size: 0.75rem; }
+/* Connecting state */
+.connecting { text-align: center; padding: 60px 20px; color: var(--text-secondary); font-size: 15px; }
+.connecting-spinner { width: 24px; height: 24px; border: 2px solid var(--border); border-top-color: var(--accent);
+  border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 12px; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Stats bar - single compact row */
-    .stats-bar {
-      display: flex;
-      gap: 8px;
-      flex-shrink: 0;
-      flex-wrap: wrap;
-    }
-
-    .stat-card {
-      background: rgba(20, 20, 20, 0.8);
-      border: 1px solid rgba(255, 215, 0, 0.15);
-      border-radius: 8px;
-      padding: 6px 14px;
-      text-align: center;
-      flex: 1;
-      min-width: 80px;
-    }
-
-    .stat-value {
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: #ffd700;
-    }
-
-    .stat-label {
-      font-size: 0.6rem;
-      color: #666;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    /* Main content - fill remaining space */
-    .main-content {
-      flex: 1;
-      display: grid;
-      grid-template-columns: 1fr 280px;
-      gap: 10px;
-      min-height: 0;
-    }
-
-    /* Agent grid - compact cards */
-    .agents-section {
-      position: relative;
-      min-height: 0;
-    }
-
-    .agents-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      grid-template-rows: repeat(2, 1fr);
-      gap: 8px;
-      height: 100%;
-    }
-
-    .agent-card {
-      background: rgba(20, 20, 20, 0.8);
-      border: 1px solid rgba(255, 215, 0, 0.15);
-      border-radius: 10px;
-      padding: 10px 12px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      transition: all 0.3s ease;
-      overflow: hidden;
-    }
-
-    .agent-card:hover {
-      border-color: rgba(255, 215, 0, 0.4);
-      box-shadow: 0 4px 15px rgba(255, 215, 0, 0.1);
-    }
-
-    .agent-card.working {
-      border-color: #ffd700;
-      box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
-      animation: workingGlow 2s ease-in-out infinite;
-    }
-    @keyframes workingGlow {
-      0%, 100% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.2); }
-      50% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.4); }
-    }
-
-    .agent-card.complete { border-color: rgba(0, 255, 0, 0.25); }
-
-    .agent-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .agent-emoji { font-size: 1.3rem; }
-
-    .agent-info h3 {
-      font-size: 0.9rem;
-      color: #ffd700;
-      line-height: 1.1;
-    }
-
-    .agent-role {
-      font-size: 0.65rem;
-      color: #777;
-    }
-
-    .agent-middle {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin: 4px 0;
-    }
-
-    .agent-status {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 8px;
-      font-size: 0.6rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .agent-status.idle { background: rgba(100,100,100,0.3); color: #888; }
-    .agent-status.working { background: rgba(255,215,0,0.2); color: #ffd700; }
-    .agent-status.complete { background: rgba(0,255,0,0.2); color: #00ff00; }
-
-    .agent-task {
-      font-size: 0.7rem;
-      color: #999;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      flex: 1;
-    }
-
-    .agent-model {
-      font-size: 0.6rem;
-      color: #555;
-    }
-
-    /* Activity feed - scrollable sidebar */
-    .activity-section {
-      background: rgba(20, 20, 20, 0.8);
-      border: 1px solid rgba(255, 215, 0, 0.15);
-      border-radius: 10px;
-      padding: 12px;
-      overflow-y: auto;
-      min-height: 0;
-    }
-
-    .activity-section h2 {
-      color: #ffd700;
-      font-size: 0.9rem;
-      margin-bottom: 10px;
-      position: sticky;
-      top: 0;
-      background: rgba(20, 20, 20, 0.95);
-      padding-bottom: 6px;
-    }
-
-    .activity-item {
-      padding: 6px 0;
-      border-bottom: 1px solid rgba(255, 215, 0, 0.06);
-    }
-
-    .activity-item:last-child { border-bottom: none; }
-
-    .activity-time { font-size: 0.65rem; color: #ffd700; }
-    .activity-text { font-size: 0.75rem; color: #bbb; line-height: 1.3; }
-    .activity-agent { font-size: 0.6rem; color: #666; }
-
-    .activity-section::-webkit-scrollbar { width: 4px; }
-    .activity-section::-webkit-scrollbar-track { background: transparent; }
-    .activity-section::-webkit-scrollbar-thumb { background: rgba(255,215,0,0.2); border-radius: 2px; }
-
-    #connections-canvas {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      pointer-events: none; z-index: -1;
-    }
-
-    .loading { text-align: center; padding: 20px; color: #666; font-size: 0.8rem; }
-
-    /* Mobile responsive */
-    @media (max-width: 768px) {
-      body { overflow: auto; height: auto; }
-      .container { height: auto; padding: 10px; gap: 8px; }
-      .stats-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
-      .stat-card { padding: 4px 6px; min-width: unset; }
-      .stat-value { font-size: 0.9rem; }
-      .stat-label { font-size: 0.5rem; }
-      .main-content { grid-template-columns: 1fr; }
-      .agents-grid { grid-template-columns: repeat(2, 1fr); grid-template-rows: auto; gap: 6px; }
-      .agent-card { padding: 8px 10px; }
-      .agent-emoji { font-size: 1rem; }
-      .agent-info h3 { font-size: 0.8rem; }
-      .activity-section { max-height: 300px; }
-      h1 { font-size: 1.1rem; }
-      .subtitle { font-size: 0.65rem; }
-      #clock { font-size: 0.7rem; }
-    }
-
-    @media (max-width: 400px) {
-      .stats-bar { grid-template-columns: repeat(3, 1fr); }
-      .agent-info h3 { font-size: 0.75rem; }
-      .agent-role { font-size: 0.55rem; }
-    }
-  </style>
+/* Mobile */
+@media (max-width: 768px) {
+  .layout { grid-template-columns: 1fr; }
+  .activity { border-left: none; border-top: 1px solid var(--border); position: static; max-height: 400px; }
+  .stats-grid { grid-template-columns: repeat(3, 1fr); }
+  .agents-grid { grid-template-columns: repeat(2, 1fr); }
+  .main { padding: 16px; }
+}
+@media (max-width: 640px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .agents-grid { grid-template-columns: repeat(2, 1fr); }
+  .header { padding: 12px 16px; }
+  .header-title { font-size: 16px; letter-spacing: 1px; }
+  .stat-value { font-size: 22px; }
+  .agent-card { min-height: 160px; padding: 16px; }
+}
+</style>
 </head>
 <body>
-  <div class="grid-background"></div>
-  
-  <div class="container">
-    <header>
-      <div class="header-left">
-        <h1>KIT'S TEAM</h1>
-        <span class="subtitle">Command Center • Real-Time</span>
-      </div>
-      <span class="subtitle" id="clock"></span>
-    </header>
-
-    <div class="stats-bar" id="stats-bar">
-      <div class="loading">Loading...</div>
-    </div>
-
-    <div class="main-content">
-      <div class="agents-section">
-        <canvas id="connections-canvas"></canvas>
-        <div class="agents-grid" id="agents-grid">
-          <div class="loading">Loading agents...</div>
-        </div>
-      </div>
-
-      <div class="activity-section">
-        <h2>📡 Activity Feed</h2>
-        <div id="activity-feed">
-          <div class="loading">Loading...</div>
-        </div>
-      </div>
-    </div>
+<div class="header" id="header">
+  <div class="header-left">
+    <span class="header-title">Command Center</span>
+    <div class="live-badge"><span class="live-dot"></span><span id="liveText">Live</span></div>
   </div>
+  <span class="clock" id="clock"></span>
+</div>
 
-  <script>
-    let currentData = null;
+<div class="layout">
+  <div class="main" id="main">
+    <div class="connecting" id="connecting"><div class="connecting-spinner"></div>Connecting...</div>
+  </div>
+  <div class="activity" id="activityPanel" style="display:none">
+    <div class="activity-header"><i data-lucide="activity" style="width:16px;height:16px"></i> Activity Feed</div>
+    <div class="activity-list" id="activityList"></div>
+  </div>
+</div>
 
-    function updateClock() {
-      const now = new Date();
-      document.getElementById('clock').textContent = 
-        now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    }
-    updateClock();
-    setInterval(updateClock, 1000);
+<script>
+const API = '/api/status';
+const KEY = '689b1f85c91ffc61ef7469ea7b4c75f796a7025848bb3c7c';
+let prevStatuses = {};
+let initialized = false;
 
-    async function fetchData() {
-      try {
-        // Try live tunnel first, then local API, then static fallback
-        const apiKey = '689b1f85c91ffc61ef7469ea7b4c75f796a7025848bb3c7c';
-        const headers = { 'X-API-Key': apiKey };
-        const apiUrls = [
-          'https://dashboard.kitswarroom.com/api/status',
-          '/api/status'
-        ];
-        let response;
-        for (const url of apiUrls) {
-          try { response = await fetch(url, { headers }); if (response.ok) break; } catch(e) { continue; }
-        }
-        if (!response || !response.ok) throw new Error('All API endpoints failed');
-        const data = await response.json();
-        currentData = data;
-        renderDashboard(data);
-      } catch (error) {
-        // Fallback to static data when API is unavailable (e.g., deployed to static host)
-        const staticData = {
-          stats: { linesOfCode: 14280, files: 43, screens: 23, components: 156, tsErrors: 0, commits: 38, uptime: 9720 },
-          agents: [
-            { name: "Kit", emoji: "⚡", role: "CEO / Orchestrator", status: "working", task: "Orchestrating Sprint 1", model: "claude-opus-4" },
-            { name: "Coder", emoji: "💻", role: "Full-Stack Developer", status: "idle", task: "5 builds shipped — Racing Game, Deal Calculator, Trade Estimator, CSI Survey, Digital Cards", model: "claude-opus-4" },
-            { name: "Researcher", emoji: "🔬", role: "Research & Discovery", status: "idle", task: "4 builds shipped — Master Backlog, GH Landing, Competitive Intel, People Analyzer", model: "claude-opus-4" },
-            { name: "Writer", emoji: "✍️", role: "Content & Docs", status: "idle", task: "4 builds shipped — EOS Framework, Review Responder, L10 Runner, Onboarding", model: "claude-opus-4" },
-            { name: "Analyst", emoji: "📊", role: "Data & Visualization", status: "idle", task: "3 builds shipped — Spin-to-Win, Agent Dashboard, Financial Dashboard, Marketing Tracker", model: "claude-opus-4" },
-            { name: "Ops", emoji: "⚙️", role: "DevOps & Infrastructure", status: "idle", task: "3 builds shipped — Scrum Dashboard, Service Scheduler, Sales Scorecard", model: "claude-opus-4" },
-            { name: "QA", emoji: "🔍", role: "Quality Assurance", status: "idle", task: "Standby — QA-RULES.md established", model: "claude-opus-4" },
-            { name: "Comms", emoji: "📢", role: "Communications", status: "idle", task: "Standby", model: "claude-opus-4" }
-          ],
-          activity: [
-            { time: "9:06 AM", text: "Kit's War Room deployed to kitswarroom.com", agent: "Kit" },
-            { time: "8:43 AM", text: "CULTURE.md pushed to all agent workspaces — mission, values, creator mindset", agent: "Kit" },
-            { time: "8:23 AM", text: "QA-RULES.md created — feedback loop institutionalized (IDS)", agent: "Kit" },
-            { time: "7:36 AM", text: "Digital Business Cards shipped — vCard, QR codes, hash routing", agent: "Coder" },
-            { time: "7:35 AM", text: "Employee Onboarding Checklist shipped — 4-phase wizard", agent: "Writer" },
-            { time: "7:35 AM", text: "Inventory Browser shipped — 45 vehicles, filters, lead capture", agent: "Researcher" },
-            { time: "7:34 AM", text: "⏸️ Jeff paused new jobs — completing in-flight builds", agent: "Kit" },
-            { time: "7:32 AM", text: "Financial P&L Dashboard shipped — 7 departments, store comparison", agent: "Analyst" },
-            { time: "7:31 AM", text: "People Analyzer shipped — GWC grid, The Bar, quarterly review", agent: "Researcher" },
-            { time: "7:30 AM", text: "Trade-In Estimator shipped — 4-step lead gen tool", agent: "Coder" },
-            { time: "7:30 AM", text: "CSI Survey shipped — smart routing happy→review, unhappy→recovery", agent: "Coder" },
-            { time: "7:29 AM", text: "Review Response Generator shipped — 33+ templates, 3 tones", agent: "Writer" },
-            { time: "7:28 AM", text: "Sales Daily Scorecard shipped — store tabs, leaderboard, sparklines", agent: "Ops" },
-            { time: "7:28 AM", text: "Competitive Intel Dashboard shipped — 10 FL competitors profiled", agent: "Researcher" },
-            { time: "7:25 AM", text: "Agent Performance Dashboard shipped — Gantt, burndown, cost tracker", agent: "Analyst" },
-            { time: "7:25 AM", text: "Deal Profit Calculator shipped — front/back gross, OTD, live calcs", agent: "Coder" },
-            { time: "7:24 AM", text: "GH Landing Page shipped — full conversion funnel, market research", agent: "Researcher" },
-            { time: "7:23 AM", text: "Spin-to-Win Lead Capture shipped — prize wheel + lead form", agent: "Analyst" },
-            { time: "7:22 AM", text: "Racing Game V1 shipped — 4 Dyer brand cars, top-down racing", agent: "Coder" },
-            { time: "7:21 AM", text: "Scrum Dashboard shipped — Kanban, IDS, Rocks, activity feed", agent: "Ops" },
-            { time: "7:20 AM", text: "Service Scheduler shipped — 4-step wizard, .ics export", agent: "Ops" },
-            { time: "7:18 AM", text: "L10 Meeting Runner shipped — full EOS format with timers", agent: "Writer" },
-            { time: "7:15 AM", text: "Team EOS Framework shipped — docs/TEAM-EOS.md", agent: "Writer" },
-            { time: "7:12 AM", text: "Master Backlog shipped — 47 items prioritized", agent: "Researcher" },
-            { time: "7:00 AM", text: "🚀 Sprint 1 launched — all agents activated", agent: "Kit" }
-          ]
-        };
-        currentData = staticData;
-        renderDashboard(staticData);
-      }
-    }
+// Clock
+function updateClock() {
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+updateClock();
+setInterval(updateClock, 1000);
 
-    function renderDashboard(data) {
-      renderStats(data.stats);
-      renderAgents(data.agents);
-      renderActivity(data.activity);
-      drawConnections();
-    }
+// Count-up animation
+function animateValue(el, end, duration, format) {
+  const start = 0;
+  const startTime = performance.now();
+  function step(now) {
+    const progress = Math.min((now - startTime) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = Math.round(start + (end - start) * eased);
+    el.textContent = format ? format(current) : current.toLocaleString();
+    if (progress < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
 
-    function renderStats(stats) {
-      document.getElementById('stats-bar').innerHTML = `
-        <div class="stat-card"><div class="stat-value">${stats.linesOfCode.toLocaleString()}</div><div class="stat-label">Lines</div></div>
-        <div class="stat-card"><div class="stat-value">${stats.files}</div><div class="stat-label">Files</div></div>
-        <div class="stat-card"><div class="stat-value">${stats.screens}</div><div class="stat-label">Screens</div></div>
-        <div class="stat-card"><div class="stat-value">${stats.components}</div><div class="stat-label">Components</div></div>
-        <div class="stat-card"><div class="stat-value">${stats.tsErrors}</div><div class="stat-label">TS Errors</div></div>
-        <div class="stat-card"><div class="stat-value">${stats.commits}</div><div class="stat-label">Commits</div></div>
-        <div class="stat-card"><div class="stat-value">${formatUptime(stats.uptime)}</div><div class="stat-label">Uptime</div></div>
-      `;
-    }
+function formatUptime(seconds) {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
 
-    function renderAgents(agents) {
-      document.getElementById('agents-grid').innerHTML = agents.map((agent, i) => `
-        <div class="agent-card ${agent.status}" data-agent="${agent.name}" data-index="${i}">
-          <div class="agent-header">
-            <div class="agent-emoji">${agent.emoji}</div>
-            <div class="agent-info">
-              <h3>${agent.name}</h3>
-              <div class="agent-role">${agent.role}</div>
-            </div>
-          </div>
-          <div class="agent-middle">
-            <div class="agent-status ${agent.status}">${agent.status}</div>
-            <div class="agent-task" title="${agent.task}">${agent.task}</div>
-          </div>
-          <div class="agent-model">${agent.model}</div>
-        </div>
-      `).join('');
-    }
+function renderStats(stats) {
+  const items = [
+    { label: 'Lines of Code', value: stats.linesOfCode, key: 'loc' },
+    { label: 'Files', value: stats.files, key: 'files' },
+    { label: 'Screens', value: stats.screens, key: 'screens' },
+    { label: 'Components', value: stats.components, key: 'comps' },
+    { label: 'Commits', value: stats.commits, key: 'commits' },
+    { label: 'Uptime', value: stats.uptime, key: 'uptime', format: formatUptime },
+  ];
+  return `<div class="stats-grid">${items.map((s, i) =>
+    `<div class="stat-card"><div class="stat-value" data-key="${s.key}" data-target="${s.value}" data-delay="${i * 100}" data-format="${s.key === 'uptime' ? 'uptime' : ''}">${s.format ? s.format(s.value) : s.value.toLocaleString()}</div><div class="stat-label">${s.label}</div></div>`
+  ).join('')}</div>`;
+}
 
-    function renderActivity(activity) {
-      const feed = document.getElementById('activity-feed');
-      if (!activity.length) {
-        feed.innerHTML = '<div class="activity-item"><div class="activity-text">No recent activity</div></div>';
-        return;
-      }
-      feed.innerHTML = activity.map(item => `
-        <div class="activity-item">
-          <div class="activity-time">${item.time}</div>
-          <div class="activity-text">${item.text}</div>
-          <div class="activity-agent">${item.agent}</div>
-        </div>
-      `).join('');
-    }
+function statusClass(s) {
+  return ({ working: 'status-working', complete: 'status-complete', idle: 'status-idle', error: 'status-error' })[s] || 'status-idle';
+}
+function statusLabel(s) {
+  return ({ working: 'Working', complete: 'Complete', idle: 'Idle', error: 'Error' })[s] || 'Idle';
+}
+function statusIcon(s) {
+  if (s === 'complete') return '✓';
+  return `<span class="status-dot"></span>`;
+}
 
-    function drawConnections() {
-      const canvas = document.getElementById('connections-canvas');
-      const ctx = canvas.getContext('2d');
-      const section = document.querySelector('.agents-section');
-      canvas.width = section.offsetWidth;
-      canvas.height = section.offsetHeight;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+function renderAgents(agents) {
+  return `<div class="agents-grid">${agents.map(a => {
+    const changed = prevStatuses[a.name] && prevStatuses[a.name] !== a.status;
+    return `<div class="agent-card${changed ? ' pulse-green' : ''}">
+      <div class="agent-emoji">${a.emoji}</div>
+      <div class="agent-name">${a.name}</div>
+      <div class="agent-role">${a.role}</div>
+      <div class="agent-model">${a.model}</div>
+      <div class="agent-task">${a.task}</div>
+      <div class="agent-status ${statusClass(a.status)}">${statusIcon(a.status)} ${statusLabel(a.status)}</div>
+    </div>`;
+  }).join('')}</div>`;
+}
 
-      const kitCard = document.querySelector('[data-agent="Kit"]');
-      if (!kitCard || !currentData) return;
+function renderActivity(items) {
+  return items.map(a =>
+    `<div class="activity-item">
+      <div class="activity-time">${a.time}</div>
+      <div class="activity-text">${a.text}</div>
+      <span class="activity-agent">${a.agent}</span>
+    </div>`
+  ).join('');
+}
 
-      const sRect = section.getBoundingClientRect();
-      const kRect = kitCard.getBoundingClientRect();
-      const kx = kRect.left - sRect.left + kRect.width / 2;
-      const ky = kRect.top - sRect.top + kRect.height / 2;
+async function fetchData() {
+  try {
+    const res = await fetch(API, { headers: { 'X-API-Key': KEY } });
+    if (!res.ok) throw new Error(res.status);
+    const data = await res.json();
 
-      currentData.agents.forEach((agent, i) => {
-        if (agent.status === 'working' && agent.name !== 'Kit') {
-          const card = document.querySelector(`[data-index="${i}"]`);
-          if (card) {
-            const r = card.getBoundingClientRect();
-            const ax = r.left - sRect.left + r.width / 2;
-            const ay = r.top - sRect.top + r.height / 2;
-            ctx.beginPath();
-            ctx.moveTo(kx, ky);
-            ctx.lineTo(ax, ay);
-            ctx.strokeStyle = 'rgba(255, 215, 0, 0.25)';
-            ctx.lineWidth = 1.5;
-            ctx.shadowBlur = 8;
-            ctx.shadowColor = 'rgba(255, 215, 0, 0.4)';
-            ctx.stroke();
-            ctx.shadowBlur = 0;
-          }
-        }
+    document.getElementById('header').classList.remove('offline');
+    document.getElementById('liveText').textContent = 'Live';
+
+    const main = document.getElementById('main');
+    const isFirst = !initialized;
+    main.innerHTML = renderStats(data.stats) + renderAgents(data.agents);
+
+    if (isFirst) {
+      // Animate stats on first load
+      main.querySelectorAll('.stat-value[data-target]').forEach(el => {
+        const target = parseInt(el.dataset.target);
+        const delay = parseInt(el.dataset.delay);
+        const fmt = el.dataset.format;
+        setTimeout(() => {
+          animateValue(el, target, 600, fmt === 'uptime' ? formatUptime : null);
+        }, delay);
       });
+      initialized = true;
     }
 
-    function formatUptime(s) {
-      const h = Math.floor(s / 3600);
-      const m = Math.floor((s % 3600) / 60);
-      return h > 0 ? `${h}h${m}m` : `${m}m`;
-    }
+    // Track status changes
+    data.agents.forEach(a => { prevStatuses[a.name] = a.status; });
 
-    fetchData();
-    setInterval(fetchData, 5000);
-    window.addEventListener('resize', () => currentData && drawConnections());
-  </script>
+    // Activity
+    const panel = document.getElementById('activityPanel');
+    panel.style.display = '';
+    document.getElementById('activityList').innerHTML = renderActivity(data.activity);
+
+    lucide.createIcons();
+  } catch (e) {
+    document.getElementById('header').classList.add('offline');
+    document.getElementById('liveText').textContent = 'Offline';
+  }
+}
+
+fetchData();
+setInterval(fetchData, 5000);
+</script>
 </body>
 </html>
