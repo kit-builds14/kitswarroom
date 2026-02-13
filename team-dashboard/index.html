@@ -313,13 +313,15 @@
     async function fetchData() {
       try {
         // Try live tunnel first, then local API, then static fallback
+        const apiKey = '689b1f85c91ffc61ef7469ea7b4c75f796a7025848bb3c7c';
+        const headers = { 'X-API-Key': apiKey };
         const apiUrls = [
           'https://accessibility-stars-greensboro-coordinator.trycloudflare.com/api/status',
           '/api/status'
         ];
         let response;
         for (const url of apiUrls) {
-          try { response = await fetch(url); if (response.ok) break; } catch(e) { continue; }
+          try { response = await fetch(url, { headers }); if (response.ok) break; } catch(e) { continue; }
         }
         if (!response || !response.ok) throw new Error('All API endpoints failed');
         const data = await response.json();

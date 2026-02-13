@@ -66,11 +66,7 @@
     async function tryLogin() {
       var pw = input.value;
       var hashed = await sha256(pw);
-      if (hashed === 'a0f2c3e1d5b7849a6c0e2f4d8b1a3c5e7f9d0b2a4c6e8f1d3b5a7c9e0f2d4b6') {
-        // Fallback: direct comparison with known password
-        // This is intentionally simple - client-side only
-      }
-      if (pw === 'Dyer$tories2026!Mx') {
+      if (hashed === '93b809afe864725999f24f103dcdf496a682eb833179783fed8b2d838414d233') {
         setAuthenticated();
         location.reload();
       } else {
