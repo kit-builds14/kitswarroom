@@ -197,8 +197,86 @@ tr:hover td{background:rgba(197,165,90,.04)}
 <div style="text-align:center;padding:20px;font-size:.65rem;color:var(--text-dim)">
   Agent Performance Dashboard v1.0 &mdash; Built by Analyst Agent &mdash; OpenClaw Multi-Agent System
 </div>
+<div id="liveIndicator" style="position:fixed;bottom:12px;right:12px;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;background:rgba(0,0,0,0.6);color:#888;z-index:9999;">⏳ Connecting...</div>
 
 <script>
+// ============================================================
+// Live API Integration
+// ============================================================
+const LIVE_API_URL = 'https://amp-changelog-commentary-alternatives.trycloudflare.com/api/status';
+const LIVE_API_KEY = '689b1f85c91ffc61ef7469ea7b4c75f796a7025848bb3c7c';
+
+const agentColors = {
+  Kit: 'var(--gold)', Researcher: '#60A5FA', Coder: '#A78BFA',
+  Ops: '#F472B6', Analyst: '#34D399', Writer: '#FBBF24', Comms: '#F97316', Qa: '#06B6D4'
+};
+const statusClassMap = { working: 'status-active', idle: 'status-idle', complete: 'status-done', blocked: 'status-active' };
+const statusLabelMap = { working: '● Active', idle: 'Idle', complete: '✓ Done', blocked: '⚠ Blocked' };
+
+async function fetchLiveData() {
+  const indicator = document.getElementById('liveIndicator');
+  try {
+    const res = await fetch(LIVE_API_URL, { headers: { 'X-API-Key': LIVE_API_KEY } });
+    if (!res.ok) throw new Error('API error');
+    const data = await res.json();
+    updateAgentDashboard(data);
+    indicator.textContent = '🟢 Live';
+    indicator.style.color = '#4ADE80';
+  } catch (e) {
+    indicator.textContent = '🔴 Offline';
+    indicator.style.color = '#F87171';
+  }
+}
+
+function updateAgentDashboard(data) {
+  // Update KPI cards
+  const statCards = document.querySelectorAll('.stat-card');
+  if (statCards.length >= 4 && data.stats) {
+    const activeAgents = data.agents.filter(a => a.status === 'working').length;
+    const completedAgents = data.agents.filter(a => a.status === 'complete').length;
+    statCards[0].querySelector('.value').textContent = data.stats.commits || statCards[0].querySelector('.value').textContent;
+    statCards[0].querySelector('.sub').textContent = `${activeAgents} agents active`;
+    statCards[2].querySelector('.sub').textContent = `${completedAgents} of ${data.agents.length} complete`;
+    statCards[3].querySelector('.value').textContent = '~' + data.stats.linesOfCode.toLocaleString();
+    statCards[3].querySelector('.sub').textContent = `${data.stats.files} files, ${data.stats.screens} screens`;
+  }
+
+  // Update leaderboard
+  const tbody = document.querySelector('table tbody');
+  if (tbody && data.agents) {
+    tbody.innerHTML = data.agents.map(a => {
+      const color = agentColors[a.name] || 'var(--text-dim)';
+      const cls = statusClassMap[a.status] || 'status-idle';
+      const label = statusLabelMap[a.status] || a.status;
+      return `<tr>
+        <td><div class="agent-name"><span class="agent-dot" style="background:${color}"></span>${a.name}</div></td>
+        <td>${a.role}</td>
+        <td>${a.model}</td>
+        <td>${a.task || '—'}</td>
+        <td><span class="status ${cls}">${label}</span></td>
+      </tr>`;
+    }).join('');
+    // Update table header to match new columns
+    const thead = document.querySelector('table thead tr');
+    if (thead) thead.innerHTML = '<th>Agent</th><th>Role</th><th>Model</th><th>Task</th><th>Status</th>';
+  }
+
+  // Update timeline with activity feed
+  const timelineContainer = document.querySelector('.timeline-container');
+  if (timelineContainer && data.activity && data.activity.length > 0) {
+    timelineContainer.innerHTML = data.activity.slice(0, 10).map(a => `
+      <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid rgba(45,65,104,.4);align-items:flex-start;">
+        <span style="font-size:.7rem;color:var(--text-dim);min-width:44px;font-variant-numeric:tabular-nums;">${a.time}</span>
+        <span style="width:8px;height:8px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:4px;"></span>
+        <span style="font-size:.8rem;color:var(--text);flex:1;line-height:1.4;"><strong style="color:var(--gold-dim)">${a.agent}</strong> — ${a.text}</span>
+      </div>
+    `).join('');
+  }
+}
+
+fetchLiveData();
+setInterval(fetchLiveData, 15000);
+
 // Burndown Chart
 const ctx = document.getElementById('burndown').getContext('2d');
 const days = ['Day 1','Day 2','Day 3','Day 4','Day 5','Day 6','Day 7','Day 8','Day 9','Day 10'];

@@ -628,6 +628,82 @@ function fmtTime(t) {
   const dt = new Date(t);
   return dt.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit', hour12:true });
 }
+
+// ============================================================
+// Live API Integration
+// ============================================================
+const LIVE_API_URL = 'https://amp-changelog-commentary-alternatives.trycloudflare.com/api/status';
+const LIVE_API_KEY = '689b1f85c91ffc61ef7469ea7b4c75f796a7025848bb3c7c';
+
+// Add live indicator
+const liveIndicator = document.createElement('div');
+liveIndicator.id = 'liveIndicator';
+liveIndicator.style.cssText = 'position:fixed;bottom:12px;right:12px;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;background:rgba(0,0,0,0.6);color:#888;z-index:9999;';
+liveIndicator.textContent = '⏳ Connecting...';
+document.body.appendChild(liveIndicator);
+
+async function fetchLiveData() {
+  try {
+    const res = await fetch(LIVE_API_URL, { headers: { 'X-API-Key': LIVE_API_KEY } });
+    if (!res.ok) throw new Error('API error');
+    const data = await res.json();
+    updateWithLiveData(data);
+    liveIndicator.textContent = '🟢 Live';
+    liveIndicator.style.color = '#4CAF50';
+  } catch (e) {
+    liveIndicator.textContent = '🔴 Offline';
+    liveIndicator.style.color = '#EF5350';
+  }
+}
+
+function updateWithLiveData(data) {
+  // Update Team Status sidebar
+  const statusMap = { working: 'working', idle: 'idle', complete: 'idle', blocked: 'blocked' };
+  const teamEl = document.getElementById('teamStatus');
+  if (teamEl && data.agents) {
+    teamEl.innerHTML = data.agents.map(a => `
+      <div class="agent-row">
+        <span class="status-dot ${statusMap[a.status] || 'idle'}"></span>
+        <span class="agent-name">${a.emoji || ''} ${a.name}</span>
+        <span class="agent-task">${a.task || a.status}</span>
+      </div>
+    `).join('');
+  }
+
+  // Update stats bar with live data
+  const statsEl = document.getElementById('statsBar');
+  if (statsEl && data.stats) {
+    const workingAgents = data.agents.filter(a => a.status === 'working').length;
+    const totalAgents = data.agents.length;
+    // Keep existing kanban stats, overlay with live agent/commit data
+    const cols2 = { backlog:0, inprogress:0, qareview:0, done:0 };
+    D.tasks.forEach(t => cols2[t.column]++);
+    const totalTasks2 = D.tasks.length;
+    const velocity2 = cols2.done;
+    statsEl.innerHTML = `
+      <div class="stat-item"><div class="stat-value">${totalTasks2}</div><div class="stat-label">Total Tasks</div></div>
+      <div class="stat-item"><div class="stat-value">${cols2.inprogress}</div><div class="stat-label">In Progress</div></div>
+      <div class="stat-item"><div class="stat-value">${data.stats.commits || velocity2}</div><div class="stat-label">Commits</div></div>
+      <div class="stat-item"><div class="stat-value">${workingAgents}/${totalAgents}</div><div class="stat-label">Agents Active</div></div>
+      <div class="stat-item"><div class="stat-value">${Math.round(velocity2/totalTasks2*100)}%</div><div class="stat-label">Sprint Progress</div></div>
+    `;
+  }
+
+  // Update activity feed with live data
+  const feedEl = document.getElementById('activityFeed');
+  if (feedEl && data.activity && data.activity.length > 0) {
+    feedEl.innerHTML = data.activity.slice(0, 12).map(a => `
+      <div class="feed-item">
+        <span class="feed-time">${a.time}</span>
+        <span class="feed-dot start"></span>
+        <span class="feed-msg"><span class="feed-agent">${a.agent}</span> — ${a.text}</span>
+      </div>
+    `).join('');
+  }
+}
+
+fetchLiveData();
+setInterval(fetchLiveData, 30000);
 </script>
 </body>
 </html>
