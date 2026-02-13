@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="../auth.js"></script><link rel="stylesheet" href="../responsive.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dyer Auto Group — Daily Sales Scorecard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0e1a;--card:#111827;--border:#1e2a3a;--gold:#d4a84b;--gold-dim:#8b7332;--blue:#2563eb;--text:#e2e8f0;--muted:#64748b;--green:#22c55e;--red:#ef4444;--accent:#1e3a5f}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.header{background:linear-gradient(135deg,#0f172a,#1e293b);border-bottom:2px solid var(--gold);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.header h1{font-size:1.3rem;font-weight:700;color:var(--gold);letter-spacing:1px;text-transform:uppercase}
+.header h1 span{color:var(--text);font-weight:400;font-size:.85rem;margin-left:8px;text-transform:none}
+.date-pick{background:#1e293b;border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:6px;font-size:.9rem}
+.tabs{display:flex;gap:4px;padding:8px 24px;background:#0f1525;flex-wrap:wrap}
+.tab{padding:8px 18px;border-radius:6px 6px 0 0;cursor:pointer;font-size:.85rem;font-weight:600;background:var(--card);color:var(--muted);border:1px solid var(--border);border-bottom:none;transition:.15s}
+.tab:hover{color:var(--text)}
+.tab.active{background:var(--accent);color:var(--gold);border-color:var(--gold-dim)}
+.main{padding:16px 24px;display:flex;flex-direction:column;gap:16px}
+.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.metric-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;text-align:center}
+.metric-card .val{font-size:2.2rem;font-weight:800;color:var(--gold);line-height:1.1}
+.metric-card .lbl{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+.section-title{font-size:.85rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.mtd-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.mtd-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px}
+.mtd-card .lbl{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.mtd-card .val{font-size:1.4rem;font-weight:700;margin:4px 0}
+.progress-wrap{background:#1e293b;border-radius:4px;height:8px;margin-top:6px;overflow:hidden}
+.progress-bar{height:100%;border-radius:4px;transition:width .3s}
+.progress-bar.green{background:linear-gradient(90deg,var(--green),#16a34a)}
+.progress-bar.gold{background:linear-gradient(90deg,var(--gold),#b8942e)}
+.progress-bar.red{background:linear-gradient(90deg,var(--red),#dc2626)}
+.progress-text{font-size:.65rem;color:var(--muted);margin-top:2px;text-align:right}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th{background:#1e293b;color:var(--muted);font-weight:600;text-transform:uppercase;font-size:.7rem;letter-spacing:.5px;padding:8px 10px;text-align:left;cursor:pointer;user-select:none;white-space:nowrap}
+th:hover{color:var(--gold)}
+th .arrow{margin-left:4px;font-size:.6rem}
+td{padding:7px 10px;border-bottom:1px solid var(--border)}
+tr:hover td{background:rgba(37,99,235,.08)}
+tr.top-performer td{background:rgba(212,168,75,.1);color:var(--gold);font-weight:600}
+tr.top-performer td:first-child::before{content:'👑 '}
+.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.sparklines{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.spark-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px}
+.spark-card .lbl{font-size:.7rem;color:var(--muted);text-transform:uppercase;margin-bottom:6px}
+.spark-card canvas{width:100%!important;height:50px!important}
+.quick-entry{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px}
+.qe-form{display:flex;gap:8px;flex-wrap:wrap;align-items:end}
+.qe-form label{font-size:.7rem;color:var(--muted);text-transform:uppercase;display:flex;flex-direction:column;gap:4px}
+.qe-form select,.qe-form input{background:#1e293b;border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:6px;font-size:.85rem}
+.qe-form button{background:var(--gold);color:#0a0e1a;border:none;padding:8px 20px;border-radius:6px;font-weight:700;cursor:pointer;font-size:.85rem;align-self:end}
+.qe-form button:hover{background:#e8bc5a}
+.log-list{max-height:120px;overflow-y:auto;margin-top:10px;font-size:.75rem;color:var(--muted)}
+.log-item{padding:3px 0;border-bottom:1px solid var(--border)}
+.log-item .time{color:var(--gold-dim)}
+.two-col{display:grid;grid-template-columns:1fr 340px;gap:16px}
+@media(max-width:900px){.metrics{grid-template-columns:repeat(3,1fr)}.two-col{grid-template-columns:1fr}}
+@media(max-width:600px){.metrics{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Dyer Auto Group <span>Daily Sales Scorecard</span></h1>
+  <input type="date" class="date-pick" id="datePick">
+</div>
+
+<div class="tabs" id="storeTabs"></div>
+
+<div class="main">
+  <div class="metrics" id="dailyMetrics"></div>
+
+  <div class="section-title">Month-to-Date Performance</div>
+  <div class="mtd-grid" id="mtdGrid"></div>
+
+  <div class="section-title">7-Day Trend — Units Sold</div>
+  <div class="sparklines" id="sparklines"></div>
+
+  <div class="two-col">
+    <div>
+      <div class="section-title">Salesperson Leaderboard</div>
+      <div class="table-wrap"><table id="leaderboard"><thead><tr></tr></thead><tbody></tbody></table></div>
+    </div>
+    <div>
+      <div class="section-title">Quick Entry</div>
+      <div class="quick-entry">
+        <div class="qe-form" id="qeForm"></div>
+        <div class="log-list" id="logList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORES = ['Dyer Chevy','Dyer Mazda','Dyer Subaru','Dyer Kia'];
+const ALL = 'All Stores';
+
+const PEOPLE = {
+  'Dyer Chevy':['Mike Rivera','Sarah Chen','Jake Thompson','DeAndre Williams','Tom Kowalski','Lisa Nguyen','Chris Patel','Maria Santos','Ron Baker','Jen Dawson'],
+  'Dyer Mazda':['Alex Kim','Brittany Moore','Carlos Ruiz','Diana Lee','Eric Johansson','Fatima Hassan','Greg O\'Brien','Hannah West'],
+  'Dyer Subaru':['Ian Fletcher','Julia Martinez','Kevin Park','Laura Gibson','Marcus Cole','Nina Volkov','Oscar Dunn','Priya Sharma','Sam Torres'],
+  'Dyer Kia':['Tyler Banks','Uma Reddy','Victor Cruz','Wendy Zhao','Xavier Mendes','Yolanda Price','Zach Hoffman','Amber Reeves','Dan Murphy']
+};
+
+const TARGETS = {
+  'Dyer Chevy':{units:120,gross:480000},
+  'Dyer Mazda':{units:80,gross:320000},
+  'Dyer Subaru':{units:90,gross:378000},
+  'Dyer Kia':{units:100,gross:400000}
+};
+
+let selectedStore = ALL;
+let selectedDate = today();
+let sortCol = 1, sortAsc = false;
+let entries = JSON.parse(localStorage.getItem('dyer_entries')||'[]');
+let seedCache = {};
+
+function today(){return new Date().toISOString().slice(0,10)}
+function daysInMonth(d){const p=new Date(d);return new Date(p.getFullYear(),p.getMonth()+1,0).getDate()}
+function dayOfMonth(d){return new Date(d).getDate()}
+
+// Seeded random for consistent demo data
+function seeded(seed){let s=0;for(let i=0;i<seed.length;i++)s=((s<<5)-s)+seed.charCodeAt(i)|0;return()=>{s=s*16807%2147483647;return(s&0x7fffffff)/2147483647}}
+
+function generateSeedData(store,date){
+  const key=store+'|'+date;
+  if(seedCache[key])return seedCache[key];
+  const rng=seeded(key);
+  const people=PEOPLE[store];
+  const data=people.map(name=>{
+    const ups=Math.floor(rng()*5)+1;
+    const td=Math.floor(rng()*ups)+Math.round(rng());
+    const wu=Math.floor(rng()*td)+Math.round(rng()*0.6);
+    const del=Math.floor(rng()*Math.max(wu,1));
+    const fg=del>0?Math.floor(rng()*2000)+800:0;
+    const bg=del>0?Math.floor(rng()*1200)+400:0;
+    return{name,ups,testDrives:td,writeUps:wu,deliveries:del,frontGross:fg*del,backGross:bg*del};
+  });
+  seedCache[key]=data;
+  return data;
+}
+
+function getStoreData(store,date){
+  const base=generateSeedData(store,date);
+  const dayEntries=entries.filter(e=>e.store===store&&e.date===date);
+  const merged=base.map(p=>({...p}));
+  dayEntries.forEach(e=>{
+    let person=merged.find(m=>m.name===e.person);
+    if(!person){person={name:e.person,ups:0,testDrives:0,writeUps:0,deliveries:0,frontGross:0,backGross:0};merged.push(person)}
+    if(e.type==='Up')person.ups++;
+    if(e.type==='Test Drive')person.testDrives++;
+    if(e.type==='Write-up')person.writeUps++;
+    if(e.type==='Delivery'){person.deliveries++;person.frontGross+=(e.frontGross||0);person.backGross+=(e.backGross||0)}
+  });
+  return merged;
+}
+
+function getMTD(store,date){
+  const dom=dayOfMonth(date);
+  let totals={units:0,gross:0,frontGross:0,backGross:0,fni:0};
+  for(let d=1;d<=dom;d++){
+    const dd=date.slice(0,8)+String(d).padStart(2,'0');
+    const data=getStoreData(store,dd);
+    data.forEach(p=>{
+      totals.units+=p.deliveries;
+      totals.frontGross+=p.frontGross;
+      totals.backGross+=p.backGross;
+    });
+  }
+  totals.gross=totals.frontGross+totals.backGross;
+  totals.fni=totals.units>0?Math.round((totals.backGross*0.6)/totals.units):0;
+  return totals;
+}
+
+function getLast7(store,date){
+  const arr=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date(date);d.setDate(d.getDate()-i);
+    const dd=d.toISOString().slice(0,10);
+    const data=getStoreData(store,dd);
+    arr.push(data.reduce((s,p)=>s+p.deliveries,0));
+  }
+  return arr;
+}
+
+function getPersonMTD(store,date){
+  const dom=dayOfMonth(date);
+  const map={};
+  PEOPLE[store].forEach(n=>{map[n]={name:n,units:0,gross:0,front:0,back:0,ups:0}});
+  for(let d=1;d<=dom;d++){
+    const dd=date.slice(0,8)+String(d).padStart(2,'0');
+    getStoreData(store,dd).forEach(p=>{
+      if(!map[p.name])map[p.name]={name:p.name,units:0,gross:0,front:0,back:0,ups:0};
+      map[p.name].units+=p.deliveries;
+      map[p.name].front+=p.frontGross;
+      map[p.name].back+=p.backGross;
+      map[p.name].gross+=p.frontGross+p.backGross;
+      map[p.name].ups+=p.ups;
+    });
+  }
+  return Object.values(map);
+}
+
+function aggregateStores(fn,...args){
+  let result=null;
+  STORES.forEach(s=>{
+    const d=fn(s,...args);
+    if(!result){result=Array.isArray(d)?d.map(v=>v):Object.assign({},d);return}
+    if(Array.isArray(d)){d.forEach((v,i)=>result[i]+=v)}
+    else{Object.keys(d).forEach(k=>{if(typeof d[k]==='number')result[k]+=d[k]})}
+  });
+  return result;
+}
+
+// Rendering
+function render(){
+  renderTabs();renderMetrics();renderMTD();renderSparklines();renderLeaderboard();renderQE();renderLog();
+}
+
+function renderTabs(){
+  const el=document.getElementById('storeTabs');
+  el.innerHTML=[ALL,...STORES].map(s=>`<div class="tab${s===selectedStore?' active':''}" onclick="selectStore('${s}')">${s}</div>`).join('');
+}
+
+function selectStore(s){selectedStore=s;render()}
+
+function renderMetrics(){
+  const stores=selectedStore===ALL?STORES:[selectedStore];
+  let ups=0,td=0,wu=0,del=0;
+  stores.forEach(s=>{
+    getStoreData(s,selectedDate).forEach(p=>{ups+=p.ups;td+=p.testDrives;wu+=p.writeUps;del+=p.deliveries});
+  });
+  const cr=ups>0?Math.round(del/ups*100):0;
+  const items=[
+    {v:ups,l:'Ups Today'},{v:td,l:'Test Drives'},{v:wu,l:'Write-Ups'},{v:del,l:'Deliveries'},{v:cr+'%',l:'Closing Ratio'}
+  ];
+  document.getElementById('dailyMetrics').innerHTML=items.map(i=>`<div class="metric-card"><div class="val">${i.v}</div><div class="lbl">${i.l}</div></div>`).join('');
+}
+
+function renderMTD(){
+  const stores=selectedStore===ALL?STORES:[selectedStore];
+  let mtd={units:0,gross:0,frontGross:0,backGross:0,fni:0};
+  let tgtUnits=0,tgtGross=0;
+  stores.forEach(s=>{
+    const m=getMTD(s,selectedDate);
+    Object.keys(m).forEach(k=>mtd[k]+=m[k]);
+    tgtUnits+=TARGETS[s].units;tgtGross+=TARGETS[s].gross;
+  });
+  const avgF=mtd.units>0?Math.round(mtd.frontGross/mtd.units):0;
+  const avgB=mtd.units>0?Math.round(mtd.backGross/mtd.units):0;
+  const fni=mtd.units>0?Math.round((mtd.backGross*0.6)/mtd.units):0;
+  const upct=Math.min(Math.round(mtd.units/tgtUnits*100),100);
+  const gpct=Math.min(Math.round(mtd.gross/tgtGross*100),100);
+  const pcolor=p=>p>=80?'green':p>=50?'gold':'red';
+  const $=n=>n.toLocaleString('en-US');
+  document.getElementById('mtdGrid').innerHTML=`
+    <div class="mtd-card"><div class="lbl">Units Sold vs Target</div><div class="val">${mtd.units} / ${$(tgtUnits)}</div>
+      <div class="progress-wrap"><div class="progress-bar ${pcolor(upct)}" style="width:${upct}%"></div></div><div class="progress-text">${upct}% of target</div></div>
+    <div class="mtd-card"><div class="lbl">Total Gross vs Target</div><div class="val">$${$(mtd.gross)} / $${$(tgtGross)}</div>
+      <div class="progress-wrap"><div class="progress-bar ${pcolor(gpct)}" style="width:${gpct}%"></div></div><div class="progress-text">${gpct}% of target</div></div>
+    <div class="mtd-card"><div class="lbl">Avg Front Gross / Unit</div><div class="val" style="color:var(--green)">$${$(avgF)}</div></div>
+    <div class="mtd-card"><div class="lbl">Avg Back Gross / Unit</div><div class="val" style="color:var(--blue)">$${$(avgB)}</div></div>
+    <div class="mtd-card"><div class="lbl">F&I Per Copy</div><div class="val" style="color:var(--gold)">$${$(fni)}</div></div>`;
+}
+
+let sparkCharts={};
+function renderSparklines(){
+  const el=document.getElementById('sparklines');
+  const displayStores=selectedStore===ALL?STORES:[selectedStore];
+  el.innerHTML=displayStores.map(s=>`<div class="spark-card"><div class="lbl">${s}</div><canvas id="spark-${s.replace(/\s/g,'')}"></canvas></div>`).join('');
+  Object.values(sparkCharts).forEach(c=>c.destroy());sparkCharts={};
+  displayStores.forEach(s=>{
+    const data=getLast7(s,selectedDate);
+    const id='spark-'+s.replace(/\s/g,'');
+    const ctx=document.getElementById(id).getContext('2d');
+    sparkCharts[id]=new Chart(ctx,{type:'line',data:{labels:['','','','','','',''],datasets:[{data,borderColor:'#d4a84b',backgroundColor:'rgba(212,168,75,.15)',fill:true,tension:.4,pointRadius:2,pointBackgroundColor:'#d4a84b',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false,beginAtZero:true}}}});
+  });
+}
+
+const LB_COLS=[{k:'name',l:'Name',fmt:v=>v},{k:'units',l:'Units MTD',fmt:v=>v},{k:'gross',l:'Gross MTD',fmt:v=>'$'+v.toLocaleString()},{k:'avgF',l:'Avg Front',fmt:v=>'$'+v.toLocaleString()},{k:'avgB',l:'Avg Back',fmt:v=>'$'+v.toLocaleString()},{k:'close',l:'Closing %',fmt:v=>v+'%'}];
+
+function renderLeaderboard(){
+  const stores=selectedStore===ALL?STORES:[selectedStore];
+  let people=[];
+  stores.forEach(s=>{people=people.concat(getPersonMTD(s,selectedDate))});
+  // Aggregate same names across stores if "All"
+  if(selectedStore===ALL){
+    const map={};
+    people.forEach(p=>{
+      if(!map[p.name])map[p.name]={...p};
+      else{map[p.name].units+=p.units;map[p.name].gross+=p.gross;map[p.name].front+=p.front;map[p.name].back+=p.back;map[p.name].ups+=p.ups}
+    });
+    people=Object.values(map);
+  }
+  people=people.map(p=>({...p,avgF:p.units?Math.round(p.front/p.units):0,avgB:p.units?Math.round(p.back/p.units):0,close:p.ups?Math.round(p.units/p.ups*100):0}));
+  const sk=LB_COLS[sortCol].k;
+  people.sort((a,b)=>sortAsc?(a[sk]>b[sk]?1:-1):(a[sk]<b[sk]?1:-1));
+  const topUnits=Math.max(...people.map(p=>p.units));
+  const thead=document.querySelector('#leaderboard thead tr');
+  thead.innerHTML=LB_COLS.map((c,i)=>`<th onclick="sortBy(${i})">${c.l}<span class="arrow">${sortCol===i?(sortAsc?'▲':'▼'):''}</span></th>`).join('');
+  const tbody=document.querySelector('#leaderboard tbody');
+  tbody.innerHTML=people.map(p=>{
+    const top=p.units===topUnits&&p.units>0?'top-performer':'';
+    return`<tr class="${top}">${LB_COLS.map(c=>`<td>${c.fmt(p[c.k])}</td>`).join('')}</tr>`;
+  }).join('');
+}
+
+function sortBy(i){if(sortCol===i)sortAsc=!sortAsc;else{sortCol=i;sortAsc=i===0}renderLeaderboard()}
+
+function renderQE(){
+  const stores=selectedStore===ALL?STORES:[selectedStore];
+  const allPeople=[];stores.forEach(s=>PEOPLE[s].forEach(n=>{if(!allPeople.includes(n))allPeople.push(n)}));
+  allPeople.sort();
+  const storeOpts=stores.length>1?stores.map(s=>`<option>${s}</option>`).join(''):`<option>${stores[0]}</option>`;
+  document.getElementById('qeForm').innerHTML=`
+    ${stores.length>1?`<label>Store<select id="qeStore">${storeOpts}</select></label>`:`<input type="hidden" id="qeStore" value="${stores[0]}">`}
+    <label>Salesperson<select id="qePerson">${allPeople.map(n=>`<option>${n}</option>`).join('')}</select></label>
+    <label>Activity<select id="qeType"><option>Up</option><option>Test Drive</option><option>Write-up</option><option>Delivery</option></select></label>
+    <label>Front $<input type="number" id="qeFront" placeholder="0" style="width:80px"></label>
+    <label>Back $<input type="number" id="qeBack" placeholder="0" style="width:80px"></label>
+    <button onclick="addEntry()">Log</button>`;
+  // Update person list when store changes
+  const storeEl=document.getElementById('qeStore');
+  if(storeEl.tagName==='SELECT'){
+    storeEl.onchange=()=>{
+      const pp=PEOPLE[storeEl.value]||[];
+      document.getElementById('qePerson').innerHTML=pp.map(n=>`<option>${n}</option>`).join('');
+    };
+  }
+}
+
+function addEntry(){
+  const store=document.getElementById('qeStore').value;
+  const person=document.getElementById('qePerson').value;
+  const type=document.getElementById('qeType').value;
+  const fg=parseInt(document.getElementById('qeFront').value)||0;
+  const bg=parseInt(document.getElementById('qeBack').value)||0;
+  entries.push({store,person,type,frontGross:fg,backGross:bg,date:selectedDate,time:new Date().toLocaleTimeString()});
+  localStorage.setItem('dyer_entries',JSON.stringify(entries));
+  render();
+}
+
+function renderLog(){
+  const dayLog=entries.filter(e=>e.date===selectedDate).reverse().slice(0,20);
+  document.getElementById('logList').innerHTML=dayLog.map(e=>`<div class="log-item"><span class="time">${e.time}</span> — ${e.person} → ${e.type}${e.type==='Delivery'?' ($'+e.frontGross+'F / $'+e.backGross+'B)':''} @ ${e.store}</div>`).join('')||'<div style="padding:8px;color:var(--muted)">No entries today. Use the form above to log activity.</div>';
+}
+
+// Init
+document.getElementById('datePick').value=today();
+document.getElementById('datePick').addEventListener('change',e=>{selectedDate=e.target.value;seedCache={};render()});
+render();
+</script>
+</body>
+</html>

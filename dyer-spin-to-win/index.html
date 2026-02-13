@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="../auth.js"></script><link rel="stylesheet" href="../responsive.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Spin to Win | Dyer Auto Group</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--navy:#1B2A4A;--gold:#C5A55A;--gold-light:#d4ba7a;--white:#fff}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--navy);color:var(--white);min-height:100vh;overflow-x:hidden;display:flex;flex-direction:column;align-items:center}
+.logo-area{text-align:center;padding:20px 10px 10px;user-select:none;-webkit-user-select:none;cursor:default}
+.logo-area h1{font-size:clamp(1.4rem,5vw,2.2rem);font-weight:800;letter-spacing:2px;color:var(--gold);text-transform:uppercase}
+.logo-area p{font-size:clamp(.75rem,2.5vw,1rem);color:var(--gold-light);letter-spacing:4px;text-transform:uppercase;margin-top:2px}
+.subtitle{text-align:center;font-size:clamp(1.1rem,4vw,1.6rem);font-weight:700;color:var(--white);margin:8px 0 12px;text-shadow:0 2px 10px rgba(0,0,0,.3)}
+.wheel-container{position:relative;width:min(85vw,400px);height:min(85vw,400px);margin:0 auto}
+.wheel-container canvas{width:100%;height:100%;border-radius:50%;box-shadow:0 0 30px rgba(197,165,90,.4),0 0 60px rgba(27,42,74,.6)}
+.pointer{position:absolute;top:-18px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:18px solid transparent;border-right:18px solid transparent;border-top:36px solid var(--gold);filter:drop-shadow(0 3px 6px rgba(0,0,0,.4));z-index:10}
+.center-circle{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:60px;height:60px;border-radius:50%;background:radial-gradient(circle,var(--gold-light),var(--gold));box-shadow:0 0 15px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px;color:var(--navy);text-align:center;line-height:1.1;z-index:5;pointer-events:none}
+.form-section{width:min(90vw,400px);margin:16px auto;padding:0 8px}
+.form-section input{width:100%;padding:14px 16px;margin-bottom:10px;border:2px solid rgba(197,165,90,.3);border-radius:10px;background:rgba(255,255,255,.08);color:var(--white);font-size:16px;outline:none;transition:border-color .2s}
+.form-section input:focus{border-color:var(--gold)}
+.form-section input::placeholder{color:rgba(255,255,255,.4)}
+.spin-btn{width:100%;padding:16px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);font-size:clamp(1rem,4vw,1.3rem);font-weight:800;text-transform:uppercase;letter-spacing:2px;cursor:pointer;transition:transform .15s,box-shadow .15s;box-shadow:0 4px 20px rgba(197,165,90,.4)}
+.spin-btn:active{transform:scale(.97)}
+.spin-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.result-overlay{position:fixed;inset:0;background:rgba(27,42,74,.92);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:100;padding:20px;text-align:center;backdrop-filter:blur(6px)}
+.result-overlay.active{display:flex}
+.result-overlay h2{font-size:clamp(1.2rem,5vw,2rem);color:var(--gold);margin-bottom:8px}
+.result-overlay .prize-name{font-size:clamp(1.6rem,7vw,2.8rem);font-weight:900;color:var(--white);margin:10px 0;text-shadow:0 0 20px rgba(197,165,90,.5)}
+.result-overlay .contact-msg{font-size:clamp(.9rem,3vw,1.1rem);color:var(--gold-light);margin-top:16px;line-height:1.5}
+.result-overlay .close-btn{margin-top:24px;padding:12px 40px;border:2px solid var(--gold);border-radius:10px;background:transparent;color:var(--gold);font-size:1rem;font-weight:700;cursor:pointer;transition:background .2s}
+.result-overlay .close-btn:hover{background:rgba(197,165,90,.15)}
+canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:101}
+.admin-overlay{position:fixed;inset:0;background:rgba(0,0,0,.95);display:none;flex-direction:column;z-index:200;padding:16px;overflow:auto}
+.admin-overlay.active{display:flex}
+.admin-overlay h2{color:var(--gold);margin-bottom:12px;font-size:1.3rem}
+.admin-overlay table{width:100%;border-collapse:collapse;font-size:.8rem}
+.admin-overlay th,.admin-overlay td{padding:8px 6px;border-bottom:1px solid rgba(255,255,255,.1);text-align:left;color:var(--white)}
+.admin-overlay th{color:var(--gold);font-weight:700;position:sticky;top:0;background:rgba(0,0,0,.95)}
+.admin-bar{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.admin-bar button{padding:10px 20px;border:2px solid var(--gold);border-radius:8px;background:transparent;color:var(--gold);font-weight:700;cursor:pointer;font-size:.9rem}
+.admin-bar button:hover{background:rgba(197,165,90,.15)}
+.admin-bar .danger{border-color:#e74c3c;color:#e74c3c}
+.no-leads{color:rgba(255,255,255,.4);text-align:center;padding:40px;font-size:1rem}
+</style>
+</head>
+<body>
+
+<div class="logo-area" id="logo">
+  <h1>&#9733; Dyer Auto Group &#9733;</h1>
+  <p>Est. Since Day One</p>
+</div>
+
+<div class="subtitle">Spin to Win!</div>
+
+<div class="wheel-container">
+  <div class="pointer"></div>
+  <canvas id="wheel" width="800" height="800"></canvas>
+  <div class="center-circle">SPIN<br>&amp;<br>WIN</div>
+</div>
+
+<div class="form-section">
+  <input type="text" id="fname" placeholder="Your Name" required autocomplete="name">
+  <input type="email" id="femail" placeholder="Email Address" required autocomplete="email">
+  <input type="tel" id="fphone" placeholder="Phone Number" required autocomplete="tel">
+  <button class="spin-btn" id="spinBtn">Spin the Wheel!</button>
+</div>
+
+<div class="result-overlay" id="resultOverlay">
+  <h2>&#127881; Congratulations! &#127881;</h2>
+  <div class="prize-name" id="prizeDisplay"></div>
+  <div class="contact-msg">A Dyer Auto Group team member<br>will contact you shortly to claim your prize!</div>
+  <button class="close-btn" id="closeResult">Done</button>
+</div>
+
+<canvas id="confetti"></canvas>
+
+<div class="admin-overlay" id="adminOverlay">
+  <h2>&#128274; Admin — Captured Leads</h2>
+  <div class="admin-bar">
+    <button id="exportCsv">Export CSV</button>
+    <button id="clearLeads" class="danger">Clear All</button>
+    <button id="closeAdmin">Close</button>
+  </div>
+  <div id="adminTable"></div>
+</div>
+
+<script>
+// --- Prizes & Weights ---
+const PRIZES = [
+  { label: "Free Oil\nChange",     short: "Free Oil Change",      weight: 20, color: "#1B2A4A", text: "#C5A55A" },
+  { label: "$500 Off\nNew Car",    short: "$500 Off New Car",     weight: 8,  color: "#C5A55A", text: "#1B2A4A" },
+  { label: "Free\nDetail",         short: "Free Detail",          weight: 18, color: "#1B2A4A", text: "#C5A55A" },
+  { label: "$250 Off\nService",    short: "$250 Off Service",     weight: 12, color: "#C5A55A", text: "#1B2A4A" },
+  { label: "Free Tire\nRotation",  short: "Free Tire Rotation",   weight: 18, color: "#1B2A4A", text: "#C5A55A" },
+  { label: "$1000 Off\nNew Car",   short: "$1000 Off New Car",    weight: 3,  color: "#C5A55A", text: "#1B2A4A" },
+  { label: "Free\nCar Wash",       short: "Free Car Wash",        weight: 20, color: "#1B2A4A", text: "#C5A55A" },
+  { label: "Dyer\nSwag Bag",       short: "Dyer Swag Bag",        weight: 15, color: "#C5A55A", text: "#1B2A4A" },
+];
+const TOTAL_WEIGHT = PRIZES.reduce((s, p) => s + p.weight, 0);
+const SEG = PRIZES.length;
+const ARC = (2 * Math.PI) / SEG;
+
+// --- Draw Wheel ---
+const canvas = document.getElementById('wheel');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height, CX = W/2, CY = H/2, R = W/2 - 10;
+
+function drawWheel(rotation) {
+  ctx.clearRect(0, 0, W, H);
+  ctx.save();
+  ctx.translate(CX, CY);
+  ctx.rotate(rotation);
+  for (let i = 0; i < SEG; i++) {
+    const a0 = i * ARC - Math.PI/2;
+    const a1 = a0 + ARC;
+    // segment
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, R, a0, a1);
+    ctx.closePath();
+    ctx.fillStyle = PRIZES[i].color;
+    ctx.fill();
+    ctx.strokeStyle = "rgba(197,165,90,0.4)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    // text
+    ctx.save();
+    ctx.rotate(a0 + ARC/2);
+    ctx.fillStyle = PRIZES[i].text;
+    ctx.font = "bold 26px 'Segoe UI',system-ui,sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    const lines = PRIZES[i].label.split('\n');
+    const lh = 30;
+    const startY = R * 0.58 - (lines.length - 1) * lh / 2;
+    lines.forEach((line, li) => {
+      ctx.fillText(line, 0, startY + li * lh);
+    });
+    ctx.restore();
+  }
+  // outer ring
+  ctx.beginPath();
+  ctx.arc(0, 0, R, 0, 2 * Math.PI);
+  ctx.strokeStyle = "var(--gold)";
+  ctx.lineWidth = 6;
+  ctx.stroke();
+  // dots
+  for (let i = 0; i < 24; i++) {
+    const a = (i / 24) * 2 * Math.PI;
+    ctx.beginPath();
+    ctx.arc(Math.cos(a) * (R - 14), Math.sin(a) * (R - 14), 5, 0, 2 * Math.PI);
+    ctx.fillStyle = i % 2 === 0 ? "#C5A55A" : "#fff";
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+let currentRotation = 0;
+drawWheel(currentRotation);
+
+// --- Audio (Web Audio API, no files) ---
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+function ensureAudio() { if (!audioCtx) audioCtx = new AudioCtx(); }
+
+function playTick() {
+  ensureAudio();
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.connect(g); g.connect(audioCtx.destination);
+  o.frequency.value = 1200 + Math.random() * 400;
+  o.type = 'sine';
+  g.gain.setValueAtTime(0.08, audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+  o.start(); o.stop(audioCtx.currentTime + 0.05);
+}
+
+function playFanfare() {
+  ensureAudio();
+  const notes = [523.25, 659.25, 783.99, 1046.5];
+  notes.forEach((freq, i) => {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    o.frequency.value = freq;
+    o.type = 'triangle';
+    const t = audioCtx.currentTime + i * 0.15;
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(0.15, t + 0.05);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+    o.start(t); o.stop(t + 0.4);
+  });
+}
+
+// --- Weighted random ---
+function pickPrize() {
+  let r = Math.random() * TOTAL_WEIGHT;
+  for (let i = 0; i < PRIZES.length; i++) {
+    r -= PRIZES[i].weight;
+    if (r <= 0) return i;
+  }
+  return PRIZES.length - 1;
+}
+
+// --- Spin ---
+let spinning = false;
+const spinBtn = document.getElementById('spinBtn');
+const fname = document.getElementById('fname');
+const femail = document.getElementById('femail');
+const fphone = document.getElementById('fphone');
+
+spinBtn.addEventListener('click', () => {
+  if (spinning) return;
+  // Validate
+  const name = fname.value.trim();
+  const email = femail.value.trim();
+  const phone = fphone.value.trim();
+  if (!name || !email || !phone) {
+    [fname, femail, fphone].forEach(f => {
+      if (!f.value.trim()) { f.style.borderColor = '#e74c3c'; setTimeout(() => f.style.borderColor = '', 1500); }
+    });
+    return;
+  }
+  if (!/\S+@\S+\.\S+/.test(email)) {
+    femail.style.borderColor = '#e74c3c'; setTimeout(() => femail.style.borderColor = '', 1500); return;
+  }
+
+  spinning = true;
+  spinBtn.disabled = true;
+  ensureAudio();
+
+  const winIdx = pickPrize();
+  // Calculate target rotation: land in the middle of the winning segment
+  // The pointer is at the top (12 o'clock). Segment 0 starts at -PI/2 (top).
+  // We need segment winIdx center under the pointer.
+  // Segment i center angle from start = i * ARC + ARC/2
+  // Wheel rotates clockwise, so target = -(winIdx * ARC + ARC/2) modulo 2PI
+  const targetSegAngle = winIdx * ARC + ARC / 2;
+  const baseTarget = (2 * Math.PI) - targetSegAngle;
+  // Add random offset within segment (but not too close to edges)
+  const jitter = (Math.random() - 0.5) * ARC * 0.6;
+  const fullSpins = 5 + Math.floor(Math.random() * 3); // 5-7 full spins
+  const targetRotation = currentRotation + fullSpins * 2 * Math.PI + ((baseTarget - (currentRotation % (2 * Math.PI))) + 2 * Math.PI) % (2 * Math.PI) + jitter;
+
+  const duration = 4500 + Math.random() * 1500;
+  const startTime = performance.now();
+  const startRotation = currentRotation;
+  let lastTickAngle = startRotation;
+
+  function animate(now) {
+    const elapsed = now - startTime;
+    const t = Math.min(elapsed / duration, 1);
+    // Ease out cubic
+    const ease = 1 - Math.pow(1 - t, 3);
+    currentRotation = startRotation + (targetRotation - startRotation) * ease;
+    drawWheel(currentRotation);
+
+    // Tick sound at segment boundaries
+    const segsPassed = Math.floor(currentRotation / ARC) - Math.floor(lastTickAngle / ARC);
+    if (segsPassed !== 0) playTick();
+    lastTickAngle = currentRotation;
+
+    if (t < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      // Done
+      spinning = false;
+      spinBtn.disabled = false;
+
+      // Save lead
+      const lead = { name, email, phone, prize: PRIZES[winIdx].short, timestamp: new Date().toISOString() };
+      const leads = JSON.parse(localStorage.getItem('dyerLeads') || '[]');
+      leads.push(lead);
+      localStorage.setItem('dyerLeads', JSON.stringify(leads));
+
+      // Show result
+      setTimeout(() => {
+        playFanfare();
+        document.getElementById('prizeDisplay').textContent = PRIZES[winIdx].short;
+        document.getElementById('resultOverlay').classList.add('active');
+        startConfetti();
+      }, 300);
+
+      // Clear form
+      fname.value = ''; femail.value = ''; fphone.value = '';
+    }
+  }
+  requestAnimationFrame(animate);
+});
+
+// --- Result close ---
+document.getElementById('closeResult').addEventListener('click', () => {
+  document.getElementById('resultOverlay').classList.remove('active');
+  stopConfetti();
+});
+
+// --- Confetti ---
+const confettiCanvas = document.getElementById('confetti');
+const cctx = confettiCanvas.getContext('2d');
+let confettiParts = [], confettiAnim = null;
+
+function startConfetti() {
+  confettiCanvas.width = window.innerWidth;
+  confettiCanvas.height = window.innerHeight;
+  confettiParts = [];
+  const colors = ['#C5A55A','#FFD700','#1B2A4A','#fff','#e74c3c','#2ecc71','#3498db'];
+  for (let i = 0; i < 150; i++) {
+    confettiParts.push({
+      x: Math.random() * confettiCanvas.width,
+      y: Math.random() * confettiCanvas.height - confettiCanvas.height,
+      w: Math.random() * 10 + 5,
+      h: Math.random() * 6 + 3,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      vx: (Math.random() - 0.5) * 4,
+      vy: Math.random() * 3 + 2,
+      rot: Math.random() * Math.PI * 2,
+      rv: (Math.random() - 0.5) * 0.2
+    });
+  }
+  function frame() {
+    cctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+    let alive = false;
+    confettiParts.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.rot += p.rv; p.vy += 0.04;
+      if (p.y < confettiCanvas.height + 20) alive = true;
+      cctx.save();
+      cctx.translate(p.x, p.y);
+      cctx.rotate(p.rot);
+      cctx.fillStyle = p.color;
+      cctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+      cctx.restore();
+    });
+    if (alive) confettiAnim = requestAnimationFrame(frame);
+  }
+  frame();
+}
+
+function stopConfetti() {
+  if (confettiAnim) cancelAnimationFrame(confettiAnim);
+  cctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+}
+
+// --- Admin (long press logo 3s) ---
+let logoTimer = null;
+const logo = document.getElementById('logo');
+logo.addEventListener('pointerdown', () => {
+  logoTimer = setTimeout(() => {
+    showAdmin();
+  }, 3000);
+});
+logo.addEventListener('pointerup', () => clearTimeout(logoTimer));
+logo.addEventListener('pointerleave', () => clearTimeout(logoTimer));
+
+function showAdmin() {
+  const overlay = document.getElementById('adminOverlay');
+  overlay.classList.add('active');
+  const leads = JSON.parse(localStorage.getItem('dyerLeads') || '[]');
+  const container = document.getElementById('adminTable');
+  if (!leads.length) {
+    container.innerHTML = '<div class="no-leads">No leads captured yet.</div>';
+    return;
+  }
+  let html = '<table><thead><tr><th>#</th><th>Name</th><th>Email</th><th>Phone</th><th>Prize</th><th>Date</th></tr></thead><tbody>';
+  leads.forEach((l, i) => {
+    const d = new Date(l.timestamp);
+    html += `<tr><td>${i+1}</td><td>${esc(l.name)}</td><td>${esc(l.email)}</td><td>${esc(l.phone)}</td><td>${esc(l.prize)}</td><td>${d.toLocaleDateString()} ${d.toLocaleTimeString()}</td></tr>`;
+  });
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+document.getElementById('closeAdmin').addEventListener('click', () => {
+  document.getElementById('adminOverlay').classList.remove('active');
+});
+
+document.getElementById('exportCsv').addEventListener('click', () => {
+  const leads = JSON.parse(localStorage.getItem('dyerLeads') || '[]');
+  if (!leads.length) return;
+  let csv = 'Name,Email,Phone,Prize,Timestamp\n';
+  leads.forEach(l => {
+    csv += `"${l.name}","${l.email}","${l.phone}","${l.prize}","${l.timestamp}"\n`;
+  });
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'dyer-leads-' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+});
+
+document.getElementById('clearLeads').addEventListener('click', () => {
+  if (confirm('Delete ALL captured leads? This cannot be undone.')) {
+    localStorage.removeItem('dyerLeads');
+    showAdmin();
+  }
+});
+</script>
+</body>
+</html>

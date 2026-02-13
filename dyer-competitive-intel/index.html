@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="../auth.js"></script><link rel="stylesheet" href="../responsive.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dyer Auto Group — Competitive Intelligence Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+:root{--navy:#1a2744;--navy-light:#243354;--navy-dark:#111b30;--gold:#d4a843;--gold-light:#e8c96a;--gold-dim:#9a7a2e;--bg:#0f1624;--card:#1a2744;--card-hover:#1f2e50;--text:#e8eaf0;--text-dim:#8a92a8;--border:#2a3a5c;--green:#4caf50;--red:#ef5350;--orange:#ffa726;--blue:#42a5f5}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.header{background:linear-gradient(135deg,var(--navy-dark),var(--navy));padding:20px 32px;border-bottom:3px solid var(--gold);display:flex;justify-content:space-between;align-items:center}
+.header h1{font-size:1.5rem;font-weight:700;letter-spacing:.5px}.header h1 span{color:var(--gold)}
+.header .meta{color:var(--text-dim);font-size:.8rem}
+nav{background:var(--navy-dark);padding:0 32px;display:flex;gap:0;border-bottom:1px solid var(--border)}
+nav button{background:none;border:none;color:var(--text-dim);padding:12px 20px;font-size:.85rem;cursor:pointer;border-bottom:2px solid transparent;transition:.2s}
+nav button:hover{color:var(--text)}nav button.active{color:var(--gold);border-bottom-color:var(--gold)}
+.container{max-width:1400px;margin:0 auto;padding:24px}
+.tab{display:none}.tab.active{display:block}
+.grid{display:grid;gap:16px}.grid-4{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}.grid-3{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}.grid-2{grid-template-columns:repeat(auto-fit,minmax(400px,1fr))}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;transition:.2s}
+.card:hover{border-color:var(--gold-dim)}
+.card h3{font-size:.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--gold);margin-bottom:8px}
+.card .value{font-size:1.8rem;font-weight:700}.card .sub{font-size:.8rem;color:var(--text-dim);margin-top:4px}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.7rem;font-weight:600}
+.badge-green{background:rgba(76,175,80,.15);color:var(--green)}.badge-red{background:rgba(239,83,80,.15);color:var(--red)}.badge-gold{background:rgba(212,168,67,.15);color:var(--gold)}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th{background:var(--navy-dark);color:var(--gold);padding:10px 12px;text-align:left;font-size:.7rem;text-transform:uppercase;letter-spacing:.5px;position:sticky;top:0}
+td{padding:8px 12px;border-bottom:1px solid var(--border)}
+tr:hover td{background:rgba(212,168,67,.03)}
+.section-title{font-size:1.1rem;font-weight:600;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.section-title span{color:var(--gold)}
+.chart-box{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px}
+.chart-box h3{font-size:.8rem;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+.competitor-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:16px}
+.competitor-card .name{font-size:1.1rem;font-weight:700;margin-bottom:4px}
+.competitor-card .brands{color:var(--gold);font-size:.8rem;margin-bottom:8px}
+.competitor-card .details{display:flex;gap:24px;font-size:.8rem;color:var(--text-dim);margin-bottom:12px;flex-wrap:wrap}
+.swot{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.swot div{padding:10px;border-radius:6px;font-size:.75rem}
+.swot .s{background:rgba(76,175,80,.08);border:1px solid rgba(76,175,80,.2)}.swot .s::before{content:'Strengths';display:block;font-weight:700;color:var(--green);margin-bottom:4px}
+.swot .w{background:rgba(239,83,80,.08);border:1px solid rgba(239,83,80,.2)}.swot .w::before{content:'Weaknesses';display:block;font-weight:700;color:var(--red);margin-bottom:4px}
+.swot .o{background:rgba(66,165,245,.08);border:1px solid rgba(66,165,245,.2)}.swot .o::before{content:'Opportunities';display:block;font-weight:700;color:var(--blue);margin-bottom:4px}
+.swot .t{background:rgba(255,167,38,.08);border:1px solid rgba(255,167,38,.2)}.swot .t::before{content:'Threats';display:block;font-weight:700;color:var(--orange);margin-bottom:4px}
+.swot div[contenteditable]{outline:none;min-height:40px}
+.intel-form{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.intel-form input,.intel-form select{background:var(--navy-dark);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:6px;font-size:.82rem}
+.intel-form input:focus,.intel-form select:focus{outline:none;border-color:var(--gold)}
+.intel-form input[type=text]{flex:1;min-width:200px}
+.btn{background:var(--gold);color:var(--navy-dark);border:none;padding:8px 16px;border-radius:6px;font-weight:600;cursor:pointer;font-size:.82rem;transition:.2s}
+.btn:hover{background:var(--gold-light)}.btn-sm{padding:4px 10px;font-size:.75rem}
+.btn-outline{background:none;border:1px solid var(--gold);color:var(--gold)}.btn-outline:hover{background:rgba(212,168,67,.1)}
+.btn-danger{background:var(--red);color:#fff}.btn-danger:hover{background:#d32f2f}
+.intel-entry{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:12px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.intel-entry .content{flex:1}
+.intel-entry .obs{font-size:.85rem;margin-bottom:4px}
+.intel-entry .meta-row{display:flex;gap:12px;font-size:.72rem;color:var(--text-dim);flex-wrap:wrap}
+.impact-1{border-left:3px solid var(--green)}.impact-2{border-left:3px solid var(--gold)}.impact-3{border-left:3px solid var(--orange)}.impact-4{border-left:3px solid var(--red)}.impact-5{border-left:3px solid #b71c1c}
+.action-item{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:12px 16px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start}
+.action-item input[type=checkbox]{accent-color:var(--gold);margin-top:3px}
+.action-item.done{opacity:.5}
+.action-form{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.action-form input,.action-form select{background:var(--navy-dark);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:6px;font-size:.82rem}
+.action-form input:focus,.action-form select:focus{outline:none;border-color:var(--gold)}
+.action-form input[type=text]{flex:1;min-width:200px}
+.priority-high{border-left:3px solid var(--red)}.priority-med{border-left:3px solid var(--orange)}.priority-low{border-left:3px solid var(--green)}
+.star{color:var(--gold)}
+.scroll-table{overflow-x:auto}
+@media(max-width:768px){.container{padding:12px}.grid-4{grid-template-columns:1fr 1fr}.header{padding:16px}}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1><span>DYER</span> AUTO GROUP — Competitive Intelligence</h1>
+  <div class="meta">Vero Beach / Fort Pierce / Stuart, FL &nbsp;|&nbsp; Updated: <span id="lastUpdate"></span></div>
+</div>
+<nav id="nav">
+  <button class="active" data-tab="overview">Overview</button>
+  <button data-tab="competitors">Competitors</button>
+  <button data-tab="pricing">Price Matrix</button>
+  <button data-tab="trends">Market Trends</button>
+  <button data-tab="intel">Intel Feed</button>
+  <button data-tab="actions">Action Items</button>
+</nav>
+
+<div class="container">
+
+<!-- OVERVIEW -->
+<div class="tab active" id="tab-overview">
+  <div class="grid grid-4" style="margin-bottom:24px">
+    <div class="card"><h3>Market Position</h3><div class="value">#2</div><div class="sub">Treasure Coast region <span class="badge badge-green">↑ from #3</span></div></div>
+    <div class="card"><h3>Monthly Units (Est.)</h3><div class="value">485</div><div class="sub">Across 4 brands <span class="badge badge-green">+8% MoM</span></div></div>
+    <div class="card"><h3>Avg Google Rating</h3><div class="value">4.6 <span class="star">★</span></div><div class="sub">Across all locations <span class="badge badge-green">Above avg</span></div></div>
+    <div class="card"><h3>Market Share</h3><div class="value">18.2%</div><div class="sub">Treasure Coast new vehicle <span class="badge badge-gold">Stable</span></div></div>
+  </div>
+  <div class="grid grid-4" style="margin-bottom:24px">
+    <div class="card"><h3>Avg Days to Sell</h3><div class="value">34</div><div class="sub">vs market avg 42 <span class="badge badge-green">-8 days</span></div></div>
+    <div class="card"><h3>Active Inventory</h3><div class="value">1,247</div><div class="sub">New + used combined</div></div>
+    <div class="card"><h3>Conquest Rate</h3><div class="value">23%</div><div class="sub">Customers from competitors <span class="badge badge-green">↑ 3pts</span></div></div>
+    <div class="card"><h3>Intel Items This Month</h3><div class="value" id="intelCount">0</div><div class="sub"><span id="highImpactCount">0</span> high-impact flagged</div></div>
+  </div>
+  <div class="section-title"><span>▎</span> Dyer Dealership Portfolio</div>
+  <div class="scroll-table">
+    <table>
+      <tr><th>Dealership</th><th>Brands</th><th>Location</th><th>Google Rating</th><th>Est. Monthly Units</th><th>Key Strength</th></tr>
+      <tr><td><strong>Dyer Chevrolet</strong></td><td>Chevrolet</td><td>Vero Beach</td><td>4.6 ★</td><td>180</td><td>Largest Chevy dealer on Treasure Coast</td></tr>
+      <tr><td><strong>Dyer Mazda</strong></td><td>Mazda</td><td>Vero Beach</td><td>4.7 ★</td><td>95</td><td>Top 50 Mazda dealer nationally</td></tr>
+      <tr><td><strong>Dyer Subaru</strong></td><td>Subaru</td><td>Vero Beach</td><td>4.5 ★</td><td>110</td><td>Strong loyalty/repeat buyer base</td></tr>
+      <tr><td><strong>Dyer Kia</strong></td><td>Kia</td><td>Vero Beach</td><td>4.5 ★</td><td>100</td><td>Aggressive EV push with EV6/EV9</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- COMPETITORS -->
+<div class="tab" id="tab-competitors">
+  <div class="section-title"><span>▎</span> Competitor Profiles</div>
+  <div id="competitorList"></div>
+</div>
+
+<!-- PRICING -->
+<div class="tab" id="tab-pricing">
+  <div class="section-title"><span>▎</span> Price Comparison Matrix</div>
+  <p style="font-size:.8rem;color:var(--text-dim);margin-bottom:16px">Estimates based on market data. Click cells to edit. All prices in USD.</p>
+  <div class="scroll-table" id="priceTableWrap"></div>
+</div>
+
+<!-- TRENDS -->
+<div class="tab" id="tab-trends">
+  <div class="section-title"><span>▎</span> Market Trends</div>
+  <div class="grid grid-2" style="margin-bottom:24px">
+    <div class="chart-box"><h3>Monthly Sales by Brand</h3><canvas id="chartSales"></canvas></div>
+    <div class="chart-box"><h3>Market Share — Treasure Coast</h3><canvas id="chartShare"></canvas></div>
+  </div>
+  <div class="grid grid-2">
+    <div class="chart-box"><h3>Avg Days to Sell by Brand</h3><canvas id="chartDays"></canvas></div>
+    <div class="chart-box"><h3>Dyer vs Market — Monthly Trend</h3><canvas id="chartTrend"></canvas></div>
+  </div>
+</div>
+
+<!-- INTEL FEED -->
+<div class="tab" id="tab-intel">
+  <div class="section-title"><span>▎</span> Competitive Intel Feed</div>
+  <div class="intel-form">
+    <input type="text" id="intelObs" placeholder="Observation (e.g., AutoNation running $5K off Silverado)">
+    <select id="intelCat"><option>Pricing</option><option>Inventory</option><option>Marketing</option><option>Staffing</option><option>Service</option><option>Digital</option><option>Other</option></select>
+    <input type="text" id="intelSrc" placeholder="Source" style="width:120px">
+    <select id="intelImpact"><option value="1">Impact: 1-Low</option><option value="2">2</option><option value="3" selected>3-Med</option><option value="4">4</option><option value="5">5-Critical</option></select>
+    <button class="btn" onclick="addIntel()">+ Add Intel</button>
+  </div>
+  <div id="intelList"></div>
+</div>
+
+<!-- ACTION ITEMS -->
+<div class="tab" id="tab-actions">
+  <div class="section-title"><span>▎</span> Action Items</div>
+  <div class="action-form">
+    <input type="text" id="actionText" placeholder="Action item (e.g., Match competitor pricing on Silverado LT)">
+    <select id="actionPriority"><option value="high">High Priority</option><option value="med" selected>Medium</option><option value="low">Low</option></select>
+    <select id="actionOwner"><option>Sales</option><option>Marketing</option><option>Service</option><option>Finance</option><option>GM</option></select>
+    <button class="btn" onclick="addAction()">+ Add Action</button>
+  </div>
+  <div id="actionList"></div>
+</div>
+
+</div>
+
+<script>
+// NAV
+document.getElementById('lastUpdate', ).textContent = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'});
+document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  document.getElementById('tab-'+b.dataset.tab).classList.add('active');
+  if(b.dataset.tab==='trends')renderCharts();
+}));
+
+// COMPETITORS
+const competitors=[
+  {name:"AutoNation Chevrolet West Palm",brands:"Chevrolet",loc:"West Palm Beach, FL",rating:4.2,vol:320,
+    s:"Huge inventory, national brand recognition, strong digital presence",w:"Impersonal experience, high staff turnover, lower CSI scores",o:"Price-sensitive buyers may prefer volume dealer discounts",t:"Aggressive conquest campaigns targeting Treasure Coast"},
+  {name:"Grieco Chevrolet",brands:"Chevrolet",loc:"Fort Lauderdale, FL",rating:4.1,vol:210,
+    s:"Competitive pricing, large service dept",w:"Further from Treasure Coast, mixed reviews",o:"Weaker presence in our primary market",t:"Expanding digital retailing, may pull online shoppers"},
+  {name:"Wallace Chevrolet Stuart",brands:"Chevrolet",loc:"Stuart, FL",rating:4.3,vol:140,
+    s:"Local presence in Stuart, community ties",w:"Smaller inventory, limited marketing budget",o:"Could be acquisition target",t:"Direct overlap with Dyer's Stuart-area customers"},
+  {name:"Sport Mazda Orlando",brands:"Mazda",loc:"Orlando, FL",rating:4.5,vol:180,
+    s:"Highest volume Mazda in FL, huge selection",w:"2+ hours from market, limited local service convenience",o:"Their customers relocating to Treasure Coast",t:"Online shoppers see their prices first"},
+  {name:"Rick Case Mazda",brands:"Mazda",loc:"Davie, FL",rating:4.0,vol:130,
+    s:"Part of large dealer group, cross-brand marketing",w:"Lower Google rating, farther from market",o:"Their dissatisfied customers are prospects for us",t:"Rick Case brand has broad South FL awareness"},
+  {name:"Schumacher Subaru",brands:"Subaru",loc:"West Palm Beach, FL",rating:4.4,vol:160,
+    s:"Strong Subaru allocation, experienced sales team",w:"One-brand store, limited cross-sell",o:"Our multi-brand advantage for household deals",t:"Closest Subaru competitor, actively expanding"},
+  {name:"Coconut Creek Subaru",brands:"Subaru",loc:"Coconut Creek, FL",rating:4.3,vol:145,
+    s:"High customer satisfaction, clean facility",w:"Further south, less Treasure Coast reach",o:"Minimal digital targeting of our ZIP codes",t:"Could start geo-targeting our market"},
+  {name:"Napleton Kia",brands:"Kia",loc:"West Palm Beach, FL",rating:3.9,vol:175,
+    s:"Large lot, aggressive pricing on volume models",w:"Below-avg Google rating, service complaints",o:"Win their service defectors with better experience",t:"Price leader on Forte/Sportage, tough to match"},
+  {name:"Kia of Melbourne",brands:"Kia",loc:"Melbourne, FL",rating:4.2,vol:120,
+    s:"Proximity to north Treasure Coast buyers",w:"Smaller dealership, limited inventory",o:"Our Kia EV lineup is stronger",t:"Close enough to pull Indian River County buyers"},
+  {name:"Coggin Honda Treasure Coast",brands:"Honda",loc:"Fort Pierce, FL",rating:4.3,vol:200,
+    s:"Honda brand loyalty, prime Fort Pierce location",w:"Single brand, aging facility",o:"Cross-shop Honda vs Mazda/Subaru buyers",t:"Honda CR-V directly competes with CX-5 and Forester"}
+];
+
+function renderCompetitors(){
+  const el=document.getElementById('competitorList');
+  el.innerHTML=competitors.map(c=>`
+    <div class="competitor-card">
+      <div class="name">${c.name}</div>
+      <div class="brands">${c.brands}</div>
+      <div class="details">
+        <span>📍 ${c.loc}</span><span>⭐ ${c.rating}</span><span>📊 ~${c.vol} units/mo</span>
+      </div>
+      <div class="swot">
+        <div class="s" contenteditable="true">${c.s}</div>
+        <div class="w" contenteditable="true">${c.w}</div>
+        <div class="o" contenteditable="true">${c.o}</div>
+        <div class="t" contenteditable="true">${c.t}</div>
+      </div>
+    </div>`).join('');
+}
+renderCompetitors();
+
+// PRICING
+const models=[
+  {brand:'Chevrolet',model:'Silverado 1500 LT',msrp:48495,dyer:46200,autonation:45800,grieco:46500,wallace:47100,incentive:'$2,500 cash back + 2.9% APR',days:38},
+  {brand:'Chevrolet',model:'Equinox LT',msrp:30700,dyer:29100,autonation:28800,grieco:29400,wallace:29900,incentive:'$1,500 cash back',days:28},
+  {brand:'Chevrolet',model:'Tahoe LT',msrp:62300,dyer:60500,autonation:59900,grieco:61200,wallace:61800,incentive:'$2,000 + 3.9% APR',days:45},
+  {brand:'Mazda',model:'CX-5 S Select',msrp:31400,dyer:30500,sport:29900,rickcase:30200,incentive:'1.9% APR 36mo',days:32},
+  {brand:'Mazda',model:'CX-50 S Preferred',msrp:33300,dyer:32400,sport:31800,rickcase:32100,incentive:'$500 loyalty',days:30},
+  {brand:'Mazda',model:'MX-5 Miata Sport',msrp:28600,dyer:28200,sport:27800,rickcase:28400,incentive:'None — high demand',days:22},
+  {brand:'Subaru',model:'Outback Premium',msrp:34195,dyer:33200,schumacher:32800,coconut:33000,incentive:'0.9% APR 48mo',days:35},
+  {brand:'Subaru',model:'Forester Premium',msrp:35395,dyer:34400,schumacher:33900,coconut:34200,incentive:'$500 loyalty + 1.9%',days:30},
+  {brand:'Subaru',model:'Crosstrek Premium',msrp:31695,dyer:30800,schumacher:30400,coconut:30600,incentive:'Limited — 1.9% APR',days:26},
+  {brand:'Kia',model:'Telluride EX',msrp:40090,dyer:39500,napleton:38900,melbourne:39800,incentive:'$1,000 bonus cash',days:25},
+  {brand:'Kia',model:'Sportage LX',msrp:32090,dyer:30800,napleton:30200,melbourne:31200,incentive:'$1,500 cash back',days:32},
+  {brand:'Kia',model:'Forte LXS',msrp:22190,dyer:21200,napleton:20600,melbourne:21500,incentive:'$2,000 cash back + 2.9%',days:40}
+];
+
+function renderPricing(){
+  const wrap=document.getElementById('priceTableWrap');
+  let html='<table><tr><th>Brand</th><th>Model</th><th>MSRP</th><th>Dyer Price</th>';
+  // Dynamic competitor columns per brand group
+  html+='<th>Comp. 1</th><th>Comp. 2</th><th>Comp. 3</th><th>Incentives</th><th>Days Supply</th></tr>';
+  let lastBrand='';
+  models.forEach(m=>{
+    const vals=Object.entries(m).filter(([k])=>!['brand','model','msrp','dyer','incentive','days'].includes(k));
+    const c1=vals[0]?vals[0]:'';const c2=vals[1]?vals[1]:'';const c3=vals[2]?vals[2]:'';
+    const brandCell=m.brand!==lastBrand?m.brand:'';lastBrand=m.brand;
+    const fmt=v=>v?'$'+v.toLocaleString():'—';
+    const dyerVsLow=Math.min(...vals.map(([,v])=>v).filter(v=>typeof v==='number'));
+    const dyerClass=m.dyer<=dyerVsLow?'color:var(--green)':m.dyer>dyerVsLow+1000?'color:var(--red)':'color:var(--orange)';
+    html+=`<tr><td><strong>${brandCell}</strong></td><td>${m.model}</td><td>${fmt(m.msrp)}</td>
+      <td style="${dyerClass};font-weight:600">${fmt(m.dyer)}</td>
+      <td>${c1?fmt(c1[1])+' <small style="color:var(--text-dim)">('+c1[0]+')</small>':''}</td>
+      <td>${c2?fmt(c2[1])+' <small style="color:var(--text-dim)">('+c2[0]+')</small>':''}</td>
+      <td>${c3?fmt(c3[1])+' <small style="color:var(--text-dim)">('+c3[0]+')</small>':''}</td>
+      <td style="font-size:.75rem">${m.incentive}</td>
+      <td>${m.days} days</td></tr>`;
+  });
+  html+='</table>';wrap.innerHTML=html;
+}
+renderPricing();
+
+// CHARTS
+let chartsRendered=false;
+function renderCharts(){
+  if(chartsRendered)return;chartsRendered=true;
+  const months=['Sep','Oct','Nov','Dec','Jan','Feb'];
+  new Chart(document.getElementById('chartSales'),{type:'line',data:{labels:months,datasets:[
+    {label:'Chevrolet',data:[165,172,158,190,175,180],borderColor:'#ef5350',tension:.3},
+    {label:'Mazda',data:[80,85,78,92,88,95],borderColor:'#42a5f5',tension:.3},
+    {label:'Subaru',data:[95,100,92,105,108,110],borderColor:'#66bb6a',tension:.3},
+    {label:'Kia',data:[85,90,88,95,92,100],borderColor:'#ffa726',tension:.3}
+  ]},options:{responsive:true,plugins:{legend:{labels:{color:'#e8eaf0',font:{size:11}}}},scales:{x:{ticks:{color:'#8a92a8'}},y:{ticks:{color:'#8a92a8'},title:{display:true,text:'Units',color:'#8a92a8'}}}}});
+
+  new Chart(document.getElementById('chartShare'),{type:'doughnut',data:{labels:['Dyer Auto Group','AutoNation WPB','Schumacher','Napleton','Coggin Honda','Others'],
+    datasets:[{data:[18.2,14.5,8.3,7.1,9.8,42.1],backgroundColor:['#d4a843','#ef5350','#66bb6a','#ffa726','#42a5f5','#555']}]},
+    options:{responsive:true,plugins:{legend:{position:'right',labels:{color:'#e8eaf0',font:{size:11}}}}}});
+
+  new Chart(document.getElementById('chartDays'),{type:'bar',data:{labels:['Silverado','Equinox','Tahoe','CX-5','CX-50','MX-5','Outback','Forester','Crosstrek','Telluride','Sportage','Forte'],
+    datasets:[{label:'Dyer',data:[34,25,42,30,28,20,33,28,24,23,30,38],backgroundColor:'#d4a843'},
+      {label:'Market Avg',data:[38,28,45,32,30,22,35,30,26,25,32,40],backgroundColor:'#555'}]},
+    options:{responsive:true,plugins:{legend:{labels:{color:'#e8eaf0',font:{size:11}}}},scales:{x:{ticks:{color:'#8a92a8',font:{size:9}}},y:{ticks:{color:'#8a92a8'},title:{display:true,text:'Days',color:'#8a92a8'}}}}});
+
+  new Chart(document.getElementById('chartTrend'),{type:'line',data:{labels:months,datasets:[
+    {label:'Dyer Total Units',data:[425,447,416,482,463,485],borderColor:'#d4a843',backgroundColor:'rgba(212,168,67,.1)',fill:true,tension:.3},
+    {label:'Market Average (Top 5)',data:[380,395,370,420,400,410],borderColor:'#555',borderDash:[5,5],tension:.3}
+  ]},options:{responsive:true,plugins:{legend:{labels:{color:'#e8eaf0',font:{size:11}}}},scales:{x:{ticks:{color:'#8a92a8'}},y:{ticks:{color:'#8a92a8'}}}}});
+}
+
+// INTEL
+function getIntel(){return JSON.parse(localStorage.getItem('dyer_intel')||'[]')}
+function saveIntel(d){localStorage.setItem('dyer_intel',JSON.stringify(d));renderIntel();}
+function addIntel(){
+  const obs=document.getElementById('intelObs').value.trim();if(!obs)return;
+  const d=getIntel();
+  d.unshift({id:Date.now(),obs,cat:document.getElementById('intelCat').value,src:document.getElementById('intelSrc').value||'Field',impact:+document.getElementById('intelImpact').value,ts:new Date().toISOString()});
+  saveIntel(d);document.getElementById('intelObs').value='';document.getElementById('intelSrc').value='';
+}
+function delIntel(id){saveIntel(getIntel().filter(i=>i.id!==id))}
+function renderIntel(){
+  const d=getIntel();
+  document.getElementById('intelCount').textContent=d.length;
+  document.getElementById('highImpactCount').textContent=d.filter(i=>i.impact>=4).length;
+  const el=document.getElementById('intelList');if(!el)return;
+  el.innerHTML=d.length?d.map(i=>`<div class="intel-entry impact-${i.impact}">
+    <div class="content"><div class="obs">${i.obs}</div>
+    <div class="meta-row"><span>${new Date(i.ts).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</span>
+    <span class="badge badge-gold">${i.cat}</span><span>Source: ${i.src}</span><span>Impact: ${'●'.repeat(i.impact)}${'○'.repeat(5-i.impact)}</span></div></div>
+    <button class="btn-sm btn-outline" onclick="delIntel(${i.id})">✕</button></div>`).join(''):'<p style="color:var(--text-dim);text-align:center;padding:40px">No intel entries yet. Add observations above.</p>';
+}
+renderIntel();
+
+// ACTIONS
+function getActions(){return JSON.parse(localStorage.getItem('dyer_actions')||'[]')}
+function saveActions(d){localStorage.setItem('dyer_actions',JSON.stringify(d));renderActions();}
+function addAction(){
+  const t=document.getElementById('actionText').value.trim();if(!t)return;
+  const d=getActions();
+  d.unshift({id:Date.now(),text:t,priority:document.getElementById('actionPriority').value,owner:document.getElementById('actionOwner').value,done:false,ts:new Date().toISOString()});
+  saveActions(d);document.getElementById('actionText').value='';
+}
+function toggleAction(id){const d=getActions();const i=d.find(x=>x.id===id);if(i)i.done=!i.done;saveActions(d)}
+function delAction(id){saveActions(getActions().filter(i=>i.id!==id))}
+function renderActions(){
+  const d=getActions();const el=document.getElementById('actionList');if(!el)return;
+  el.innerHTML=d.length?d.map(i=>`<div class="action-item priority-${i.priority} ${i.done?'done':''}">
+    <input type="checkbox" ${i.done?'checked':''} onchange="toggleAction(${i.id})">
+    <div style="flex:1"><div style="font-size:.85rem;${i.done?'text-decoration:line-through':''}">${i.text}</div>
+    <div style="font-size:.72rem;color:var(--text-dim);margin-top:4px">
+    <span class="badge ${i.priority==='high'?'badge-red':i.priority==='med'?'badge-gold':'badge-green'}">${i.priority.toUpperCase()}</span>
+    <span style="margin-left:8px">Owner: ${i.owner}</span>
+    <span style="margin-left:8px">${new Date(i.ts).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span></div></div>
+    <button class="btn-sm btn-outline" onclick="delAction(${i.id})">✕</button></div>`).join('')
+    :'<p style="color:var(--text-dim);text-align:center;padding:40px">No action items. Add items above or derive from Intel Feed.</p>';
+}
+renderActions();
+
+// Seed sample actions if empty
+if(!getActions().length){
+  const seeds=[
+    {id:1,text:'Match AutoNation pricing on Silverado 1500 LT — they are $400 under us',priority:'high',owner:'Sales',done:false,ts:new Date().toISOString()},
+    {id:2,text:'Launch geo-targeted ads in Stuart ZIP codes to counter Wallace Chevrolet',priority:'med',owner:'Marketing',done:false,ts:new Date().toISOString()},
+    {id:3,text:'Audit Subaru Forester inventory — Schumacher showing 45-day supply advantage',priority:'med',owner:'GM',done:false,ts:new Date().toISOString()},
+    {id:4,text:'Create comparison landing pages: CX-5 vs CR-V to capture Honda cross-shoppers',priority:'high',owner:'Marketing',done:false,ts:new Date().toISOString()},
+    {id:5,text:'Review Kia Forte pricing strategy — Napleton $600 under on LXS trim',priority:'med',owner:'Sales',done:false,ts:new Date().toISOString()}
+  ];
+  localStorage.setItem('dyer_actions',JSON.stringify(seeds));renderActions();
+}
+// Seed sample intel if empty
+if(!getIntel().length){
+  const seeds=[
+    {id:1,obs:'AutoNation WPB running Presidents Day event — $5,000 off all Silverados in stock',cat:'Pricing',src:'Website',impact:4,ts:new Date(Date.now()-86400000).toISOString()},
+    {id:2,obs:'Schumacher Subaru hired 3 new sales consultants from CarMax — expanding team',cat:'Staffing',src:'LinkedIn',impact:3,ts:new Date(Date.now()-172800000).toISOString()},
+    {id:3,obs:'Napleton Kia Google rating dropped to 3.9 — multiple service complaints this month',cat:'Service',src:'Google Reviews',impact:2,ts:new Date(Date.now()-259200000).toISOString()},
+    {id:4,obs:'Sport Mazda Orlando launching home delivery to Treasure Coast area',cat:'Digital',src:'Facebook Ad',impact:5,ts:new Date(Date.now()-345600000).toISOString()},
+    {id:5,obs:'Coggin Honda Fort Pierce lot 80% full — possible allocation increase for Q1',cat:'Inventory',src:'Drive-by',impact:3,ts:new Date(Date.now()-432000000).toISOString()}
+  ];
+  localStorage.setItem('dyer_intel',JSON.stringify(seeds));renderIntel();
+}
+</script>
+</body>
+</html>

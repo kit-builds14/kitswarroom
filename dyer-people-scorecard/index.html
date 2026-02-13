@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="../auth.js"></script><link rel="stylesheet" href="../responsive.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dyer Auto Group — People Analyzer</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+:root{--navy:#1b2a4a;--navy-light:#243558;--gold:#c8a84e;--gold-light:#e8d48e;--green:#27ae60;--yellow:#f39c12;--red:#e74c3c;--bg:#f0f2f5;--card:#fff;--text:#1b2a4a;--muted:#7f8c9b;--border:#dde1e6;--radius:8px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+header{background:var(--navy);color:#fff;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+header h1{font-size:1.4rem;font-weight:700}
+header h1 span{color:var(--gold)}
+nav{display:flex;gap:6px;flex-wrap:wrap}
+nav button{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.25);padding:7px 14px;border-radius:var(--radius);cursor:pointer;font-size:.85rem;transition:.2s}
+nav button:hover,nav button.active{background:var(--gold);color:var(--navy);border-color:var(--gold);font-weight:600}
+.container{max-width:1400px;margin:0 auto;padding:20px}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:0 1px 3px rgba(0,0,0,.08);padding:20px;margin-bottom:20px}
+.card h2{font-size:1.1rem;margin-bottom:14px;color:var(--navy);border-bottom:2px solid var(--gold);padding-bottom:6px;display:flex;align-items:center;gap:8px}
+.hidden{display:none!important}
+button{cursor:pointer}
+.btn{padding:8px 16px;border-radius:var(--radius);border:none;font-size:.85rem;font-weight:600;cursor:pointer;transition:.2s}
+.btn-primary{background:var(--navy);color:#fff}.btn-primary:hover{background:var(--navy-light)}
+.btn-gold{background:var(--gold);color:var(--navy)}.btn-gold:hover{background:var(--gold-light)}
+.btn-sm{padding:5px 10px;font-size:.78rem}
+.btn-danger{background:var(--red);color:#fff}
+input,select,textarea{padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius);font-size:.85rem;font-family:inherit}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold)}
+.flex{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:.75rem;font-weight:700;color:#fff}
+.badge-green{background:var(--green)}.badge-yellow{background:var(--yellow)}.badge-red{background:var(--red)}
+
+/* People Analyzer Table */
+.pa-table-wrap{overflow-x:auto}
+table.pa{width:100%;border-collapse:collapse;font-size:.82rem}
+table.pa th,table.pa td{padding:8px 6px;text-align:center;border-bottom:1px solid var(--border)}
+table.pa th{background:var(--navy);color:#fff;font-weight:600;position:sticky;top:0;z-index:2;white-space:nowrap}
+table.pa th.section{background:var(--navy-light)}
+table.pa td:first-child{text-align:left;font-weight:600;white-space:nowrap;position:sticky;left:0;background:#fff;z-index:1}
+table.pa tr:hover td{background:#f7f8fa}
+table.pa tr.below-bar td{opacity:.65}
+table.pa tr.bar-row td{border-top:3px solid var(--gold);border-bottom:3px solid var(--gold);background:var(--gold-light);font-weight:700;text-align:center}
+
+.toggle-cell{cursor:pointer;user-select:none;font-size:1rem;font-weight:700;min-width:36px}
+.toggle-cell:hover{background:var(--gold-light)!important}
+.val-plus{color:var(--green)}.val-plusminus{color:var(--yellow)}.val-minus{color:var(--red)}
+.gwc-yes{color:var(--green)}.gwc-no{color:var(--red)}
+
+.status-cell{font-weight:700}
+.dept-tag{font-size:.7rem;background:var(--bg);padding:2px 6px;border-radius:4px;margin-left:6px;font-weight:400;color:var(--muted)}
+
+/* Dashboard grid */
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:900px){.dash-grid{grid-template-columns:1fr}}
+.chart-box{position:relative;max-height:320px}
+.action-list{max-height:300px;overflow-y:auto}
+.action-list li{padding:6px 0;border-bottom:1px solid var(--border);font-size:.85rem;display:flex;justify-content:space-between}
+
+/* Core values editor */
+.cv-list{list-style:none}
+.cv-list li{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.cv-list input{flex:1}
+
+/* Quarterly */
+.trend-up{color:var(--green)}.trend-down{color:var(--red)}.trend-new{color:var(--gold)}.trend-same{color:var(--muted)}
+
+/* Filter bar */
+.filter-bar{display:flex;gap:10px;margin-bottom:14px;align-items:center;flex-wrap:wrap}
+
+/* Footer */
+footer{text-align:center;padding:20px;color:var(--muted);font-size:.75rem}
+</style>
+</head>
+<body>
+<header>
+  <h1>🏢 <span>Dyer Auto Group</span> — People Analyzer</h1>
+  <nav id="mainNav">
+    <button data-view="analyzer" class="active">People Analyzer</button>
+    <button data-view="dashboard">Dashboard</button>
+    <button data-view="quarterly">Quarterly Review</button>
+    <button data-view="values">Core Values</button>
+    <button data-view="export" class="btn-gold btn-sm" style="border:none">⬇ Export CSV</button>
+  </nav>
+</header>
+
+<div class="container">
+  <!-- PEOPLE ANALYZER VIEW -->
+  <div id="view-analyzer">
+    <div class="card">
+      <h2>👥 People Analyzer Grid</h2>
+      <div class="filter-bar">
+        <label>Department:</label>
+        <select id="deptFilter"><option value="all">All Departments</option></select>
+        <div style="flex:1"></div>
+        <button class="btn btn-primary btn-sm" onclick="addEmployee()">+ Add Employee</button>
+      </div>
+      <div class="pa-table-wrap">
+        <table class="pa" id="paTable">
+          <thead id="paHead"></thead>
+          <tbody id="paBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD VIEW -->
+  <div id="view-dashboard" class="hidden">
+    <div class="dash-grid">
+      <div class="card"><h2>📊 People Quadrant</h2><div class="chart-box"><canvas id="pieChart"></canvas></div></div>
+      <div class="card"><h2>🏥 Department Health</h2><div class="chart-box"><canvas id="barChart"></canvas></div></div>
+      <div class="card" style="grid-column:1/-1"><h2>⚠️ Action Needed <small style="font-weight:400;color:var(--muted)">(2+ minuses)</small></h2><ul class="action-list" id="actionList"></ul></div>
+    </div>
+  </div>
+
+  <!-- QUARTERLY VIEW -->
+  <div id="view-quarterly" class="hidden">
+    <div class="card">
+      <h2>📅 Quarterly Review</h2>
+      <div class="filter-bar">
+        <label>Quarter:</label>
+        <select id="qtrSelect"></select>
+        <button class="btn btn-primary btn-sm" onclick="snapshotQuarter()">📸 Snapshot Current Quarter</button>
+        <label style="margin-left:16px">Compare to:</label>
+        <select id="qtrCompare"><option value="">— none —</option></select>
+      </div>
+      <div class="pa-table-wrap">
+        <table class="pa" id="qtrTable">
+          <thead><tr><th style="text-align:left">Employee</th><th>Dept</th><th>Status</th><th>Trend</th><th style="min-width:200px">Notes</th></tr></thead>
+          <tbody id="qtrBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- CORE VALUES VIEW -->
+  <div id="view-values" class="hidden">
+    <div class="card" style="max-width:600px">
+      <h2>💎 Core Values</h2>
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:14px">Edit your organization's core values. Changes update the People Analyzer grid.</p>
+      <ul class="cv-list" id="cvList"></ul>
+      <div class="flex" style="margin-top:12px">
+        <button class="btn btn-primary btn-sm" onclick="addCoreValue()">+ Add Value</button>
+        <button class="btn btn-gold btn-sm" onclick="saveCoreValues()">Save Values</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>Dyer Auto Group — EOS People Analyzer Tool · Data stored locally in your browser</footer>
+
+<script>
+const DEPARTMENTS = ['Sales','Service','Collision','Parts','F&I','Admin','Marine'];
+const DEFAULT_VALUES = ['Accountability','Integrity','Team First','Customer Obsessed','Growth Mindset'];
+const CV_RATINGS = ['+','+/-','-'];
+const GWC_LABELS = ['Get it','Want it','Capacity'];
+
+// --- DATA LAYER ---
+function load(k,d){try{const v=localStorage.getItem('dag_'+k);return v?JSON.parse(v):d}catch{return d}}
+function save(k,v){localStorage.setItem('dag_'+k,JSON.stringify(v))}
+
+let coreValues = load('coreValues', DEFAULT_VALUES);
+let employees = load('employees', []);
+let snapshots = load('snapshots', {});
+let notes = load('notes', {});
+
+function saveAll(){save('employees',employees);save('coreValues',coreValues);save('snapshots',snapshots);save('notes',notes)}
+
+function newEmployee(name,dept){
+  const cv={};coreValues.forEach(v=>cv[v]='+');
+  return {id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name,dept:dept||'Sales',values:cv,gwc:{get:true,want:true,capacity:true}};
+}
+
+// --- CALCULATIONS ---
+function calcStatus(emp){
+  const plusCount=coreValues.filter(v=>(emp.values||{})[v]==='+').length;
+  const minusCount=coreValues.filter(v=>(emp.values||{})[v]==='-').length;
+  const rightPerson=plusCount>=Math.ceil(coreValues.length*0.6);
+  const rightSeat=emp.gwc.get&&emp.gwc.want&&emp.gwc.capacity;
+  return {rightPerson,rightSeat,minusCount,plusCount};
+}
+function statusLabel(s){
+  if(s.rightPerson&&s.rightSeat)return {text:'RP/RS',cls:'badge-green'};
+  if(s.rightPerson&&!s.rightSeat)return {text:'RP/WS',cls:'badge-yellow'};
+  if(!s.rightPerson&&s.rightSeat)return {text:'WP/RS',cls:'badge-yellow'};
+  return {text:'WP/WS',cls:'badge-red'};
+}
+function overallScore(emp){
+  const s=calcStatus(emp);return (s.rightPerson?2:0)+(s.rightSeat?2:0)+s.plusCount;
+}
+
+// --- NAV ---
+document.querySelectorAll('#mainNav button[data-view]').forEach(b=>{
+  b.addEventListener('click',()=>{
+    if(b.dataset.view==='export')return exportCSV();
+    document.querySelectorAll('#mainNav button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    document.querySelectorAll('.container > div[id^="view-"]').forEach(v=>v.classList.add('hidden'));
+    document.getElementById('view-'+b.dataset.view).classList.remove('hidden');
+    if(b.dataset.view==='dashboard')renderDashboard();
+    if(b.dataset.view==='quarterly')renderQuarterly();
+    if(b.dataset.view==='values')renderCoreValues();
+    if(b.dataset.view==='analyzer')renderTable();
+  });
+});
+
+// --- DEPT FILTER ---
+function populateDeptFilter(){
+  const sel=document.getElementById('deptFilter');
+  sel.innerHTML='<option value="all">All Departments</option>'+DEPARTMENTS.map(d=>`<option>${d}</option>`).join('');
+  sel.onchange=renderTable;
+}
+
+// --- PEOPLE ANALYZER TABLE ---
+function renderTable(){
+  const dept=document.getElementById('deptFilter').value;
+  let list=dept==='all'?[...employees]:employees.filter(e=>e.dept===dept);
+  // sort: above bar first (by score desc), then below
+  list.sort((a,b)=>overallScore(b)-overallScore(a));
+  // find bar position: first person who is not RP/RS
+  let barIdx=list.findIndex(e=>{const s=calcStatus(e);return !(s.rightPerson&&s.rightSeat)});
+  if(barIdx===-1)barIdx=list.length;
+
+  // header
+  const head=document.getElementById('paHead');
+  head.innerHTML=`<tr><th style="text-align:left">Employee</th><th>Dept</th>${coreValues.map(v=>`<th class="section">${v}</th>`).join('')}${GWC_LABELS.map(g=>`<th>${g}</th>`).join('')}<th>Status</th><th></th></tr>`;
+
+  const body=document.getElementById('paBody');
+  let html='';
+  list.forEach((emp,i)=>{
+    if(i===barIdx) html+=`<tr class="bar-row"><td colspan="${coreValues.length+GWC_LABELS.length+4}">━━━ THE BAR ━━━</td></tr>`;
+    const s=calcStatus(emp);
+    const sl=statusLabel(s);
+    const belowClass=i>=barIdx?'below-bar':'';
+    html+=`<tr class="${belowClass}" data-id="${emp.id}">`;
+    html+=`<td>${emp.name}<span class="dept-tag">${emp.dept}</span></td>`;
+    html+=`<td><select class="dept-sel" data-id="${emp.id}" style="font-size:.78rem;padding:2px 4px">${DEPARTMENTS.map(d=>`<option${d===emp.dept?' selected':''}>${d}</option>`).join('')}</select></td>`;
+    coreValues.forEach(v=>{
+      const r=(emp.values||{})[v]||'+';
+      const cls=r==='+'?'val-plus':r==='+/-'?'val-plusminus':'val-minus';
+      html+=`<td class="toggle-cell ${cls}" data-id="${emp.id}" data-type="value" data-key="${v}">${r}</td>`;
+    });
+    GWC_LABELS.forEach(g=>{
+      const key=g.split(' ')[0].toLowerCase();
+      const val=emp.gwc[key];
+      html+=`<td class="toggle-cell ${val?'gwc-yes':'gwc-no'}" data-id="${emp.id}" data-type="gwc" data-key="${key}">${val?'✓':'✗'}</td>`;
+    });
+    html+=`<td><span class="badge ${sl.cls}">${sl.text}</span></td>`;
+    html+=`<td><button class="btn btn-danger btn-sm" onclick="removeEmployee('${emp.id}')">✕</button></td>`;
+    html+=`</tr>`;
+  });
+  if(!list.length) html=`<tr><td colspan="99" style="text-align:center;padding:40px;color:var(--muted)">No employees yet. Click "+ Add Employee" to begin.</td></tr>`;
+  body.innerHTML=html;
+
+  // event listeners
+  body.querySelectorAll('.toggle-cell').forEach(td=>{
+    td.addEventListener('click',()=>{
+      const emp=employees.find(e=>e.id===td.dataset.id);if(!emp)return;
+      if(td.dataset.type==='value'){
+        const cur=(emp.values||{})[td.dataset.key]||'+';
+        const next=cur==='+'?'+/-':cur==='+/-'?'-':'+';
+        emp.values[td.dataset.key]=next;
+      } else {
+        emp.gwc[td.dataset.key]=!emp.gwc[td.dataset.key];
+      }
+      saveAll();renderTable();
+    });
+  });
+  body.querySelectorAll('.dept-sel').forEach(sel=>{
+    sel.addEventListener('change',()=>{
+      const emp=employees.find(e=>e.id===sel.dataset.id);if(emp){emp.dept=sel.value;saveAll();renderTable();}
+    });
+  });
+}
+
+function addEmployee(){
+  const name=prompt('Employee name:');if(!name)return;
+  const dept=prompt('Department (Sales, Service, Collision, Parts, F&I, Admin, Marine):','Sales');
+  employees.push(newEmployee(name.trim(),DEPARTMENTS.includes(dept)?dept:'Sales'));
+  saveAll();renderTable();
+}
+function removeEmployee(id){
+  if(!confirm('Remove this employee?'))return;
+  employees=employees.filter(e=>e.id!==id);saveAll();renderTable();
+}
+
+// --- DASHBOARD ---
+let pieChart,barChartObj;
+function renderDashboard(){
+  const quads={rprs:0,rpws:0,wprs:0,wpws:0};
+  const deptHealth={};
+  DEPARTMENTS.forEach(d=>deptHealth[d]={total:0,good:0});
+  const actionNeeded=[];
+
+  employees.forEach(emp=>{
+    const s=calcStatus(emp);
+    if(s.rightPerson&&s.rightSeat)quads.rprs++;
+    else if(s.rightPerson)quads.rpws++;
+    else if(s.rightSeat)quads.wprs++;
+    else quads.wpws++;
+    if(deptHealth[emp.dept]){deptHealth[emp.dept].total++;if(s.rightPerson&&s.rightSeat)deptHealth[emp.dept].good++;}
+    if(s.minusCount>=2)actionNeeded.push(emp);
+  });
+
+  // Pie
+  if(pieChart)pieChart.destroy();
+  pieChart=new Chart(document.getElementById('pieChart'),{type:'doughnut',data:{labels:['Right Person / Right Seat','Right Person / Wrong Seat','Wrong Person / Right Seat','Wrong Person / Wrong Seat'],datasets:[{data:[quads.rprs,quads.rpws,quads.wprs,quads.wpws],backgroundColor:['#27ae60','#f39c12','#3498db','#e74c3c']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11}}}}}});
+
+  // Bar
+  const depts=DEPARTMENTS.filter(d=>deptHealth[d].total>0);
+  if(barChartObj)barChartObj.destroy();
+  barChartObj=new Chart(document.getElementById('barChart'),{type:'bar',data:{labels:depts,datasets:[{label:'% Right Person / Right Seat',data:depts.map(d=>deptHealth[d].total?Math.round(deptHealth[d].good/deptHealth[d].total*100):0),backgroundColor:'#c8a84e'}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%'}}},plugins:{legend:{display:false}}}});
+
+  // Action list
+  const al=document.getElementById('actionList');
+  al.innerHTML=actionNeeded.length?actionNeeded.map(e=>{const s=calcStatus(e);return `<li><span><strong>${e.name}</strong> <span class="dept-tag">${e.dept}</span></span><span class="badge badge-red">${s.minusCount} minus ratings</span></li>`}).join(''):'<li style="color:var(--muted);justify-content:center">🎉 No immediate action needed</li>';
+}
+
+// --- QUARTERLY ---
+function currentQtrLabel(){const d=new Date(),q=Math.ceil((d.getMonth()+1)/3);return `Q${q} ${d.getFullYear()}`}
+function renderQuarterly(){
+  const qs=document.getElementById('qtrSelect');
+  const qc=document.getElementById('qtrCompare');
+  const keys=Object.keys(snapshots).sort().reverse();
+  qs.innerHTML=keys.map(k=>`<option>${k}</option>`).join('')||'<option>No snapshots</option>';
+  qc.innerHTML='<option value="">— none —</option>'+keys.map(k=>`<option>${k}</option>`).join('');
+  qs.onchange=qc.onchange=renderQtrTable;
+  renderQtrTable();
+}
+function snapshotQuarter(){
+  const label=prompt('Quarter label:',currentQtrLabel());if(!label)return;
+  snapshots[label]=JSON.parse(JSON.stringify(employees));
+  saveAll();renderQuarterly();
+}
+function renderQtrTable(){
+  const body=document.getElementById('qtrBody');
+  const curr=snapshots[document.getElementById('qtrSelect').value];
+  const prev=snapshots[document.getElementById('qtrCompare').value];
+  if(!curr){body.innerHTML='<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--muted)">Take a snapshot to begin tracking quarterly reviews.</td></tr>';return;}
+
+  const prevMap={};if(prev)prev.forEach(e=>prevMap[e.id]=e);
+  let html='';
+  curr.forEach(emp=>{
+    const s=calcStatus(emp);const sl=statusLabel(s);
+    let trend='—',tCls='trend-same';
+    if(prev){
+      const pe=prevMap[emp.id];
+      if(!pe){trend='NEW';tCls='trend-new';}
+      else{const ps=overallScore(pe),cs=overallScore(emp);if(cs>ps){trend='▲';tCls='trend-up';}else if(cs<ps){trend='▼';tCls='trend-down';}else{trend='—';tCls='trend-same';}}
+    }
+    const n=notes[emp.id]||'';
+    html+=`<tr><td>${emp.name}</td><td>${emp.dept}</td><td><span class="badge ${sl.cls}">${sl.text}</span></td><td class="${tCls}" style="font-size:1.1rem;font-weight:700">${trend}</td><td><input type="text" value="${n.replace(/"/g,'&quot;')}" data-id="${emp.id}" class="note-input" style="width:100%" placeholder="Add notes..."></td></tr>`;
+  });
+  body.innerHTML=html;
+  body.querySelectorAll('.note-input').forEach(inp=>{
+    inp.addEventListener('change',()=>{notes[inp.dataset.id]=inp.value;saveAll();});
+  });
+}
+
+// --- CORE VALUES EDITOR ---
+function renderCoreValues(){
+  const list=document.getElementById('cvList');
+  list.innerHTML=coreValues.map((v,i)=>`<li><input value="${v}" data-i="${i}"><button class="btn btn-danger btn-sm" onclick="removeCoreValue(${i})">✕</button></li>`).join('');
+}
+function addCoreValue(){coreValues.push('New Value');renderCoreValues();}
+function removeCoreValue(i){if(coreValues.length<=1)return;coreValues.splice(i,1);saveCoreValues();}
+function saveCoreValues(){
+  document.querySelectorAll('#cvList input').forEach(inp=>{coreValues[+inp.dataset.i]=inp.value.trim()});
+  coreValues=coreValues.filter(Boolean);
+  // update employee value maps
+  employees.forEach(emp=>{
+    const nv={};coreValues.forEach(v=>{nv[v]=emp.values[v]||'+'});emp.values=nv;
+  });
+  saveAll();renderCoreValues();renderTable();
+  alert('Core values saved!');
+}
+
+// --- EXPORT ---
+function exportCSV(){
+  let csv='Name,Department,'+coreValues.join(',')+',Get It,Want It,Capacity,Status\n';
+  employees.forEach(e=>{
+    const s=calcStatus(e);const sl=statusLabel(s);
+    csv+=`"${e.name}",${e.dept},${coreValues.map(v=>(e.values[v]||'+')).join(',')},${e.gwc.get?'Y':'N'},${e.gwc.want?'Y':'N'},${e.gwc.capacity?'Y':'N'},${sl.text}\n`;
+  });
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='dyer-people-analyzer.csv';a.click();
+}
+
+// --- INIT ---
+populateDeptFilter();
+renderTable();
+</script>
+</body>
+</html>

@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="../auth.js"></script><link rel="stylesheet" href="../responsive.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Dyer Auto Group – Digital Business Cards</title>
+<style>
+:root{--navy:#0a1628;--navy-light:#142240;--gold:#c9a84c;--gold-light:#e0c97a;--white:#ffffff;--gray:#f4f5f7;--gray-mid:#8a92a0;--text:#1a1a2e;--radius:12px;--shadow:0 4px 24px rgba(0,0,0,.12)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--gray);color:var(--text);min-height:100dvh;-webkit-tap-highlight-color:transparent}
+button{cursor:pointer;font:inherit;border:none;background:none}
+input,select,textarea{font:inherit;border:1px solid #d0d5dd;border-radius:8px;padding:10px 12px;width:100%;background:#fff;color:var(--text)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.2)}
+textarea{resize:vertical;min-height:60px}
+
+/* ── Header ── */
+.header{background:var(--navy);color:var(--white);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.header h1{font-size:18px;font-weight:700;letter-spacing:.5px}
+.header h1 span{color:var(--gold)}
+.header-btn{background:var(--gold);color:var(--navy);font-weight:600;padding:8px 16px;border-radius:8px;font-size:14px}
+
+/* ── Card List (Admin) ── */
+.admin-view{max-width:600px;margin:0 auto;padding:16px}
+.card-list-item{background:#fff;border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);position:relative}
+.card-list-item .avatar{width:48px;height:48px;border-radius:50%;background:var(--navy);color:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;flex-shrink:0}
+.card-list-item .info{flex:1;min-width:0}
+.card-list-item .info h3{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-list-item .info p{font-size:12px;color:var(--gray-mid)}
+.card-actions{display:flex;gap:6px}
+.card-actions button{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.btn-share{background:#e8f5e9;color:#2e7d32}
+.btn-edit{background:#e3f2fd;color:#1565c0}
+.btn-del{background:#fce4ec;color:#c62828}
+.btn-view{background:#fff8e1;color:#f57f17}
+.empty-state{text-align:center;padding:60px 20px;color:var(--gray-mid)}
+.empty-state svg{width:64px;height:64px;margin-bottom:16px;opacity:.4}
+
+/* ── Form ── */
+.form-view{max-width:600px;margin:0 auto;padding:16px}
+.form-view h2{font-size:20px;margin-bottom:16px;color:var(--navy)}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13px;font-weight:600;margin-bottom:4px;color:var(--navy)}
+.btn-primary{display:block;width:100%;padding:14px;background:var(--gold);color:var(--navy);font-weight:700;font-size:16px;border-radius:var(--radius);text-align:center;margin-top:8px}
+.btn-primary:active{background:var(--gold-light)}
+.btn-secondary{display:block;width:100%;padding:12px;background:var(--navy);color:var(--white);font-weight:600;font-size:15px;border-radius:var(--radius);text-align:center;margin-top:8px}
+.back-link{display:inline-flex;align-items:center;gap:4px;color:var(--gold);font-weight:600;font-size:14px;margin-bottom:12px;text-decoration:none}
+
+/* ── Card View (Customer-facing) ── */
+.card-view{max-width:440px;margin:0 auto;min-height:100dvh;background:#fff}
+.card-hero{background:var(--navy);padding:32px 20px 48px;text-align:center;position:relative;overflow:hidden}
+.card-hero::after{content:'';position:absolute;bottom:-24px;left:0;right:0;height:48px;background:#fff;border-radius:50% 50% 0 0}
+.card-store-badge{display:inline-block;background:rgba(255,255,255,.12);color:var(--gold);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:4px 14px;border-radius:20px;margin-bottom:16px}
+.card-avatar{width:96px;height:96px;border-radius:50%;background:var(--gold);color:var(--navy);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:800;margin:0 auto 12px;border:4px solid rgba(255,255,255,.2)}
+.card-hero h2{color:#fff;font-size:24px;margin-bottom:2px}
+.card-hero p.title{color:var(--gold-light);font-size:14px;font-weight:500}
+.card-hero p.tagline{color:rgba(255,255,255,.6);font-size:13px;font-style:italic;margin-top:6px}
+.card-body{padding:0 20px 32px;position:relative;z-index:1}
+.action-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:-24px 0 20px}
+.action-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:16px 8px;background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);text-decoration:none;color:var(--navy);font-size:11px;font-weight:600}
+.action-btn .icon{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px}
+.action-btn .icon.call{background:#e8f5e9;color:#2e7d32}
+.action-btn .icon.text{background:#e3f2fd;color:#1565c0}
+.action-btn .icon.email{background:#fff3e0;color:#e65100}
+.card-section{margin-bottom:20px}
+.card-section h4{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--gray-mid);margin-bottom:10px}
+.card-big-btn{display:flex;align-items:center;gap:12px;width:100%;padding:14px 16px;background:var(--gray);border-radius:var(--radius);margin-bottom:8px;text-decoration:none;color:var(--text);font-weight:600;font-size:14px}
+.card-big-btn .bi{font-size:20px;width:28px;text-align:center}
+.card-big-btn.gold{background:var(--gold);color:var(--navy)}
+.card-big-btn.navy{background:var(--navy);color:#fff}
+.hours-grid{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;font-size:13px}
+.hours-grid .day{font-weight:600}
+.hours-grid .time{color:var(--gray-mid)}
+.qr-area{text-align:center;margin:20px 0}
+.qr-area canvas{border-radius:8px}
+.review-link{display:block;text-align:center;color:var(--gold);font-size:13px;font-weight:600;margin-top:24px;padding:12px;text-decoration:none}
+.certs{font-size:13px;color:var(--gray-mid);line-height:1.5}
+.social-links{display:flex;gap:12px;justify-content:center;margin-top:8px}
+.social-links a{width:36px;height:36px;border-radius:50%;background:var(--gray);display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:16px;color:var(--navy)}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 24px;border-radius:30px;font-size:14px;font-weight:600;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+
+/* ── Utilities ── */
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1><span>DYER</span> AUTO GROUP</h1>
+  <button class="header-btn" id="headerBtn" onclick="showAdmin()">All Cards</button>
+</div>
+
+<div id="adminView" class="admin-view hidden"></div>
+<div id="formView" class="form-view hidden"></div>
+<div id="cardView" class="card-view hidden"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══════════════════════════════════════════════════
+   DATA / CONFIG
+   ══════════════════════════════════════════════════ */
+const STORES = {
+  'Dyer Chevrolet':{color:'#c9a84c',address:'3371 S Federal Hwy, Fort Lauderdale, FL 33316',maps:'https://maps.google.com/?q=Dyer+Chevrolet+Fort+Lauderdale',appt:'https://www.dyerauto.com/schedule-service.htm',review:'https://g.page/r/DyerChevrolet/review',hours:'Mon-Fri 9AM-8PM | Sat 9AM-6PM | Sun Closed'},
+  'Dyer Mazda':{color:'#c9a84c',address:'3250 S Federal Hwy, Fort Lauderdale, FL 33316',maps:'https://maps.google.com/?q=Dyer+Mazda+Fort+Lauderdale',appt:'https://www.dyerauto.com/schedule-service.htm',review:'https://g.page/r/DyerMazda/review',hours:'Mon-Fri 9AM-8PM | Sat 9AM-6PM | Sun Closed'},
+  'Dyer Subaru':{color:'#c9a84c',address:'3201 S Federal Hwy, Fort Lauderdale, FL 33316',maps:'https://maps.google.com/?q=Dyer+Subaru+Fort+Lauderdale',appt:'https://www.dyerauto.com/schedule-service.htm',review:'https://g.page/r/DyerSubaru/review',hours:'Mon-Fri 9AM-8PM | Sat 9AM-6PM | Sun Closed'},
+  'Dyer Kia':{color:'#c9a84c',address:'3371 S Federal Hwy, Fort Lauderdale, FL 33316',maps:'https://maps.google.com/?q=Dyer+Kia+Fort+Lauderdale',appt:'https://www.dyerauto.com/schedule-service.htm',review:'https://g.page/r/DyerKia/review',hours:'Mon-Fri 9AM-8PM | Sat 9AM-6PM | Sun Closed'},
+  'Dyer Collision':{color:'#c9a84c',address:'3371 S Federal Hwy, Fort Lauderdale, FL 33316',maps:'https://maps.google.com/?q=Dyer+Collision+Fort+Lauderdale',appt:'https://www.dyerauto.com/schedule-service.htm',review:'https://g.page/r/DyerAuto/review',hours:'Mon-Fri 8AM-5:30PM | Sat-Sun Closed'},
+  'Dyer Marine':{color:'#c9a84c',address:'3371 S Federal Hwy, Fort Lauderdale, FL 33316',maps:'https://maps.google.com/?q=Dyer+Marine+Fort+Lauderdale',appt:'https://www.dyerauto.com/schedule-service.htm',review:'https://g.page/r/DyerMarine/review',hours:'Mon-Fri 8AM-5PM | Sat 9AM-3PM | Sun Closed'}
+};
+
+const SAMPLE_CARDS = [
+  {id:'mike-johnson',name:'Mike Johnson',title:'Sales Consultant',store:'Dyer Chevrolet',phone:'954-555-0101',cell:'954-555-0102',email:'mjohnson@dyerauto.com',certs:'Chevrolet Certified Product Specialist',tagline:'Finding the perfect vehicle for your lifestyle.',social_fb:'',social_ig:'',social_li:''},
+  {id:'sarah-martinez',name:'Sarah Martinez',title:'Service Advisor',store:'Dyer Mazda',phone:'954-555-0201',cell:'954-555-0202',email:'smartinez@dyerauto.com',certs:'Mazda Master Technician Certified, ASE Certified',tagline:'Keeping your Mazda running like new.',social_fb:'',social_ig:'',social_li:''},
+  {id:'david-chen',name:'David Chen',title:'F&I Manager',store:'Dyer Subaru',phone:'954-555-0301',cell:'954-555-0302',email:'dchen@dyerauto.com',certs:'AFIP Certified, Subaru Finance Specialist',tagline:'Making your purchase easy and transparent.',social_fb:'',social_ig:'',social_li:''},
+  {id:'rachel-thompson',name:'Rachel Thompson',title:'General Manager',store:'Dyer Kia',phone:'954-555-0401',cell:'954-555-0402',email:'rthompson@dyerauto.com',certs:'NADA Academy Graduate',tagline:'Committed to an exceptional ownership experience.',social_fb:'',social_ig:'',social_li:''},
+  {id:'james-wilson',name:'James Wilson',title:'Sales Consultant',store:'Dyer Marine',phone:'954-555-0501',cell:'954-555-0502',email:'jwilson@dyerauto.com',certs:'USCG Licensed Captain, Marine Sales Specialist',tagline:'Your adventure on the water starts here.',social_fb:'',social_ig:'',social_li:''}
+];
+
+function getCards(){
+  let c=localStorage.getItem('dyer_cards');
+  if(!c){localStorage.setItem('dyer_cards',JSON.stringify(SAMPLE_CARDS));return [...SAMPLE_CARDS]}
+  return JSON.parse(c);
+}
+function saveCards(cards){localStorage.setItem('dyer_cards',JSON.stringify(cards))}
+function slugify(n){return n.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'')}
+function initials(n){return n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
+
+/* ══════════════════════════════════════════════════
+   QR CODE GENERATOR (canvas-based, no external API)
+   ══════════════════════════════════════════════════ */
+// Minimal QR encoder — supports alphanumeric up to ~200 chars (version 1-6, L correction)
+const QR=(()=>{
+  // Using a compact QR implementation
+  function generateQR(text){
+    // Simple QR matrix generator
+    const size=21+4*Math.min(Math.floor(text.length/20),5);
+    // We'll use a polynomial-based approach simplified for our needs
+    // For production robustness, embedding a lightweight lib
+    return createQRMatrix(text);
+  }
+
+  // Simplified but functional QR Code generator
+  const EC_L=1;
+  function createQRMatrix(data){
+    // Encode as byte mode
+    const enc=new TextEncoder();const bytes=enc.encode(data);
+    const len=bytes.length;
+    // Pick version
+    let ver=1;const caps=[17,32,53,78,106,134,154,192,230,271,321,367,425,458,520,586,644,718,792,858];
+    for(let i=0;i<caps.length;i++){if(len<=caps[i]){ver=i+1;break}}
+    if(ver>20)ver=20;
+    const size=17+ver*4;
+    const m=Array.from({length:size},()=>Array(size).fill(null));
+    const r=Array.from({length:size},()=>Array(size).fill(false));// reserved
+
+    function set(x,y,v,res){if(x>=0&&x<size&&y>=0&&y<size){m[y][x]=v?1:0;if(res)r[y][x]=true}}
+    function finderPattern(cx,cy){
+      for(let dy=-4;dy<=4;dy++)for(let dx=-4;dx<=4;dx++){
+        const x=cx+dx,y=cy+dy;
+        if(x<0||x>=size||y<0||y>=size)continue;
+        const ax=Math.abs(dx),ay=Math.abs(dy);
+        const mx=Math.max(ax,ay);
+        set(x,y,mx<=3&&(mx===0||mx===2||mx===3),true);
+      }
+    }
+    finderPattern(3,3);finderPattern(size-4,3);finderPattern(3,size-4);
+
+    // Timing patterns
+    for(let i=8;i<size-8;i++){set(6,i,i%2===0,true);set(i,6,i%2===0,true)}
+
+    // Alignment patterns for ver >= 2
+    if(ver>=2){
+      const aligns=getAlignmentPositions(ver);
+      for(const ay of aligns)for(const ax of aligns){
+        if(r[ay]&&r[ay][ax])continue;// skip if overlaps finder
+        let skip=false;
+        if((ax<=8&&ay<=8)||(ax<=8&&ay>=size-9)||(ax>=size-9&&ay<=8))skip=true;
+        if(!skip)for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){
+          const mx=Math.max(Math.abs(dx),Math.abs(dy));
+          set(ax+dx,ay+dy,mx===0||mx===2,true);
+        }
+      }
+    }
+
+    // Dark module
+    set(8,4*ver+9,1,true);
+
+    // Reserve format info
+    for(let i=0;i<8;i++){set(8,i,0,true);set(i,8,0,true);set(8,size-1-i,0,true);set(size-1-i,8,0,true)}
+    set(8,8,0,true);
+
+    // Reserve version info (ver>=7)
+    if(ver>=7){
+      for(let i=0;i<6;i++)for(let j=0;j<3;j++){set(size-11+j,i,0,true);set(i,size-11+j,0,true)}
+    }
+
+    // Encode data
+    const totalCodewords=getDataCodewords(ver);
+    const dataBits=[];
+    // Mode byte
+    addBits(dataBits,4,4);// 0100 = byte mode
+    const ccLen=ver<=9?8:16;
+    addBits(dataBits,len,ccLen);
+    for(const b of bytes)addBits(dataBits,b,8);
+    // Terminator
+    const totalBits=totalCodewords*8;
+    const termLen=Math.min(4,totalBits-dataBits.length);
+    addBits(dataBits,0,termLen);
+    while(dataBits.length%8!==0)dataBits.push(0);
+    // Pad
+    let pad=0xEC;
+    while(dataBits.length<totalBits){addBits(dataBits,pad,8);pad=pad===0xEC?0x11:0xEC}
+
+    // EC
+    const codewords=[];for(let i=0;i<dataBits.length;i+=8){let v=0;for(let j=0;j<8;j++)v=(v<<1)|(dataBits[i+j]||0);codewords.push(v)}
+    const {dcCount,ecCount,blocks}=getECInfo(ver);
+    const allData=[];const allEC=[];
+    let offset=0;
+    for(const {dc,ec} of blocks){
+      const d=codewords.slice(offset,offset+dc);offset+=dc;
+      const e=rsEncode(d,ec);
+      allData.push(d);allEC.push(e);
+    }
+    // Interleave
+    const final=[];
+    const maxDC=Math.max(...allData.map(d=>d.length));
+    for(let i=0;i<maxDC;i++)for(const d of allData)if(i<d.length)final.push(d[i]);
+    const maxEC=Math.max(...allEC.map(e=>e.length));
+    for(let i=0;i<maxEC;i++)for(const e of allEC)if(i<e.length)final.push(e[i]);
+
+    const bitStream=[];
+    for(const cw of final)addBits(bitStream,cw,8);
+    // Remainder bits
+    const rem=[0,0,7,7,7,7,7,0,0,0,0,0,0,0,3,3,3,3,3,3,3,4,4,4,4,4,4,4,3,3,3,3,3,3,3,0,0,0,0,0,0];
+    for(let i=0;i<(rem[ver]||0);i++)bitStream.push(0);
+
+    // Place data
+    let bitIdx=0;
+    let upward=true;
+    for(let right=size-1;right>=1;right-=2){
+      if(right===6)right=5;
+      const rows=upward?Array.from({length:size},(_,i)=>size-1-i):Array.from({length:size},(_,i)=>i);
+      for(const row of rows){
+        for(const col of [right,right-1]){
+          if(!r[row][col]){
+            m[row][col]=bitIdx<bitStream.length?bitStream[bitIdx]:0;
+            bitIdx++;
+          }
+        }
+      }
+      upward=!upward;
+    }
+
+    // Masking — use mask 0 (checkerboard) for simplicity
+    const mask=(x,y)=>(x+y)%2===0;
+    for(let y=0;y<size;y++)for(let x=0;x<size;x++){
+      if(!r[y][x]&&mask(x,y))m[y][x]^=1;
+    }
+
+    // Format info (L, mask 0)
+    const fmtBits=getFormatBits(0,0);// EC level L=01, mask 0
+    // Place format
+    const fmtPositions1=[[0,8],[1,8],[2,8],[3,8],[4,8],[5,8],[7,8],[8,8],[8,7],[8,5],[8,4],[8,3],[8,2],[8,1],[8,0]];
+    const fmtPositions2=[[8,size-1],[8,size-2],[8,size-3],[8,size-4],[8,size-5],[8,size-6],[8,size-7],[size-8,8],[size-7,8],[size-6,8],[size-5,8],[size-4,8],[size-3,8],[size-2,8],[size-1,8]];
+    for(let i=0;i<15;i++){
+      const bit=(fmtBits>>14-i)&1;
+      const [y1,x1]=fmtPositions1[i];m[y1][x1]=bit;
+      const [y2,x2]=fmtPositions2[i];m[y2][x2]=bit;
+    }
+
+    return m;
+  }
+
+  function addBits(arr,val,len){for(let i=len-1;i>=0;i--)arr.push((val>>i)&1)}
+
+  function getAlignmentPositions(ver){
+    if(ver===1)return[];
+    const t=[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90]];
+    return t[ver-1]||t[t.length-1];
+  }
+
+  // Data codeword capacities (EC level L)
+  function getDataCodewords(ver){
+    const t=[0,19,34,55,80,108,136,156,194,232,271,321,367,425,458,520,586,644,718,792,858];
+    return t[ver]||t[1];
+  }
+
+  function getECInfo(ver){
+    // Simplified EC info for Level L
+    const table=[
+      null,
+      {blocks:[{dc:19,ec:7}]},{blocks:[{dc:34,ec:10}]},{blocks:[{dc:55,ec:15}]},
+      {blocks:[{dc:80,ec:20}]},{blocks:[{dc:108,ec:26}]},{blocks:[{dc:68,ec:18},{dc:68,ec:18}]},
+      {blocks:[{dc:78,ec:20},{dc:78,ec:20}]},{blocks:[{dc:97,ec:24},{dc:97,ec:24}]},
+      {blocks:[{dc:116,ec:30},{dc:116,ec:30}]},{blocks:[{dc:68,ec:18},{dc:68,ec:18},{dc:68,ec:18},{dc:69,ec:18}]},
+      {blocks:[{dc:81,ec:20},{dc:81,ec:20},{dc:80,ec:20},{dc:80,ec:20}]},
+    ];
+    if(ver<=11&&table[ver])return table[ver];
+    // Fallback: single block
+    const dc=getDataCodewords(ver);
+    return{blocks:[{dc,ec:Math.min(30,Math.floor(dc*0.3))}]};
+  }
+
+  // GF(256) with polynomial 0x11d
+  const gfExp=new Uint8Array(512);const gfLog=new Uint8Array(256);
+  (function(){let x=1;for(let i=0;i<255;i++){gfExp[i]=x;gfLog[x]=i;x<<=1;if(x>=256)x^=0x11d}for(let i=255;i<512;i++)gfExp[i]=gfExp[i-255]})();
+  function gfMul(a,b){return a===0||b===0?0:gfExp[gfLog[a]+gfLog[b]]}
+
+  function rsEncode(data,ecLen){
+    const gen=rsGenPoly(ecLen);
+    const msg=new Uint8Array(data.length+ecLen);
+    for(let i=0;i<data.length;i++)msg[i]=data[i];
+    for(let i=0;i<data.length;i++){
+      const coef=msg[i];
+      if(coef!==0)for(let j=0;j<gen.length;j++)msg[i+j]^=gfMul(gen[j],coef);
+    }
+    return Array.from(msg.slice(data.length));
+  }
+
+  function rsGenPoly(n){
+    let g=[1];
+    for(let i=0;i<n;i++){
+      const ng=new Uint8Array(g.length+1);
+      for(let j=0;j<g.length;j++){ng[j]^=g[j];ng[j+1]^=gfMul(g[j],gfExp[i])}
+      g=ng;
+    }
+    return Array.from(g);
+  }
+
+  function getFormatBits(ecLevel,maskPattern){
+    const data=(ecLevel<<3)|maskPattern;
+    let bits=data<<10;
+    let gen=0x537;
+    for(let i=14;i>=10;i--)if(bits&(1<<i))bits^=gen<<(i-10);
+    bits=(data<<10)|bits;
+    bits^=0x5412;
+    return bits;
+  }
+
+  function drawQR(canvas,text,cellSize=6){
+    const matrix=generateQR(text);
+    if(!matrix)return;
+    const s=matrix.length;
+    const quiet=4;
+    const total=(s+quiet*2)*cellSize;
+    canvas.width=total;canvas.height=total;
+    const ctx=canvas.getContext('2d');
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,total,total);
+    ctx.fillStyle='#0a1628';
+    for(let y=0;y<s;y++)for(let x=0;x<s;x++){
+      if(matrix[y][x])ctx.fillRect((x+quiet)*cellSize,(y+quiet)*cellSize,cellSize,cellSize);
+    }
+  }
+
+  return{draw:drawQR};
+})();
+
+/* ══════════════════════════════════════════════════
+   vCard Generator
+   ══════════════════════════════════════════════════ */
+function generateVCF(card){
+  const parts=card.name.split(' ');
+  const last=parts.pop();const first=parts.join(' ');
+  const store=STORES[card.store]||{};
+  let vcf=`BEGIN:VCARD\r\nVERSION:3.0\r\n`;
+  vcf+=`N:${last};${first};;;\r\n`;
+  vcf+=`FN:${card.name}\r\n`;
+  vcf+=`ORG:Dyer Auto Group - ${card.store}\r\n`;
+  vcf+=`TITLE:${card.title}\r\n`;
+  if(card.phone)vcf+=`TEL;TYPE=WORK,VOICE:${card.phone}\r\n`;
+  if(card.cell)vcf+=`TEL;TYPE=CELL,VOICE:${card.cell}\r\n`;
+  if(card.email)vcf+=`EMAIL;TYPE=WORK:${card.email}\r\n`;
+  if(store.address)vcf+=`ADR;TYPE=WORK:;;${store.address};;;;\r\n`;
+  vcf+=`END:VCARD`;
+  return vcf;
+}
+
+function downloadVCF(card){
+  const vcf=generateVCF(card);
+  const blob=new Blob([vcf],{type:'text/vcard'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`${card.name.replace(/\s+/g,'_')}.vcf`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* ══════════════════════════════════════════════════
+   VIEWS
+   ══════════════════════════════════════════════════ */
+const $=id=>document.getElementById(id);
+
+function hideAll(){$('adminView').classList.add('hidden');$('formView').classList.add('hidden');$('cardView').classList.add('hidden')}
+
+function showAdmin(){
+  hideAll();$('adminView').classList.remove('hidden');
+  $('headerBtn').textContent='+ New Card';$('headerBtn').onclick=()=>showForm();
+  location.hash='';
+  const cards=getCards();
+  if(!cards.length){
+    $('adminView').innerHTML=`<div class="empty-state"><div style="font-size:48px;margin-bottom:12px">📇</div><h3>No Cards Yet</h3><p style="margin-top:8px">Tap "+ New Card" to create a digital business card.</p></div>`;
+    return;
+  }
+  $('adminView').innerHTML=cards.map(c=>`
+    <div class="card-list-item">
+      <div class="avatar">${initials(c.name)}</div>
+      <div class="info">
+        <h3>${c.name}</h3>
+        <p>${c.title} · ${c.store}</p>
+      </div>
+      <div class="card-actions">
+        <button class="btn-view" onclick="showCard('${c.id}')" title="View">👁</button>
+        <button class="btn-share" onclick="shareCard('${c.id}')" title="Share">📤</button>
+        <button class="btn-edit" onclick="showForm('${c.id}')" title="Edit">✏️</button>
+        <button class="btn-del" onclick="deleteCard('${c.id}')" title="Delete">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function showForm(editId){
+  hideAll();$('formView').classList.remove('hidden');
+  $('headerBtn').textContent='All Cards';$('headerBtn').onclick=showAdmin;
+  const card=editId?getCards().find(c=>c.id===editId):null;
+  const storeOpts=Object.keys(STORES).map(s=>`<option value="${s}" ${card&&card.store===s?'selected':''}>${s}</option>`).join('');
+  $('formView').innerHTML=`
+    <a class="back-link" href="#" onclick="showAdmin();return false">← Back</a>
+    <h2>${card?'Edit':'Create'} Card</h2>
+    <form id="cardForm" onsubmit="saveCard(event,'${editId||''}')">
+      <div class="field"><label>Full Name *</label><input id="f_name" required value="${card?card.name:''}"></div>
+      <div class="field"><label>Title *</label><input id="f_title" list="titles" required value="${card?card.title:''}">
+        <datalist id="titles"><option>Sales Consultant</option><option>Service Advisor</option><option>F&I Manager</option><option>General Manager</option><option>Sales Manager</option><option>Service Manager</option><option>BDC Representative</option><option>Parts Advisor</option></datalist></div>
+      <div class="field"><label>Store *</label><select id="f_store" required>${storeOpts}</select></div>
+      <div class="field"><label>Direct Phone</label><input id="f_phone" type="tel" value="${card?card.phone:''}"></div>
+      <div class="field"><label>Cell Phone</label><input id="f_cell" type="tel" value="${card?card.cell:''}"></div>
+      <div class="field"><label>Email</label><input id="f_email" type="email" value="${card?card.email:''}"></div>
+      <div class="field"><label>Certifications / Specialties</label><textarea id="f_certs">${card?card.certs:''}</textarea></div>
+      <div class="field"><label>Personal Tagline</label><input id="f_tagline" value="${card?card.tagline:''}"></div>
+      <div class="field"><label>Facebook URL</label><input id="f_fb" type="url" value="${card?card.social_fb||'':''}"></div>
+      <div class="field"><label>Instagram URL</label><input id="f_ig" type="url" value="${card?card.social_ig||'':''}"></div>
+      <div class="field"><label>LinkedIn URL</label><input id="f_li" type="url" value="${card?card.social_li||'':''}"></div>
+      <button type="submit" class="btn-primary">${card?'Update':'Create'} Card</button>
+      <button type="button" class="btn-secondary" onclick="showAdmin()">Cancel</button>
+    </form>`;
+}
+
+function saveCard(e,editId){
+  e.preventDefault();
+  const cards=getCards();
+  const data={
+    name:$('f_name').value.trim(),
+    title:$('f_title').value.trim(),
+    store:$('f_store').value,
+    phone:$('f_phone').value.trim(),
+    cell:$('f_cell').value.trim(),
+    email:$('f_email').value.trim(),
+    certs:$('f_certs').value.trim(),
+    tagline:$('f_tagline').value.trim(),
+    social_fb:$('f_fb').value.trim(),
+    social_ig:$('f_ig').value.trim(),
+    social_li:$('f_li').value.trim()
+  };
+  if(editId){
+    const idx=cards.findIndex(c=>c.id===editId);
+    if(idx>=0){data.id=editId;cards[idx]=data}
+  }else{
+    data.id=slugify(data.name);
+    // Dedupe
+    let id=data.id,n=2;while(cards.some(c=>c.id===id)){id=data.id+'-'+n;n++}
+    data.id=id;
+    cards.push(data);
+  }
+  saveCards(cards);
+  toast(editId?'Card updated!':'Card created!');
+  showAdmin();
+}
+
+function deleteCard(id){
+  if(!confirm('Delete this card?'))return;
+  const cards=getCards().filter(c=>c.id!==id);
+  saveCards(cards);toast('Card deleted');showAdmin();
+}
+
+function shareCard(id){
+  const url=location.origin+location.pathname+'#'+id;
+  const msg=`Hi! Here's my contact info: ${url}`;
+  if(navigator.share){navigator.share({text:msg}).catch(()=>{})}
+  else{navigator.clipboard.writeText(msg).then(()=>toast('Share link copied!')).catch(()=>{prompt('Copy this link:',msg)})}
+}
+
+/* ── Card View ── */
+function showCard(id){
+  hideAll();$('cardView').classList.remove('hidden');
+  $('headerBtn').textContent='All Cards';$('headerBtn').onclick=showAdmin;
+  const card=getCards().find(c=>c.id===id);
+  if(!card){$('cardView').innerHTML='<div class="empty-state"><h3>Card not found</h3></div>';return}
+  const store=STORES[card.store]||{};
+  const hoursArr=(store.hours||'').split('|').map(h=>h.trim());
+  const hasSocial=card.social_fb||card.social_ig||card.social_li;
+  const cardUrl=location.origin+location.pathname+'#'+card.id;
+
+  $('cardView').innerHTML=`
+    <div class="card-hero">
+      <div class="card-store-badge">${card.store}</div>
+      <div class="card-avatar">${initials(card.name)}</div>
+      <h2>${card.name}</h2>
+      <p class="title">${card.title}</p>
+      ${card.tagline?`<p class="tagline">"${card.tagline}"</p>`:''}
+    </div>
+    <div class="card-body">
+      <div class="action-row">
+        ${card.cell||card.phone?`<a class="action-btn" href="tel:${card.cell||card.phone}"><div class="icon call">📞</div>Call</a>`:'<div></div>'}
+        ${card.cell?`<a class="action-btn" href="sms:${card.cell}"><div class="icon text">💬</div>Text</a>`:'<div></div>'}
+        ${card.email?`<a class="action-btn" href="mailto:${card.email}"><div class="icon email">✉️</div>Email</a>`:'<div></div>'}
+      </div>
+
+      <div class="card-section">
+        <button class="card-big-btn gold" onclick="downloadVCF(getCards().find(c=>c.id==='${card.id}'))">📥 Save Contact</button>
+        ${store.maps?`<a class="card-big-btn" href="${store.maps}" target="_blank">📍 Get Directions</a>`:''}
+        ${store.appt?`<a class="card-big-btn navy" href="${store.appt}" target="_blank">📅 Schedule Appointment</a>`:''}
+      </div>
+
+      ${card.certs?`<div class="card-section"><h4>Certifications</h4><p class="certs">${card.certs}</p></div>`:''}
+
+      ${hasSocial?`<div class="card-section"><h4>Connect</h4><div class="social-links">
+        ${card.social_fb?`<a href="${card.social_fb}" target="_blank">f</a>`:''}
+        ${card.social_ig?`<a href="${card.social_ig}" target="_blank">📷</a>`:''}
+        ${card.social_li?`<a href="${card.social_li}" target="_blank">in</a>`:''}
+      </div></div>`:''}
+
+      <div class="card-section">
+        <h4>Store Hours</h4>
+        <div class="hours-grid">${hoursArr.map(h=>{const [d,...t]=h.split(' ');return`<span class="day">${d}</span><span class="time">${t.join(' ')}</span>`}).join('')}</div>
+      </div>
+
+      <div class="card-section">
+        <h4>Store Address</h4>
+        <p style="font-size:14px;color:var(--gray-mid)">${store.address||''}</p>
+      </div>
+
+      <div class="qr-area">
+        <h4 style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--gray-mid);margin-bottom:10px">Scan to Share</h4>
+        <canvas id="qrCanvas"></canvas>
+      </div>
+
+      ${store.review?`<a class="review-link" href="${store.review}" target="_blank">⭐ Leave Us a Google Review</a>`:''}
+    </div>
+  `;
+
+  // Draw QR
+  setTimeout(()=>{
+    const canvas=$('qrCanvas');
+    if(canvas)try{QR.draw(canvas,cardUrl,5)}catch(e){console.warn('QR generation failed',e)}
+  },50);
+}
+
+/* ══════════════════════════════════════════════════
+   ROUTING
+   ══════════════════════════════════════════════════ */
+function route(){
+  const hash=location.hash.slice(1);
+  if(hash){showCard(hash)}else{showAdmin()}
+}
+window.addEventListener('hashchange',route);
+route();
+</script>
+</body>
+</html>

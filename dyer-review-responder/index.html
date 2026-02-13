@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="../auth.js"></script><link rel="stylesheet" href="../responsive.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dyer Auto Group — Review Response Generator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--navy:#1a2744;--navy-light:#243356;--gold:#c9a84c;--gold-light:#e0c56e;--bg:#f4f5f7;--card:#fff;--text:#1a2744;--muted:#6b7280;--red:#dc2626;--green:#16a34a;--orange:#ea580c;--radius:10px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+header{background:var(--navy);color:#fff;padding:16px 24px;display:flex;align-items:center;gap:16px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+header h1{font-size:1.4rem;font-weight:700;letter-spacing:.5px}
+header span{color:var(--gold);font-size:.85rem;font-weight:500;margin-left:auto}
+.container{max-width:960px;margin:24px auto;padding:0 16px}
+.card{background:var(--card);border-radius:var(--radius);padding:24px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.card h2{font-size:1.1rem;margin-bottom:16px;color:var(--navy);border-bottom:2px solid var(--gold);padding-bottom:8px;display:inline-block}
+label{display:block;font-size:.82rem;font-weight:600;margin-bottom:4px;color:var(--muted)}
+textarea,input,select{width:100%;padding:10px 12px;border:1.5px solid #d1d5db;border-radius:8px;font-size:.95rem;font-family:inherit;transition:border .15s}
+textarea:focus,input:focus,select:focus{outline:none;border-color:var(--gold)}
+textarea{resize:vertical;min-height:100px}
+.row{display:grid;gap:12px;margin-bottom:12px}
+.row2{grid-template-columns:1fr 1fr}
+.row3{grid-template-columns:1fr 1fr 1fr}
+.stars{display:flex;gap:4px;margin-bottom:12px}
+.stars button{background:none;border:none;font-size:2rem;cursor:pointer;color:#d1d5db;transition:color .1s}
+.stars button.active{color:var(--gold)}
+.stars button:hover{color:var(--gold-light)}
+.btn{background:var(--navy);color:#fff;border:none;padding:14px 28px;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer;transition:background .15s;width:100%}
+.btn:hover{background:var(--navy-light)}
+.btn:active{transform:scale(.98)}
+.btn-gold{background:var(--gold);color:var(--navy)}
+.btn-gold:hover{background:var(--gold-light)}
+.response-card{border-left:4px solid var(--gold);padding:16px;margin-bottom:14px;background:#fafbfc;border-radius:0 8px 8px 0;position:relative}
+.response-card h3{font-size:.85rem;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.response-card p{font-size:.93rem;line-height:1.6;white-space:pre-wrap}
+.copy-btn{position:absolute;top:12px;right:12px;background:var(--navy);color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:.78rem;cursor:pointer;font-weight:600}
+.copy-btn:hover{background:var(--gold);color:var(--navy)}
+.copy-btn.copied{background:var(--green);color:#fff}
+#results{display:none}
+.history-item{padding:12px;border-bottom:1px solid #e5e7eb;cursor:pointer;transition:background .1s}
+.history-item:hover{background:#f9fafb}
+.history-item .hi-meta{font-size:.75rem;color:var(--muted)}
+.history-item .hi-preview{font-size:.85rem;margin-top:4px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:.7rem;font-weight:700;color:#fff;margin-right:4px}
+.badge-neg{background:var(--red)}.badge-neu{background:var(--orange)}.badge-pos{background:var(--green)}
+.tab-bar{display:flex;gap:0;margin-bottom:20px;border-bottom:2px solid #e5e7eb}
+.tab{padding:10px 20px;cursor:pointer;font-weight:600;font-size:.9rem;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
+.tab.active{color:var(--navy);border-bottom-color:var(--gold)}
+.tab-content{display:none}.tab-content.active{display:block}
+@media(max-width:600px){.row2,.row3{grid-template-columns:1fr}header h1{font-size:1.1rem}}
+</style>
+</head>
+<body>
+<header>
+<h1>🚗 DYER AUTO GROUP</h1>
+<span>Review Response Generator</span>
+</header>
+<div class="container">
+<div class="tab-bar">
+<div class="tab active" data-tab="generator">Generator</div>
+<div class="tab" data-tab="history">History <span id="histCount"></span></div>
+</div>
+
+<div class="tab-content active" id="tab-generator">
+<div class="card">
+<h2>Review Details</h2>
+<label>Customer Review *</label>
+<textarea id="review" placeholder="Paste the customer review here..."></textarea>
+<label style="margin-top:12px">Star Rating *</label>
+<div class="stars" id="stars"></div>
+<div class="row row2">
+<div><label>Store *</label><select id="store"><option value="">Select store</option><option>Dyer Chevy</option><option>Dyer Mazda</option><option>Dyer Subaru</option><option>Dyer Kia</option></select></div>
+<div><label>Department *</label><select id="dept"><option value="">Select department</option><option>Sales</option><option>Service</option><option>Collision</option><option>Parts</option><option>Marine</option></select></div>
+</div>
+<div class="row row2">
+<div><label>Customer Name (optional)</label><input id="custName" placeholder="e.g. John"></div>
+<div><label>Employee Mentioned (optional)</label><input id="empName" placeholder="e.g. Mike in Service"></div>
+</div>
+<button class="btn btn-gold" style="margin-top:16px" onclick="generate()">⚡ Generate Responses</button>
+</div>
+<div class="card" id="results">
+<h2>Response Options</h2>
+<div id="responses"></div>
+</div>
+</div>
+
+<div class="tab-content" id="tab-history">
+<div class="card">
+<h2>Recent Responses</h2>
+<div id="historyList"><p style="color:var(--muted);font-size:.9rem">No history yet.</p></div>
+</div>
+</div>
+</div>
+
+<script>
+// Star rating
+let rating=0;const starsEl=document.getElementById('stars');
+for(let i=1;i<=5;i++){const b=document.createElement('button');b.textContent='★';b.onclick=()=>{rating=i;document.querySelectorAll('.stars button').forEach((s,j)=>s.classList.toggle('active',j<i))};starsEl.appendChild(b)}
+
+// Tabs
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab,.tab-content').forEach(e=>e.classList.remove('active'));t.classList.add('active');document.getElementById('tab-'+t.dataset.tab).classList.add('active')})
+
+// GM contacts per store
+const gm={
+'Dyer Chevy':'our General Manager at (561) 880-6500',
+'Dyer Mazda':'our General Manager at (561) 880-6600',
+'Dyer Subaru':'our General Manager at (561) 880-6700',
+'Dyer Kia':'our General Manager at (561) 880-6800'
+};
+
+// Templates
+const T={
+positive:{
+professional:[
+`Thank you for your wonderful {rating}-star review, {name}! We're thrilled to hear about your outstanding experience with our {dept} team at {store}. {empMention}Your satisfaction is our top priority, and feedback like yours motivates our entire team. We look forward to serving you again!`,
+`We truly appreciate you taking the time to share your experience, {name}. A {rating}-star review means the world to our {dept} department at {store}. {empMention}It's customers like you that make what we do so rewarding. See you next time!`,
+`{name}, thank you so much for this fantastic review! Hearing that our {dept} team at {store} delivered an exceptional experience is exactly what we strive for every day. {empMention}We're grateful for your trust and can't wait to welcome you back.`,
+`What a great review, {name}! Our {dept} team at {store} takes pride in delivering first-class service, and your {rating}-star rating confirms that commitment. {empMention}Thank you for choosing Dyer — we appreciate your loyalty!`,
+`{name}, we're beyond grateful for your kind words and {rating}-star review! The {dept} team at {store} works hard to exceed expectations, and it's wonderful to know we hit the mark. {empMention}We value you as a customer and look forward to your next visit.`,
+`Thank you for the amazing feedback, {name}! At {store}, our {dept} team is dedicated to making every visit exceptional. {empMention}Your {rating}-star review is the best compliment we could receive. See you down the road!`,
+`Wow, {name} — thank you! We're so happy to hear about your {rating}-star experience with {dept} at {store}. {empMention}Reviews like yours are what fuel our passion for great service. We appreciate you!`,
+`{name}, your generous {rating}-star review just made our day! Our {dept} department at {store} is committed to excellence, and your feedback shows it's working. {empMention}Thank you for being part of the Dyer family!`,
+`We're so glad you had a phenomenal experience, {name}! Your {rating}-star review speaks volumes about our {dept} team at {store}. {empMention}We're here whenever you need us — thank you for your trust!`,
+`{name}, it's reviews like yours that remind us why we love what we do. Thank you for the {rating} stars and for trusting our {dept} team at {store}. {empMention}We look forward to continuing to earn your business!`,
+`Thank you for sharing your experience, {name}! A {rating}-star review for our {dept} department at {store} is incredibly rewarding. {empMention}Your satisfaction drives everything we do. Until next time!`
+],
+warm:[
+`{name}, you just made our whole team smile! 😊 Thank you so much for the love — our {dept} crew at {store} genuinely cares about every customer, and knowing we nailed it for you is the best feeling. {empMention}You're always welcome here!`,
+`We're doing a happy dance over here, {name}! 🎉 Your {rating}-star review is so appreciated. The {dept} family at {store} prides itself on treating every customer like, well, family. {empMention}Can't wait to see you again!`,
+`{name}! Thank you, thank you, thank you! Our {dept} team at {store} puts their heart into every interaction, and your {rating}-star review shows it doesn't go unnoticed. {empMention}You've made our week — come back anytime!`,
+`This just brightened our entire day, {name}! Knowing that our {dept} team at {store} made your experience that special means everything. {empMention}We appreciate you more than you know. See you soon, friend! 🙌`,
+`{name}, we are SO glad you had an amazing time with our {dept} crew at {store}! {empMention}People like you make this job an absolute joy. Thank you for the stellar {rating}-star review — you rock! 🌟`,
+`Okay, {name}, you've officially made our day! 😄 Our {dept} team at {store} lives for moments like this. {empMention}Thank you for the {rating} stars and for trusting us. You're part of the Dyer family now!`,
+`{name}, reading this put the biggest smile on our faces! The {dept} team at {store} genuinely loves helping customers like you. {empMention}Thanks for the {rating}-star love — we'll be here whenever you need us! ❤️`,
+`We couldn't be happier to read this, {name}! Our {dept} folks at {store} pour everything into creating great experiences. {empMention}Your {rating}-star review is the cherry on top. Come back soon! 🍒`,
+`{name}! This review is going straight on the fridge! 😂 Seriously though, our {dept} team at {store} is thrilled you had such a great experience. {empMention}Thank you for the kind words and {rating} stars!`,
+`You're too kind, {name}! Our {dept} team at {store} is blushing. 😊 {empMention}Knowing we made a real difference in your day is what gets us up in the morning. {rating} stars — we're honored! See you next time!`,
+`{name}, we're grinning ear to ear! Nothing beats hearing that our {dept} team at {store} delivered for you. {empMention}Thank you for the incredible {rating}-star review — you've made a whole team's day!`
+],
+brief:[
+`Thank you for the {rating}-star review, {name}! We're glad our {dept} team at {store} delivered a great experience. {empMention}See you next time!`,
+`{name}, we appreciate the {rating} stars! Glad our {dept} team at {store} took great care of you. {empMention}Thanks for choosing Dyer!`,
+`Thanks so much, {name}! Happy to hear {dept} at {store} exceeded expectations. {empMention}We look forward to seeing you again!`,
+`{rating} stars — thank you, {name}! Our {dept} team at {store} appreciates your kind words. {empMention}Come back anytime!`,
+`{name}, thank you! It's great to know our {dept} team at {store} made your visit a great one. {empMention}See you soon!`,
+`We appreciate the love, {name}! {dept} at {store} is here for you anytime. {empMention}Thanks for the {rating} stars!`,
+`Thanks for the stellar review, {name}! Our {dept} crew at {store} is grateful. {empMention}Until next time! 👋`,
+`{name}, {rating} stars means a lot! Thank you for trusting {dept} at {store}. {empMention}We're always here for you.`,
+`Much appreciated, {name}! Glad {store}'s {dept} team made it a smooth experience. {empMention}See you down the road!`,
+`{name}, thanks for the awesome review! Our {dept} team at {store} loved working with you. {empMention}Come back anytime!`,
+`Thank you, {name}! {rating} stars for {dept} at {store} — we're honored. {empMention}Appreciate your business!`
+]
+},
+neutral:{
+professional:[
+`Thank you for your feedback, {name}. We appreciate you sharing your experience with our {dept} department at {store}. {empMention}While we're glad some aspects met your expectations, we're committed to earning that 5-star experience every time. We'd love the opportunity to do even better — please don't hesitate to reach out to {gmContact} so we can address any concerns.`,
+`{name}, we value your honest {rating}-star review. At {store}, our {dept} team strives for excellence, and your feedback helps us identify areas for improvement. {empMention}We'd welcome the chance to discuss your experience further and ensure your next visit exceeds expectations. Please contact {gmContact}.`,
+`We appreciate you taking the time to review your experience, {name}. A {rating}-star rating tells us there's room to grow, and we take that seriously. {empMention}Our {dept} team at {store} is committed to continuous improvement. We'd love to hear more — please reach out to {gmContact}.`,
+`{name}, thank you for your candid feedback about our {dept} department at {store}. {empMention}We're glad for what went well and determined to improve where we fell short. Your satisfaction matters deeply to us — please contact {gmContact} if you'd like to discuss further.`,
+`Thank you for your review, {name}. At {store}, we expect our {dept} team to deliver an outstanding experience, and it sounds like we have some work to do. {empMention}We'd appreciate the opportunity to make things right — please reach out to {gmContact}.`,
+`{name}, we're grateful for your {rating}-star feedback. Every review helps our {dept} team at {store} improve. {empMention}We're committed to raising the bar and would love to learn more about how we can do better. Please don't hesitate to contact {gmContact}.`,
+`Thank you for the honest review, {name}. We appreciate that you chose {store} for your {dept} needs. {empMention}We believe every customer deserves a 5-star experience, and we'd like the chance to get there. Please reach out to {gmContact} — we're listening.`,
+`{name}, your {rating}-star review is important to us. Our {dept} team at {store} is dedicated to improvement, and your feedback is a valuable part of that process. {empMention}We'd love to hear more about your experience — please contact {gmContact}.`,
+`We appreciate your review, {name}. While we're glad some things went well during your {dept} visit at {store}, we clearly have areas to improve. {empMention}Please reach out to {gmContact} so we can make your next experience exceptional.`,
+`{name}, thank you for your feedback regarding our {dept} department at {store}. {empMention}We take every review to heart and are always looking for ways to improve. We'd welcome the opportunity to discuss your visit — please contact {gmContact}.`,
+`Your feedback means a lot, {name}. Our {dept} team at {store} is committed to delivering excellent service. {empMention}We'd love to turn your {rating}-star experience into a 5-star one. Please reach out to {gmContact} — we're here to help.`
+],
+warm:[
+`{name}, thank you for keeping it real with us! We appreciate your {rating}-star feedback — it helps our {dept} team at {store} get better every day. {empMention}We'd love a chance to wow you next time. If there's anything specific we can improve, please reach out to {gmContact}. We're all ears! 👂`,
+`Hey {name}, we appreciate the honest review! Sounds like our {dept} team at {store} did some things right but we've got room to grow. {empMention}That's exactly the kind of feedback that makes us better. We'd love to chat more — feel free to contact {gmContact}.`,
+`{name}, thanks for sharing your thoughts! A {rating}-star review tells us we're on the right track but not quite there yet. {empMention}Our {dept} crew at {store} wants to make it perfect next time. Drop us a line at {gmContact} if you'd like to talk it through! 💪`,
+`We hear you, {name}! Thanks for the {rating}-star feedback on your {dept} experience at {store}. {empMention}We're taking notes and we're determined to earn those extra stars next time. Reach out to {gmContact} anytime — we genuinely want to do better!`,
+`{name}, your feedback is a gift — seriously! Our {dept} team at {store} is always looking to level up, and your {rating}-star review helps us do exactly that. {empMention}We'd love another shot. Contact {gmContact} if there's anything we can do. 🙏`,
+`Thanks for the thoughtful review, {name}! We love hearing what's working and what's not. {empMention}Our {dept} team at {store} is on a mission to earn 5 stars from you next time. Let's make it happen — reach out to {gmContact}!`,
+`{name}, appreciate you sharing this! We take {rating}-star feedback to heart — our {dept} team at {store} wants every visit to be amazing. {empMention}We'd love to hear more. Hit up {gmContact} and let's make your next experience a 5-star one! ⭐`,
+`Thank you for the real talk, {name}! Our {dept} crew at {store} appreciates honesty — it's how we grow. {empMention}We're committed to stepping up our game. Reach out to {gmContact} so we can learn more and do better!`,
+`{name}, we appreciate you giving us a chance and sharing your {rating}-star experience! {empMention}Our {dept} team at {store} has taken note and is motivated to improve. We'd love to hear from you — contact {gmContact}. We've got this! 💯`,
+`Hey {name}, thanks for the honest take on your {dept} visit at {store}! {empMention}We appreciate the good and own the not-so-great. Our team is committed to earning those extra stars. Let's chat — {gmContact}! 🤝`,
+`{name}, your candid review means a lot! Our {dept} team at {store} is taking your feedback to heart. {empMention}We want to make your next visit the best one yet. Please don't hesitate to reach out to {gmContact}!`
+],
+brief:[
+`Thank you for the {rating}-star review, {name}. We appreciate the feedback on our {dept} team at {store}. {empMention}We'd love to do better — please contact {gmContact}.`,
+`{name}, thanks for the honest feedback! Our {dept} team at {store} takes this to heart. {empMention}Let's make your next visit 5 stars — reach out to {gmContact}.`,
+`We appreciate your review, {name}. Our {dept} team at {store} is committed to improving. {empMention}Contact {gmContact} if we can help further.`,
+`{name}, thank you for your feedback on {dept} at {store}. {empMention}We're listening and always improving. Please reach out to {gmContact} — we'd love to earn 5 stars next time.`,
+`Thanks for sharing, {name}. {empMention}Our {dept} team at {store} appreciates your honesty. Contact {gmContact} so we can do better.`,
+`{name}, we hear you! Our {dept} department at {store} is always working to improve. {empMention}Reach out to {gmContact} anytime.`,
+`Thank you, {name}. {rating} stars for {dept} at {store} means we have work to do, and we're up for it. {empMention}Contact {gmContact} to discuss.`,
+`Appreciate the feedback, {name}! Our {dept} team at {store} will use this to get better. {empMention}Please reach out to {gmContact}.`,
+`{name}, thanks for the review. Our {dept} team at {store} values your input. {empMention}Let us know how we can improve — {gmContact}.`,
+`Thank you for your review, {name}. We value your experience at {store}'s {dept} department. {empMention}We'd love to hear more — {gmContact}.`,
+`{name}, we appreciate the {rating}-star feedback. {empMention}{dept} at {store} is committed to excellence. Reach out to {gmContact} — let's make it right.`
+]
+},
+negative:{
+professional:[
+`{name}, we sincerely apologize for your experience with our {dept} department at {store}. This is not the standard we hold ourselves to, and your feedback is taken very seriously. {empMention}We would like the opportunity to address your concerns personally. Please contact {gmContact} at your earliest convenience so we can work toward a resolution.`,
+`We are deeply sorry to hear about your experience, {name}. At {store}, our {dept} team strives for excellence, and it's clear we fell short. {empMention}Your satisfaction is paramount, and we want to make this right. Please reach out to {gmContact} so we can discuss this further.`,
+`{name}, thank you for bringing this to our attention. We take your {rating}-star review very seriously and are disappointed that our {dept} department at {store} did not meet your expectations. {empMention}We would appreciate the chance to resolve this. Please contact {gmContact}.`,
+`We owe you an apology, {name}. Your experience with our {dept} team at {store} does not reflect our values or standards. {empMention}We are committed to making this right and would like to discuss your concerns privately. Please reach out to {gmContact}.`,
+`{name}, this is not the experience we want any customer to have. We are truly sorry about what happened during your visit to our {dept} department at {store}. {empMention}Please contact {gmContact} — we want to address your concerns and restore your confidence in us.`,
+`Thank you for your feedback, {name}. We understand your frustration and take full responsibility for the shortcomings in your {dept} experience at {store}. {empMention}We would greatly appreciate the opportunity to speak with you directly. Please contact {gmContact}.`,
+`{name}, we're very sorry. Your {rating}-star review highlights areas where our {dept} team at {store} needs to do better, and we take that to heart. {empMention}Please reach out to {gmContact} so we can discuss how to make this right.`,
+`We regret that your experience with {dept} at {store} was unsatisfactory, {name}. {empMention}This feedback has been shared with our leadership team. We'd like the opportunity to resolve your concerns — please contact {gmContact}.`,
+`{name}, we apologize for the disappointing experience. Our {dept} department at {store} is held to high standards, and we clearly missed the mark. {empMention}We want to make things right. Please reach out to {gmContact} at your convenience.`,
+`Your feedback is deeply concerning to us, {name}. We expect our {dept} team at {store} to deliver exceptional service, and we failed in your case. {empMention}Please contact {gmContact} so we can personally address your experience and work toward a resolution.`,
+`{name}, we sincerely regret your experience. Every customer matters to our {dept} team at {store}, and we're sorry we let you down. {empMention}We want to earn back your trust. Please contact {gmContact} to discuss this further.`
+],
+warm:[
+`{name}, we are so sorry. Reading your review genuinely hurts because this is NOT who we are. Our {dept} team at {store} dropped the ball, and there's no sugarcoating it. {empMention}We want to fix this. Please reach out to {gmContact} — we promise to listen and make it right. 🙏`,
+`Oh no, {name}. This is really hard to read, and we owe you a huge apology. Our {dept} team at {store} should have done so much better. {empMention}Please give us a chance to make this right — contact {gmContact}. You deserved better, and we know it.`,
+`{name}, we're genuinely sorry. Your experience is not okay, and our {dept} team at {store} knows it. {empMention}We take this personally because we care about every single customer. Please reach out to {gmContact} — we want to hear from you and make things right. ❤️`,
+`We messed up, {name}, and we own that completely. Your experience with {dept} at {store} is not what we're about. {empMention}We'd really appreciate the chance to talk this through. Please contact {gmContact} — we want to do right by you.`,
+`{name}, reading this breaks our hearts. We pride ourselves on taking care of our customers, and our {dept} team at {store} clearly fell short for you. {empMention}Please, please reach out to {gmContact}. We want to turn this around. 💙`,
+`We're truly sorry, {name}. Everyone at {store} takes your {dept} experience personally, and we're not happy about this. {empMention}You deserve so much better. Please contact {gmContact} — let us make this right.`,
+`{name}, this isn't the Dyer way, and we're genuinely upset about your experience. Our {dept} team at {store} holds itself to a higher standard. {empMention}We'd love the chance to fix this. Reach out to {gmContact} — we're here for you. 🤝`,
+`We hear you, {name}, and we're so sorry. Your {dept} experience at {store} should have been so much better. {empMention}We're committed to making this right. Please contact {gmContact} — no one should leave feeling this way.`,
+`{name}, we can only imagine your frustration, and we sincerely apologize. Our {dept} team at {store} let you down, and that's unacceptable. {empMention}Please give us a shot to fix this — reach out to {gmContact}. We care, and we'll prove it.`,
+`This is not the experience we want for anyone, {name}. We're sorry about your {dept} visit at {store}. {empMention}Let's make it right together. Please contact {gmContact} — we won't let this be your last impression of us. 💪`,
+`{name}, we're sorry from the bottom of our hearts. Our {dept} team at {store} should have done better — full stop. {empMention}We want to hear your full experience and fix this. Please reach out to {gmContact}. You matter to us.`
+],
+brief:[
+`{name}, we sincerely apologize for your experience with {dept} at {store}. {empMention}This isn't our standard. Please contact {gmContact} so we can make it right.`,
+`We're sorry, {name}. Your {dept} experience at {store} fell short, and we want to fix it. {empMention}Please reach out to {gmContact}.`,
+`{name}, we apologize. Our {dept} team at {store} should have done better. {empMention}Contact {gmContact} — we want to resolve this.`,
+`Thank you for your feedback, {name}. We're sorry about your {dept} experience at {store}. {empMention}Please contact {gmContact} to discuss.`,
+`{name}, this isn't acceptable. We apologize and want to make it right. {empMention}Please reach out to {gmContact} at {store}.`,
+`We owe you an apology, {name}. {empMention}Our {dept} team at {store} let you down. Contact {gmContact} so we can fix this.`,
+`{name}, we're sorry. {empMention}Please contact {gmContact} so our {dept} team at {store} can address your concerns personally.`,
+`We apologize for your experience, {name}. {dept} at {store} should do better. {empMention}Reach out to {gmContact} — we'll make it right.`,
+`{name}, we hear you and we're sorry. {empMention}Contact {gmContact} at {store} so we can resolve this. Our {dept} team wants to do better.`,
+`Sorry about your experience, {name}. {empMention}Please reach out to {gmContact} — our {dept} team at {store} wants to make this right.`,
+`{name}, we take this seriously. We're sorry our {dept} department at {store} fell short. {empMention}Please contact {gmContact}.`
+]
+}
+};
+
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
+
+function extractKeywords(review){
+const words=review.toLowerCase();
+const found=[];
+const kw=['friendly','helpful','professional','quick','fast','easy','clean','honest','knowledgeable','patient','rude','slow','overcharged','lied','worst','terrible','amazing','awesome','excellent','fantastic','great','wonderful','horrible','disappointing','frustrating','waiting','waited','price','deal','trade'];
+kw.forEach(w=>{if(words.includes(w))found.push(w)});
+return found;
+}
+
+function generate(){
+const review=document.getElementById('review').value.trim();
+const store=document.getElementById('store').value;
+const dept=document.getElementById('dept').value;
+const custName=document.getElementById('custName').value.trim();
+const empName=document.getElementById('empName').value.trim();
+
+if(!review||!rating||!store||!dept){alert('Please fill in all required fields and select a star rating.');return}
+
+const name=custName||'valued customer';
+const empMention=empName?`We'll be sure to share your feedback with ${empName}. `:'';
+const gmContact=gm[store]||'our General Manager';
+const sentiment=rating<=2?'negative':rating===3?'neutral':'positive';
+const cats=T[sentiment];
+
+const vars={'{name}':name,'{rating}':rating,'{store}':store,'{dept}':dept,'{empMention}':empMention,'{gmContact}':gmContact};
+const fill=t=>{let s=t;for(const[k,v]of Object.entries(vars))s=s.replaceAll(k,v);return s};
+
+const results=[
+{label:'Professional',text:fill(pick(cats.professional))},
+{label:'Warm & Personal',text:fill(pick(cats.warm))},
+{label:'Brief',text:fill(pick(cats.brief))}
+];
+
+const el=document.getElementById('responses');
+el.innerHTML=results.map((r,i)=>`
+<div class="response-card">
+<h3>${r.label}</h3>
+<p>${r.text}</p>
+<button class="copy-btn" onclick="copyText(this,'${i}')">📋 Copy</button>
+</div>`).join('');
+document.getElementById('results').style.display='block';
+
+// Save to history
+const hist=JSON.parse(localStorage.getItem('dyer_hist')||'[]');
+hist.unshift({date:new Date().toLocaleString(),store,dept,rating,name,review:review.substring(0,100),responses:results,sentiment});
+if(hist.length>20)hist.length=20;
+localStorage.setItem('dyer_hist',JSON.stringify(hist));
+updateHistCount();
+}
+
+function copyText(btn,idx){
+const p=btn.parentElement.querySelector('p');
+navigator.clipboard.writeText(p.textContent).then(()=>{btn.textContent='✅ Copied!';btn.classList.add('copied');setTimeout(()=>{btn.textContent='📋 Copy';btn.classList.remove('copied')},2000)});
+}
+
+function updateHistCount(){
+const hist=JSON.parse(localStorage.getItem('dyer_hist')||'[]');
+document.getElementById('histCount').textContent=hist.length?`(${hist.length})`:'';
+renderHistory();
+}
+
+function renderHistory(){
+const hist=JSON.parse(localStorage.getItem('dyer_hist')||'[]');
+const el=document.getElementById('historyList');
+if(!hist.length){el.innerHTML='<p style="color:var(--muted);font-size:.9rem">No history yet.</p>';return}
+el.innerHTML=hist.map((h,i)=>`
+<div class="history-item" onclick="showHist(${i})">
+<div class="hi-meta"><span class="badge badge-${h.sentiment==='negative'?'neg':h.sentiment==='neutral'?'neu':'pos'}">${h.rating}★</span> ${h.store} · ${h.dept} · ${h.date}</div>
+<div class="hi-preview">${h.review}…</div>
+</div>`).join('');
+}
+
+function showHist(i){
+const hist=JSON.parse(localStorage.getItem('dyer_hist')||'[]');
+const h=hist[i];if(!h)return;
+const el=document.getElementById('responses');
+el.innerHTML=h.responses.map((r,j)=>`
+<div class="response-card">
+<h3>${r.label}</h3>
+<p>${r.text}</p>
+<button class="copy-btn" onclick="copyText(this,'${j}')">📋 Copy</button>
+</div>`).join('');
+document.getElementById('results').style.display='block';
+document.querySelectorAll('.tab,.tab-content').forEach(e=>e.classList.remove('active'));
+document.querySelector('[data-tab="generator"]').classList.add('active');
+document.getElementById('tab-generator').classList.add('active');
+}
+
+updateHistCount();
+</script>
+</body>
+</html>

@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="../auth.js"></script><link rel="stylesheet" href="../responsive.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dyer Auto Group — Monthly Financial Summary</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+:root{--navy:#0a1628;--navy2:#111d33;--navy3:#182944;--gold:#c9a84c;--gold2:#e0c068;--green:#3ecf8e;--red:#ef5350;--text:#e8e8ee;--muted:#8892a4;--card:#141e30;--border:#253350;--radius:10px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--navy);color:var(--text);min-height:100vh}
+a{color:var(--gold)}
+.container{max-width:1400px;margin:0 auto;padding:16px}
+header{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);margin-bottom:20px;flex-wrap:wrap;gap:12px}
+header h1{font-size:1.4rem;font-weight:700;letter-spacing:.5px}
+header h1 span{color:var(--gold)}
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+select,button,input[type=file]{background:var(--navy3);color:var(--text);border:1px solid var(--border);padding:8px 14px;border-radius:6px;font-size:.85rem;cursor:pointer}
+select:focus,button:focus{outline:2px solid var(--gold)}
+button.primary{background:var(--gold);color:var(--navy);font-weight:600;border:none}
+button.primary:hover{background:var(--gold2)}
+button.sm{padding:5px 10px;font-size:.78rem}
+
+/* Summary Cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:24px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 16px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--gold)}
+.card .label{font-size:.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px}
+.card .value{font-size:1.6rem;font-weight:700}
+.card .sub{font-size:.75rem;color:var(--muted);margin-top:4px}
+.positive{color:var(--green)}.negative{color:var(--red)}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap}
+.tab{padding:8px 16px;border-radius:6px 6px 0 0;background:var(--navy2);border:1px solid var(--border);border-bottom:none;cursor:pointer;font-size:.82rem;color:var(--muted);transition:.15s}
+.tab.active{background:var(--card);color:var(--gold);font-weight:600}
+.tab-content{display:none;background:var(--card);border:1px solid var(--border);border-radius:0 var(--radius) var(--radius) var(--radius);padding:20px}
+.tab-content.active{display:block}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th,td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--border)}
+th{color:var(--gold);font-weight:600;font-size:.75rem;text-transform:uppercase;letter-spacing:.5px}
+td:first-child,th:first-child{text-align:left}
+tr.total{font-weight:700;border-top:2px solid var(--gold)}
+tr.total td{padding-top:12px}
+.best{background:rgba(62,207,142,.08)}.worst{background:rgba(239,83,80,.08)}
+
+/* Charts */
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.chart-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.chart-box h3{font-size:.85rem;color:var(--gold);margin-bottom:12px;font-weight:600}
+canvas{max-height:300px}
+
+/* Section headings */
+.section-title{font-size:1rem;font-weight:700;margin:24px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+
+/* Data Entry Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;justify-content:center;align-items:flex-start;padding:40px 16px;overflow-y:auto}
+.modal-overlay.open{display:flex}
+.modal{background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius);padding:24px;width:100%;max-width:800px;max-height:90vh;overflow-y:auto}
+.modal h2{font-size:1.1rem;margin-bottom:16px;color:var(--gold)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-grid label{font-size:.78rem;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+.form-grid input{background:var(--navy);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:5px;font-size:.85rem}
+.form-actions{margin-top:16px;display:flex;gap:10px;justify-content:flex-end}
+
+/* Print */
+@media print{body{background:#fff;color:#111}.card{border:1px solid #ccc}.card::before{background:#333}header h1 span{color:#333}.chart-box{break-inside:avoid}select,button,.controls button{display:none}.tab-content{display:block!important;border:1px solid #ccc;margin-bottom:10px}th{color:#333}tr.total{border-top:2px solid #333}.tabs{display:none}.modal-overlay{display:none!important}}
+
+@media(max-width:800px){.chart-grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+  <h1>DYER AUTO <span>GROUP</span> — Financial Summary</h1>
+  <div class="controls">
+    <select id="monthSel"></select>
+    <select id="yearSel"></select>
+    <button class="primary" onclick="openEntry()">✏️ Data Entry</button>
+    <button onclick="exportCSV()">📥 Export CSV</button>
+    <label style="margin:0"><input type="file" id="csvFile" accept=".csv" style="display:none" onchange="importCSV(event)"><button onclick="document.getElementById('csvFile').click()">📤 Import CSV</button></label>
+  </div>
+</header>
+
+<div class="cards" id="summaryCards"></div>
+
+<div class="section-title">Department P&L Breakdown</div>
+<div class="tabs" id="deptTabs"></div>
+<div id="deptContents"></div>
+
+<div class="section-title">Store Comparison</div>
+<div id="storeTable"></div>
+
+<div class="section-title">Trends & Analysis</div>
+<div class="chart-grid">
+  <div class="chart-box"><h3>12-Month Gross Profit Trend</h3><canvas id="chartGross"></canvas></div>
+  <div class="chart-box"><h3>Department Contribution</h3><canvas id="chartPie"></canvas></div>
+  <div class="chart-box"><h3>Units Sold by Month</h3><canvas id="chartUnits"></canvas></div>
+  <div class="chart-box"><h3>Expense Ratio Trend</h3><canvas id="chartExpense"></canvas></div>
+</div>
+</div>
+
+<!-- Data Entry Modal -->
+<div class="modal-overlay" id="entryModal">
+<div class="modal">
+  <h2>Enter Monthly Data — <span id="entryPeriod"></span></h2>
+  <div style="margin-bottom:12px">
+    <label style="font-size:.8rem;color:var(--muted)">Store:
+      <select id="entryStore" onchange="fillEntryForm()" style="margin-left:6px">
+        <option>Chevy</option><option>Mazda</option><option>Subaru</option><option>Kia</option>
+      </select>
+    </label>
+  </div>
+  <div id="entryForm"></div>
+  <div class="form-actions">
+    <button onclick="closeEntry()">Cancel</button>
+    <button class="primary" onclick="saveEntry()">Save</button>
+  </div>
+</div>
+</div>
+
+<script>
+// ===== DATA MODEL =====
+const DEPTS = [
+  {key:'newVehicle',name:'New Vehicle Sales',fields:['revenue','cost','gross','expenses','net'],hasUnits:true},
+  {key:'usedVehicle',name:'Used Vehicle Sales',fields:['revenue','cost','gross','expenses','net'],hasUnits:true},
+  {key:'fi',name:'F&I',fields:['revenue','cost','net']},
+  {key:'service',name:'Service',fields:['revenue','cost','gross','expenses','net']},
+  {key:'parts',name:'Parts',fields:['revenue','cost','gross','expenses','net']},
+  {key:'collision',name:'Collision',fields:['revenue','cost','gross','expenses','net']},
+  {key:'marine',name:'Marine',fields:['revenue','cost','gross','expenses','net']}
+];
+const STORES = ['Chevy','Mazda','Subaru','Kia'];
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function makeStoreData(){
+  const d={};
+  DEPTS.forEach(dept=>{
+    d[dept.key]={};
+    dept.fields.forEach(f=>d[dept.key][f]=0);
+    if(dept.hasUnits) d[dept.key].units=0;
+  });
+  return d;
+}
+
+function mk(key){return `${key}`}
+
+// Realistic seed data for Dyer Auto Group (3 months: Nov 2025, Dec 2025, Jan 2026)
+function seedData(){
+  const data={};
+  const seeds={
+    'Chevy':{
+      '2025-11':{newVehicle:{revenue:4200000,cost:3780000,gross:420000,expenses:180000,net:240000,units:120},usedVehicle:{revenue:2100000,cost:1680000,gross:420000,expenses:95000,net:325000,units:85},fi:{revenue:310000,cost:28000,net:282000},service:{revenue:480000,cost:220000,gross:260000,expenses:145000,net:115000},parts:{revenue:360000,cost:234000,gross:126000,expenses:62000,net:64000},collision:{revenue:280000,cost:182000,gross:98000,expenses:48000,net:50000},marine:{revenue:85000,cost:59500,gross:25500,expenses:12000,net:13500}},
+      '2025-12':{newVehicle:{revenue:4800000,cost:4320000,gross:480000,expenses:195000,net:285000,units:138},usedVehicle:{revenue:2350000,cost:1880000,gross:470000,expenses:102000,net:368000,units:92},fi:{revenue:355000,cost:32000,net:323000},service:{revenue:440000,cost:202000,gross:238000,expenses:140000,net:98000},parts:{revenue:330000,cost:214500,gross:115500,expenses:58000,net:57500},collision:{revenue:260000,cost:169000,gross:91000,expenses:45000,net:46000},marine:{revenue:60000,cost:42000,gross:18000,expenses:10000,net:8000}},
+      '2026-01':{newVehicle:{revenue:3900000,cost:3510000,gross:390000,expenses:175000,net:215000,units:108},usedVehicle:{revenue:1950000,cost:1560000,gross:390000,expenses:90000,net:300000,units:78},fi:{revenue:285000,cost:26000,net:259000},service:{revenue:500000,cost:230000,gross:270000,expenses:150000,net:120000},parts:{revenue:380000,cost:247000,gross:133000,expenses:65000,net:68000},collision:{revenue:290000,cost:188500,gross:101500,expenses:50000,net:51500},marine:{revenue:45000,cost:31500,gross:13500,expenses:9000,net:4500}}
+    },
+    'Mazda':{
+      '2025-11':{newVehicle:{revenue:1800000,cost:1602000,gross:198000,expenses:88000,net:110000,units:55},usedVehicle:{revenue:980000,cost:784000,gross:196000,expenses:52000,net:144000,units:42},fi:{revenue:142000,cost:13000,net:129000},service:{revenue:220000,cost:101000,gross:119000,expenses:68000,net:51000},parts:{revenue:165000,cost:107000,gross:58000,expenses:30000,net:28000},collision:{revenue:120000,cost:78000,gross:42000,expenses:22000,net:20000},marine:{revenue:0,cost:0,gross:0,expenses:0,net:0}},
+      '2025-12':{newVehicle:{revenue:2100000,cost:1869000,gross:231000,expenses:95000,net:136000,units:64},usedVehicle:{revenue:1080000,cost:864000,gross:216000,expenses:56000,net:160000,units:46},fi:{revenue:160000,cost:15000,net:145000},service:{revenue:205000,cost:94000,gross:111000,expenses:65000,net:46000},parts:{revenue:152000,cost:98800,gross:53200,expenses:28000,net:25200},collision:{revenue:110000,cost:71500,gross:38500,expenses:20000,net:18500},marine:{revenue:0,cost:0,gross:0,expenses:0,net:0}},
+      '2026-01':{newVehicle:{revenue:1650000,cost:1468500,gross:181500,expenses:82000,net:99500,units:50},usedVehicle:{revenue:900000,cost:720000,gross:180000,expenses:48000,net:132000,units:38},fi:{revenue:128000,cost:12000,net:116000},service:{revenue:230000,cost:106000,gross:124000,expenses:70000,net:54000},parts:{revenue:170000,cost:110500,gross:59500,expenses:31000,net:28500},collision:{revenue:125000,cost:81250,gross:43750,expenses:23000,net:20750},marine:{revenue:0,cost:0,gross:0,expenses:0,net:0}}
+    },
+    'Subaru':{
+      '2025-11':{newVehicle:{revenue:2400000,cost:2160000,gross:240000,expenses:105000,net:135000,units:72},usedVehicle:{revenue:1200000,cost:960000,gross:240000,expenses:62000,net:178000,units:52},fi:{revenue:185000,cost:17000,net:168000},service:{revenue:310000,cost:142000,gross:168000,expenses:92000,net:76000},parts:{revenue:220000,cost:143000,gross:77000,expenses:38000,net:39000},collision:{revenue:170000,cost:110500,gross:59500,expenses:30000,net:29500},marine:{revenue:0,cost:0,gross:0,expenses:0,net:0}},
+      '2025-12':{newVehicle:{revenue:2800000,cost:2520000,gross:280000,expenses:115000,net:165000,units:84},usedVehicle:{revenue:1350000,cost:1080000,gross:270000,expenses:68000,net:202000,units:58},fi:{revenue:210000,cost:19000,net:191000},service:{revenue:290000,cost:133000,gross:157000,expenses:88000,net:69000},parts:{revenue:205000,cost:133000,gross:72000,expenses:36000,net:36000},collision:{revenue:155000,cost:100750,gross:54250,expenses:28000,net:26250},marine:{revenue:0,cost:0,gross:0,expenses:0,net:0}},
+      '2026-01':{newVehicle:{revenue:2200000,cost:1980000,gross:220000,expenses:100000,net:120000,units:65},usedVehicle:{revenue:1100000,cost:880000,gross:220000,expenses:58000,net:162000,units:47},fi:{revenue:165000,cost:15000,net:150000},service:{revenue:320000,cost:147000,gross:173000,expenses:95000,net:78000},parts:{revenue:230000,cost:149500,gross:80500,expenses:40000,net:40500},collision:{revenue:180000,cost:117000,gross:63000,expenses:32000,net:31000},marine:{revenue:0,cost:0,gross:0,expenses:0,net:0}}
+    },
+    'Kia':{
+      '2025-11':{newVehicle:{revenue:2000000,cost:1800000,gross:200000,expenses:92000,net:108000,units:68},usedVehicle:{revenue:1050000,cost:840000,gross:210000,expenses:55000,net:155000,units:48},fi:{revenue:165000,cost:15000,net:150000},service:{revenue:260000,cost:119000,gross:141000,expenses:78000,net:63000},parts:{revenue:190000,cost:123500,gross:66500,expenses:34000,net:32500},collision:{revenue:145000,cost:94250,gross:50750,expenses:26000,net:24750},marine:{revenue:0,cost:0,gross:0,expenses:0,net:0}},
+      '2025-12':{newVehicle:{revenue:2300000,cost:2070000,gross:230000,expenses:98000,net:132000,units:78},usedVehicle:{revenue:1150000,cost:920000,gross:230000,expenses:60000,net:170000,units:52},fi:{revenue:185000,cost:17000,net:168000},service:{revenue:240000,cost:110000,gross:130000,expenses:74000,net:56000},parts:{revenue:175000,cost:113750,gross:61250,expenses:32000,net:29250},collision:{revenue:135000,cost:87750,gross:47250,expenses:24000,net:23250},marine:{revenue:0,cost:0,gross:0,expenses:0,net:0}},
+      '2026-01':{newVehicle:{revenue:1850000,cost:1665000,gross:185000,expenses:86000,net:99000,units:60},usedVehicle:{revenue:950000,cost:760000,gross:190000,expenses:50000,net:140000,units:43},fi:{revenue:148000,cost:14000,net:134000},service:{revenue:270000,cost:124000,gross:146000,expenses:80000,net:66000},parts:{revenue:200000,cost:130000,gross:70000,expenses:36000,net:34000},collision:{revenue:150000,cost:97500,gross:52500,expenses:27000,net:25500},marine:{revenue:0,cost:0,gross:0,expenses:0,net:0}}
+    }
+  };
+  return seeds;
+}
+
+// ===== STATE =====
+let DB = JSON.parse(localStorage.getItem('dyerFinancial')||'null') || seedData();
+let selMonth = 0; // Jan
+let selYear = 2026;
+
+function save(){localStorage.setItem('dyerFinancial',JSON.stringify(DB))}
+function period(){return `${selYear}-${String(selMonth+1).padStart(2,'0')}`}
+function fmt(n){if(n==null)return'—';if(Math.abs(n)>=1e6)return'$'+( n/1e6).toFixed(2)+'M';if(Math.abs(n)>=1e3)return'$'+(n/1e3).toFixed(0)+'K';return'$'+n.toLocaleString()}
+function fmtN(n){return n==null?'—':n.toLocaleString()}
+function pct(n){return(n*100).toFixed(1)+'%'}
+
+// ===== INIT SELECTORS =====
+(function(){
+  const ms=document.getElementById('monthSel'),ys=document.getElementById('yearSel');
+  MONTHS.forEach((m,i)=>{const o=document.createElement('option');o.value=i;o.textContent=m;ms.appendChild(o)});
+  [2024,2025,2026].forEach(y=>{const o=document.createElement('option');o.value=y;o.textContent=y;ys.appendChild(o)});
+  ms.value=selMonth;ys.value=selYear;
+  ms.onchange=()=>{selMonth=+ms.value;render()};
+  ys.onchange=()=>{selYear=+ys.value;render()};
+})();
+
+// ===== AGGREGATION =====
+function getGroupData(p){
+  const agg={};
+  DEPTS.forEach(d=>{agg[d.key]={};d.fields.forEach(f=>agg[d.key][f]=0);if(d.hasUnits)agg[d.key].units=0});
+  STORES.forEach(store=>{
+    const sd=DB[store]&&DB[store][p];
+    if(!sd)return;
+    DEPTS.forEach(dept=>{
+      if(!sd[dept.key])return;
+      dept.fields.forEach(f=>{agg[dept.key][f]+=(sd[dept.key][f]||0)});
+      if(dept.hasUnits)agg[dept.key].units+=(sd[dept.key].units||0);
+    });
+  });
+  return agg;
+}
+
+function totalRevenue(d){return DEPTS.reduce((s,dept)=>s+(d[dept.key].revenue||0),0)}
+function totalGross(d){
+  return DEPTS.reduce((s,dept)=>{
+    if(dept.fields.includes('gross'))return s+(d[dept.key].gross||0);
+    return s+(d[dept.key].net||0); // F&I uses net as gross contribution
+  },0);
+}
+function totalExpenses(d){return DEPTS.reduce((s,dept)=>s+(d[dept.key].expenses||0),0)}
+function totalNet(d){return DEPTS.reduce((s,dept)=>s+(d[dept.key].net||0),0)}
+function totalUnits(d){return(d.newVehicle.units||0)+(d.usedVehicle.units||0)}
+
+// ===== RENDER =====
+let charts={};
+function render(){
+  const p=period(), d=getGroupData(p);
+  const rev=totalRevenue(d), gross=totalGross(d), net=totalNet(d), units=totalUnits(d), avgGross=units?Math.round(gross/units):0;
+  
+  // Previous month for comparison
+  let pm=selMonth-1,py=selYear;if(pm<0){pm=11;py--}
+  const pp=`${py}-${String(pm+1).padStart(2,'0')}`;
+  const pd=getGroupData(pp);
+  const prevRev=totalRevenue(pd),prevGross=totalGross(pd),prevNet=totalNet(pd);
+
+  function delta(cur,prev){if(!prev)return'';const d=((cur-prev)/prev);return `<span class="${d>=0?'positive':'negative'}">${d>=0?'▲':'▼'} ${pct(Math.abs(d))} vs prior</span>`}
+
+  document.getElementById('summaryCards').innerHTML=`
+    <div class="card"><div class="label">Total Revenue</div><div class="value">${fmt(rev)}</div><div class="sub">${delta(rev,prevRev)}</div></div>
+    <div class="card"><div class="label">Total Gross Profit</div><div class="value">${fmt(gross)}</div><div class="sub">${delta(gross,prevGross)}</div></div>
+    <div class="card"><div class="label">Total Net Profit</div><div class="value ${net>=0?'positive':'negative'}">${fmt(net)}</div><div class="sub">${delta(net,prevNet)}</div></div>
+    <div class="card"><div class="label">Units Sold</div><div class="value">${fmtN(units)}</div><div class="sub">New: ${fmtN(d.newVehicle.units||0)} | Used: ${fmtN(d.usedVehicle.units||0)}</div></div>
+    <div class="card"><div class="label">Avg Gross / Unit</div><div class="value">${fmt(avgGross)}</div><div class="sub">${units} total units</div></div>`;
+
+  // Dept tabs
+  let tabsH='',contsH='';
+  DEPTS.forEach((dept,i)=>{
+    tabsH+=`<div class="tab${i===0?' active':''}" onclick="switchTab(${i})">${dept.name}</div>`;
+    const dd=d[dept.key];
+    let rows='';
+    dept.fields.forEach(f=>{
+      const val=dd[f]||0;
+      rows+=`<tr><td style="text-transform:capitalize">${f}</td><td>${fmt(val)}</td>`;
+      STORES.forEach(store=>{
+        const sv=DB[store]&&DB[store][p]&&DB[store][p][dept.key];
+        rows+=`<td>${fmt(sv?sv[f]||0:0)}</td>`;
+      });
+      rows+=`</tr>`;
+    });
+    if(dept.hasUnits){
+      rows+=`<tr><td>Units</td><td>${fmtN(dd.units||0)}</td>`;
+      STORES.forEach(store=>{
+        const sv=DB[store]&&DB[store][p]&&DB[store][p][dept.key];
+        rows+=`<td>${fmtN(sv?sv.units||0:0)}</td>`;
+      });
+      rows+=`</tr>`;
+    }
+    contsH+=`<div class="tab-content${i===0?' active':''}" id="dept${i}">
+      <table><thead><tr><th>Metric</th><th>Total</th>${STORES.map(s=>`<th>${s}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  });
+  document.getElementById('deptTabs').innerHTML=tabsH;
+  document.getElementById('deptContents').innerHTML=contsH;
+
+  // Store comparison
+  let storeRows='';
+  const storeMetrics=STORES.map(store=>{
+    const sd=DB[store]&&DB[store][p];
+    if(!sd)return{store,rev:0,gross:0,net:0,units:0};
+    const sd2={};DEPTS.forEach(dept=>{sd2[dept.key]=sd[dept.key]||{}; DEPTS.find(d=>d.key===dept.key).fields.forEach(f=>{sd2[dept.key][f]=sd[dept.key]?.[f]||0});if(DEPTS.find(d=>d.key===dept.key).hasUnits)sd2[dept.key].units=sd[dept.key]?.units||0});
+    return{store,rev:totalRevenue(sd2),gross:totalGross(sd2),net:totalNet(sd2),units:totalUnits(sd2)};
+  });
+  const maxNet=Math.max(...storeMetrics.map(s=>s.net)),minNet=Math.min(...storeMetrics.map(s=>s.net));
+  storeMetrics.forEach(s=>{
+    const cls=s.net===maxNet?'best':s.net===minNet?'worst':'';
+    storeRows+=`<tr class="${cls}"><td><strong>${s.store}</strong></td><td>${fmt(s.rev)}</td><td>${fmt(s.gross)}</td><td>${fmt(s.net)}</td><td>${fmtN(s.units)}</td><td>${s.units?fmt(Math.round(s.gross/s.units)):'—'}</td></tr>`;
+  });
+  document.getElementById('storeTable').innerHTML=`<table><thead><tr><th>Store</th><th>Revenue</th><th>Gross Profit</th><th>Net Profit</th><th>Units</th><th>Avg Gross/Unit</th></tr></thead><tbody>${storeRows}<tr class="total"><td>Total</td><td>${fmt(rev)}</td><td>${fmt(gross)}</td><td>${fmt(net)}</td><td>${fmtN(units)}</td><td>${units?fmt(Math.round(gross/units)):'—'}</td></tr></tbody></table>`;
+
+  renderCharts();
+}
+
+function switchTab(idx){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===idx));
+  document.querySelectorAll('.tab-content').forEach((t,i)=>t.classList.toggle('active',i===idx));
+}
+
+// ===== CHARTS =====
+const chartColors={gold:'#c9a84c',green:'#3ecf8e',red:'#ef5350',blue:'#5b9bd5',purple:'#a855f7',orange:'#f59e0b',cyan:'#06b6d4'};
+Chart.defaults.color='#8892a4';Chart.defaults.borderColor='#253350';
+
+function renderCharts(){
+  // Get 12 months of data
+  const months12=[];
+  let m=selMonth,y=selYear;
+  for(let i=11;i>=0;i--){
+    let mm=m-i,yy=y;while(mm<0){mm+=12;yy--}
+    months12.push({label:MONTHS[mm].slice(0,3)+' '+yy,period:`${yy}-${String(mm+1).padStart(2,'0')}`});
+  }
+  const grossData=months12.map(m=>{const d=getGroupData(m.period);return totalGross(d)});
+  const unitsData=months12.map(m=>{const d=getGroupData(m.period);return totalUnits(d)});
+  const expRatioData=months12.map(m=>{const d=getGroupData(m.period);const r=totalRevenue(d);return r?totalExpenses(d)/r:0});
+
+  Object.values(charts).forEach(c=>c.destroy());charts={};
+
+  charts.gross=new Chart(document.getElementById('chartGross'),{type:'line',data:{labels:months12.map(m=>m.label),datasets:[{label:'Gross Profit',data:grossData,borderColor:chartColors.gold,backgroundColor:'rgba(201,168,76,.15)',fill:true,tension:.3,pointRadius:4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>fmt(v)}}}}});
+
+  // Pie: dept contribution for current month
+  const curD=getGroupData(period());
+  const pieData=DEPTS.map(dept=>{
+    if(dept.fields.includes('gross'))return curD[dept.key].gross||0;
+    return curD[dept.key].net||0;
+  });
+  const pieColors=[chartColors.gold,chartColors.green,chartColors.blue,chartColors.purple,chartColors.orange,chartColors.cyan,chartColors.red];
+  charts.pie=new Chart(document.getElementById('chartPie'),{type:'doughnut',data:{labels:DEPTS.map(d=>d.name),datasets:[{data:pieData,backgroundColor:pieColors}]},options:{responsive:true,plugins:{legend:{position:'right',labels:{boxWidth:12,font:{size:11}}}}}});
+
+  charts.units=new Chart(document.getElementById('chartUnits'),{type:'bar',data:{labels:months12.map(m=>m.label),datasets:[{label:'Units Sold',data:unitsData,backgroundColor:'rgba(201,168,76,.6)',borderColor:chartColors.gold,borderWidth:1}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+
+  charts.expense=new Chart(document.getElementById('chartExpense'),{type:'line',data:{labels:months12.map(m=>m.label),datasets:[{label:'Expense Ratio',data:expRatioData,borderColor:chartColors.red,backgroundColor:'rgba(239,83,80,.12)',fill:true,tension:.3,pointRadius:4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>pct(v)}}}}});
+}
+
+// ===== DATA ENTRY =====
+function openEntry(){
+  document.getElementById('entryModal').classList.add('open');
+  document.getElementById('entryPeriod').textContent=MONTHS[selMonth]+' '+selYear;
+  fillEntryForm();
+}
+function closeEntry(){document.getElementById('entryModal').classList.remove('open')}
+
+function fillEntryForm(){
+  const store=document.getElementById('entryStore').value;
+  const p=period();
+  const sd=DB[store]&&DB[store][p]||{};
+  let html='';
+  DEPTS.forEach(dept=>{
+    html+=`<h3 style="grid-column:1/-1;margin-top:12px;font-size:.9rem;color:var(--gold)">${dept.name}</h3>`;
+    const dd=sd[dept.key]||{};
+    dept.fields.forEach(f=>{
+      html+=`<label>${f}<input type="number" id="e_${dept.key}_${f}" value="${dd[f]||0}"></label>`;
+    });
+    if(dept.hasUnits) html+=`<label>Units<input type="number" id="e_${dept.key}_units" value="${dd.units||0}"></label>`;
+  });
+  document.getElementById('entryForm').innerHTML=`<div class="form-grid">${html}</div>`;
+}
+
+function saveEntry(){
+  const store=document.getElementById('entryStore').value;
+  const p=period();
+  if(!DB[store])DB[store]={};
+  if(!DB[store][p])DB[store][p]={};
+  DEPTS.forEach(dept=>{
+    if(!DB[store][p][dept.key])DB[store][p][dept.key]={};
+    dept.fields.forEach(f=>{
+      DB[store][p][dept.key][f]=+(document.getElementById(`e_${dept.key}_${f}`).value)||0;
+    });
+    if(dept.hasUnits) DB[store][p][dept.key].units=+(document.getElementById(`e_${dept.key}_units`).value)||0;
+  });
+  save();closeEntry();render();
+}
+
+// ===== CSV EXPORT =====
+function exportCSV(){
+  let csv='Store,Period,Department,'+['Revenue','Cost','Gross','Expenses','Net','Units'].join(',')+'\n';
+  STORES.forEach(store=>{
+    Object.keys(DB[store]||{}).forEach(p=>{
+      DEPTS.forEach(dept=>{
+        const dd=DB[store][p][dept.key]||{};
+        csv+=`${store},${p},${dept.key},${dd.revenue||0},${dd.cost||0},${dd.gross||0},${dd.expenses||0},${dd.net||0},${dd.units||0}\n`;
+      });
+    });
+  });
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`dyer-financial-${period()}.csv`;a.click();
+}
+
+// ===== CSV IMPORT =====
+function importCSV(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    const lines=ev.target.result.split('\n').slice(1);
+    lines.forEach(line=>{
+      const cols=line.split(',');if(cols.length<9)return;
+      const[store,p,deptKey,rev,cost,gross,exp,net,units]=cols;
+      if(!STORES.includes(store))return;
+      if(!DB[store])DB[store]={};
+      if(!DB[store][p])DB[store][p]={};
+      DB[store][p][deptKey]={revenue:+rev,cost:+cost,gross:+gross,expenses:+exp,net:+net,units:+units};
+    });
+    save();render();
+    alert('CSV imported successfully');
+  };
+  reader.readAsText(file);
+  e.target.value='';
+}
+
+// Initial render
+render();
+</script>
+</body>
+</html>

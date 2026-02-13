@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kit's Build Team — EOS Scrum Dashboard</title>
+<style>
+/* ============================================================
+   Kit's Build Team — EOS/Scrum Dashboard Styles
+   Navy: #1B2A4A  |  Gold: #C5A55A  |  Dark BG: #0D1520
+   ============================================================ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --navy: #1B2A4A;
+  --navy-light: #243556;
+  --navy-dark: #111D33;
+  --gold: #C5A55A;
+  --gold-dim: #9E8544;
+  --gold-light: #E0CC8A;
+  --bg: #0D1520;
+  --bg-card: #151F2E;
+  --bg-column: #111A28;
+  --text: #D0D8E4;
+  --text-dim: #6B7A90;
+  --text-bright: #F0F4F8;
+  --green: #4CAF50;
+  --orange: #FFA726;
+  --red: #EF5350;
+  --border: #1E2D42;
+  --radius: 8px;
+  --radius-sm: 5px;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* -- Scoreboard Header -- */
+.scoreboard {
+  background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy) 100%);
+  border-bottom: 2px solid var(--gold);
+  padding: 18px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.scoreboard .team-name {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 0.5px;
+}
+.scoreboard .sprint-info {
+  text-align: center;
+  flex: 1;
+}
+.scoreboard .sprint-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-bright);
+}
+.scoreboard .sprint-dates {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+.scoreboard .date-display {
+  text-align: right;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+.scoreboard .date-display .today {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+}
+.scoreboard .logo {
+  font-size: 28px;
+  margin-right: 10px;
+}
+
+/* -- Stats Bar -- */
+.stats-bar {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--navy-dark);
+}
+.stat-item {
+  flex: 1;
+  text-align: center;
+  padding: 12px 8px;
+  border-right: 1px solid var(--border);
+}
+.stat-item:last-child { border-right: none; }
+.stat-item .stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--gold);
+}
+.stat-item .stat-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+/* -- Main Layout -- */
+.dashboard {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  grid-template-rows: auto auto;
+  gap: 0;
+  min-height: calc(100vh - 130px);
+}
+.main-area {
+  grid-row: 1 / 3;
+  padding: 20px;
+  overflow-x: auto;
+}
+.sidebar {
+  grid-row: 1 / 3;
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  max-height: calc(100vh - 130px);
+}
+
+/* -- Section Headers -- */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.section-header h2 {
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--gold);
+}
+.section-header .icon {
+  font-size: 16px;
+}
+
+/* -- Kanban Board -- */
+.kanban {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  min-width: 700px;
+}
+.kanban-column {
+  background: var(--bg-column);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+}
+.column-header {
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.column-header .count {
+  background: var(--navy);
+  color: var(--gold-dim);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+.column-body {
+  padding: 8px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* -- Task Cards -- */
+.task-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  border-left: 3px solid var(--border);
+  cursor: default;
+  transition: transform 0.15s, box-shadow 0.15s;
+  position: relative;
+}
+.task-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.task-card .card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-bright);
+  margin-bottom: 6px;
+}
+.task-card .card-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.card-badge {
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+.badge-agent {
+  background: var(--navy);
+  color: var(--gold-dim);
+  border: 1px solid var(--gold-dim);
+}
+.badge-priority {
+  font-weight: 700;
+}
+.badge-priority.p1 { background: #5C1A1A; color: #EF5350; }
+.badge-priority.p2 { background: #4A3012; color: #FFA726; }
+.badge-priority.p3 { background: #1A3A2A; color: #66BB6A; }
+.badge-priority.p4 { background: #1A2A3A; color: #42A5F5; }
+.badge-effort {
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 10px;
+  margin-left: auto;
+}
+.task-card .card-desc {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 6px;
+  line-height: 1.4;
+  display: none;
+}
+.task-card:hover .card-desc { display: block; }
+
+/* Done column cards */
+.kanban-column.done .task-card {
+  opacity: 0.6;
+}
+.kanban-column.done .task-card .card-title {
+  text-decoration: line-through;
+  text-decoration-color: var(--gold-dim);
+}
+
+/* -- Sidebar Panels -- */
+.sidebar-panel {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* -- Team Status -- */
+.agent-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+}
+.agent-row + .agent-row { border-top: 1px solid rgba(255,255,255,0.04); }
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.status-dot.working { background: var(--green); box-shadow: 0 0 6px rgba(76,175,80,0.5); }
+.status-dot.idle    { background: var(--text-dim); }
+.status-dot.blocked { background: var(--red); box-shadow: 0 0 6px rgba(239,83,80,0.5); animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+.agent-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-bright);
+  min-width: 70px;
+}
+.agent-task {
+  font-size: 11px;
+  color: var(--text-dim);
+  flex: 1;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* -- Rocks -- */
+.rock-item {
+  margin-bottom: 12px;
+}
+.rock-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+.rock-title {
+  font-size: 12px;
+  color: var(--text);
+  font-weight: 500;
+}
+.rock-pct {
+  font-size: 11px;
+  color: var(--gold);
+  font-weight: 700;
+}
+.rock-bar {
+  height: 6px;
+  background: var(--navy-dark);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.rock-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}
+.rock-fill.on-track  { background: linear-gradient(90deg, var(--gold-dim), var(--gold)); }
+.rock-fill.off-track { background: linear-gradient(90deg, #8B3A3A, var(--red)); }
+.rock-owner {
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 3px;
+}
+
+/* -- IDS Log -- */
+.ids-item {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.ids-item:last-child { border-bottom: none; }
+.ids-issue {
+  font-size: 12px;
+  color: var(--text);
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+.ids-meta {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.ids-status {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.ids-status.open    { background: #3A2020; color: var(--red); }
+.ids-status.discuss { background: #3A3020; color: var(--orange); }
+.ids-status.solved  { background: #1A3A2A; color: var(--green); }
+.ids-owner {
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+/* -- Activity Feed -- */
+.feed-item {
+  display: flex;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  align-items: flex-start;
+}
+.feed-item:last-child { border-bottom: none; }
+.feed-time {
+  font-size: 10px;
+  color: var(--text-dim);
+  min-width: 44px;
+  padding-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+.feed-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+.feed-dot.complete { background: var(--green); }
+.feed-dot.start    { background: var(--gold); }
+.feed-dot.blocker  { background: var(--red); }
+.feed-dot.decision { background: #42A5F5; }
+.feed-msg {
+  font-size: 12px;
+  color: var(--text);
+  flex: 1;
+  line-height: 1.4;
+}
+.feed-agent {
+  font-weight: 600;
+  color: var(--gold-dim);
+}
+
+/* -- Scrollbar -- */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--navy-light); border-radius: 3px; }
+
+/* -- Responsive -- */
+@media (max-width: 1100px) {
+  .dashboard { grid-template-columns: 1fr; }
+  .sidebar { max-height: none; border-left: none; border-top: 1px solid var(--border); }
+}
+</style>
+</head>
+<body>
+
+<!-- Scoreboard -->
+<header class="scoreboard" id="scoreboard"></header>
+
+<!-- Stats Bar -->
+<div class="stats-bar" id="statsBar"></div>
+
+<!-- Dashboard Grid -->
+<<!-- Shipped Products Hub -->
+<div style="padding:0 28px 24px;">
+  <div class="section-header">
+    <span class="icon">🚀</span>
+    <h2>Shipped Products</h2>
+    <span style="margin-left:auto;color:var(--gold);font-size:14px;" id="shippedCount"></span>
+  </div>
+  <div id="shippedProducts" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:12px;"></div>
+</div>
+
+<div class="dashboard">
+  <div class="main-area">
+    <div class="section-header">
+      <span class="icon">📋</span>
+      <h2>Sprint Board</h2>
+    </div>
+    <div class="kanban" id="kanban"></div>
+
+    <!-- IDS Section (below board on wider screens) -->
+    <div style="margin-top: 24px;">
+      <div class="section-header">
+        <span class="icon">🔍</span>
+        <h2>IDS — Identify · Discuss · Solve</h2>
+      </div>
+      <div id="idsLog"></div>
+    </div>
+  </div>
+
+  <div class="sidebar">
+    <!-- Team Status -->
+    <div class="sidebar-panel">
+      <div class="section-header">
+        <span class="icon">👥</span>
+        <h2>Team Status</h2>
+      </div>
+      <div id="teamStatus"></div>
+    </div>
+
+    <!-- Rocks -->
+    <div class="sidebar-panel">
+      <div class="section-header">
+        <span class="icon">🪨</span>
+        <h2>Q1 2026 Rocks</h2>
+      </div>
+      <div id="rocks"></div>
+    </div>
+
+    <!-- Activity Feed -->
+    <div class="sidebar-panel" style="flex:1;">
+      <div class="section-header">
+        <span class="icon">⚡</span>
+        <h2>Activity Feed</h2>
+      </div>
+      <div id="activityFeed"></div>
+    </div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script>
+// ============================================================
+// Dashboard Renderer
+// ============================================================
+const D = DASHBOARD_DATA;
+
+// -- Scoreboard --
+document.getElementById('scoreboard').innerHTML = `
+  <div style="display:flex;align-items:center;gap:10px;">
+    <span class="logo">⚙️</span>
+    <span class="team-name">${D.team}</span>
+  </div>
+  <div class="sprint-info">
+    <div class="sprint-name">${D.sprint}</div>
+    <div class="sprint-dates">${fmtDate(D.sprintStart)} → ${fmtDate(D.sprintEnd)}</div>
+  </div>
+  <div class="date-display">
+    <div class="today">${fmtDate(new Date().toISOString().slice(0,10))}</div>
+    <div>${new Date().toLocaleDateString('en-US',{weekday:'long'})}</div>
+  </div>
+`;
+
+// -- Stats --
+const cols = { backlog:0, inprogress:0, qareview:0, done:0 };
+D.tasks.forEach(t => cols[t.column]++);
+const totalTasks = D.tasks.length;
+const velocity = cols.done;
+const workingAgents = D.agents.filter(a => a.status === 'working').length;
+document.getElementById('statsBar').innerHTML = `
+  <div class="stat-item"><div class="stat-value">${totalTasks}</div><div class="stat-label">Total Tasks</div></div>
+  <div class="stat-item"><div class="stat-value">${cols.inprogress}</div><div class="stat-label">In Progress</div></div>
+  <div class="stat-item"><div class="stat-value">${velocity}</div><div class="stat-label">Completed</div></div>
+  <div class="stat-item"><div class="stat-value">${workingAgents}/${D.agents.length}</div><div class="stat-label">Agents Active</div></div>
+  <div class="stat-item"><div class="stat-value">${Math.round(velocity/totalTasks*100)}%</div><div class="stat-label">Sprint Progress</div></div>
+`;
+
+// -- Kanban --
+const columnDefs = [
+  { key: 'backlog',    label: 'Backlog' },
+  { key: 'inprogress', label: 'In Progress' },
+  { key: 'qareview',   label: 'QA Review' },
+  { key: 'done',       label: 'Done' }
+];
+document.getElementById('kanban').innerHTML = columnDefs.map(col => {
+  const tasks = D.tasks.filter(t => t.column === col.key);
+  return `<div class="kanban-column ${col.key === 'done' ? 'done' : ''}">
+    <div class="column-header">${col.label}<span class="count">${tasks.length}</span></div>
+    <div class="column-body">${tasks.map(t => {
+      const ac = D.agentColors[t.agent] || { border:'#555' };
+      return `<div class="task-card" style="border-left-color:${ac.border}">
+        <div class="card-title">${t.title}</div>
+        <div class="card-meta">
+          <span class="card-badge badge-agent">${t.agent}</span>
+          <span class="card-badge badge-priority ${t.priority.toLowerCase()}">${t.priority}</span>
+          <span class="badge-effort">⏱ ${t.effort}</span>
+        </div>
+        <div class="card-desc">${t.description}</div>
+      </div>`;
+    }).join('')}</div>
+  </div>`;
+}).join('');
+
+// -- Shipped Products --
+if (D.shipped) {
+  document.getElementById('shippedCount').textContent = D.shipped.length + ' products live';
+  document.getElementById('shippedProducts').innerHTML = D.shipped.map(s => `
+    <a href="${s.path}" target="_blank" style="
+      display:block;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
+      padding:14px 16px;text-decoration:none;color:var(--text);transition:all .2s;border-left:3px solid var(--gold);
+    " onmouseover="this.style.borderColor='var(--gold)';this.style.background='var(--navy-light)'" 
+       onmouseout="this.style.borderColor='var(--border)';this.style.borderLeftColor='var(--gold)';this.style.background='var(--bg-card)'">
+      <div style="font-size:15px;font-weight:600;color:var(--text-bright);margin-bottom:4px;">${s.name}</div>
+      <div style="display:flex;gap:8px;align-items:center;font-size:12px;color:var(--text-dim);">
+        <span style="background:var(--navy);padding:2px 8px;border-radius:3px;">${s.agent}</span>
+        <span style="background:var(--navy);padding:2px 8px;border-radius:3px;">${s.type}</span>
+        <span style="margin-left:auto;">⏱ ${s.time}</span>
+      </div>
+    </a>
+  `).join('');
+}
+
+// -- Team Status --
+document.getElementById('teamStatus').innerHTML = D.agents.map(a => `
+  <div class="agent-row">
+    <span class="status-dot ${a.status}"></span>
+    <span class="agent-name">${a.name}</span>
+    <span class="agent-task">${a.task || a.status}</span>
+  </div>
+`).join('');
+
+// -- Rocks --
+document.getElementById('rocks').innerHTML = D.rocks.map(r => `
+  <div class="rock-item">
+    <div class="rock-header">
+      <span class="rock-title">${r.title}</span>
+      <span class="rock-pct">${r.progress}%</span>
+    </div>
+    <div class="rock-bar"><div class="rock-fill ${r.status}" style="width:${r.progress}%"></div></div>
+    <div class="rock-owner">Owner: ${r.owner}</div>
+  </div>
+`).join('');
+
+// -- IDS --
+document.getElementById('idsLog').innerHTML = D.ids.map(i => `
+  <div class="ids-item">
+    <div class="ids-issue">${i.issue}</div>
+    <div class="ids-meta">
+      <span class="ids-status ${i.status}">${i.status}</span>
+      <span class="ids-owner">→ ${i.owner}</span>
+      ${i.resolution ? `<span class="ids-owner" style="margin-left:auto;font-style:italic;">${i.resolution}</span>` : ''}
+    </div>
+  </div>
+`).join('');
+
+// -- Activity Feed --
+document.getElementById('activityFeed').innerHTML = D.activity.map(a => `
+  <div class="feed-item">
+    <span class="feed-time">${fmtTime(a.time)}</span>
+    <span class="feed-dot ${a.type}"></span>
+    <span class="feed-msg"><span class="feed-agent">${a.agent}</span> — ${a.message}</span>
+  </div>
+`).join('');
+
+// -- Helpers --
+function fmtDate(d) {
+  const dt = new Date(d + 'T00:00:00');
+  return dt.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+}
+function fmtTime(t) {
+  const dt = new Date(t);
+  return dt.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit', hour12:true });
+}
+</script>
+</body>
+</html>

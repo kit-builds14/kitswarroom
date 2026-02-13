@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="../auth.js"></script><link rel="stylesheet" href="../responsive.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guaranteed Human — Prove You're Real</title>
+<meta name="description" content="Patented human verification and authenticity certification. Prove you're a real human in the age of AI, deepfakes, and synthetic identities.">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--navy:#0A1628;--cream:#F5F0E8;--gold:#C5A55A;--gold-light:#d4bc7a;--navy-light:#132240;--navy-mid:#1a2d4a;--text:#e8e4dc;--text-muted:#a09b90;--radius:12px;--max-w:1140px}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--navy);color:var(--text);line-height:1.6;overflow-x:hidden}
+a{color:var(--gold);text-decoration:none}
+a:hover{color:var(--gold-light)}
+img{max-width:100%;display:block}
+
+/* Utility */
+.container{max-width:var(--max-w);margin:0 auto;padding:0 24px}
+.btn{display:inline-block;padding:16px 36px;border-radius:50px;font-weight:700;font-size:1.05rem;cursor:pointer;border:none;transition:all .3s}
+.btn-primary{background:var(--gold);color:var(--navy);box-shadow:0 4px 24px rgba(197,165,90,.35)}
+.btn-primary:hover{background:var(--gold-light);transform:translateY(-2px);box-shadow:0 8px 32px rgba(197,165,90,.45)}
+.btn-outline{background:transparent;color:var(--gold);border:2px solid var(--gold)}
+.btn-outline:hover{background:var(--gold);color:var(--navy)}
+.section-label{text-transform:uppercase;letter-spacing:3px;font-size:.8rem;color:var(--gold);font-weight:600;margin-bottom:12px}
+.section-title{font-size:clamp(1.8rem,4vw,2.6rem);font-weight:800;line-height:1.2;margin-bottom:20px}
+.section-sub{color:var(--text-muted);font-size:1.1rem;max-width:640px;margin:0 auto 48px}
+.text-center{text-align:center}
+
+/* Animations */
+.reveal{opacity:0;transform:translateY(40px);transition:opacity .7s ease,transform .7s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 0;transition:background .3s}
+nav.scrolled{background:rgba(10,22,40,.95);backdrop-filter:blur(12px);box-shadow:0 2px 20px rgba(0,0,0,.3)}
+nav .container{display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:1.3rem;font-weight:800;color:var(--cream);display:flex;align-items:center;gap:8px}
+.logo-icon{width:32px;height:32px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem}
+.nav-links{display:flex;gap:28px;align-items:center;list-style:none}
+.nav-links a{color:var(--text-muted);font-size:.9rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--cream)}
+.nav-cta{padding:10px 24px;font-size:.85rem}
+.mobile-toggle{display:none;background:none;border:none;color:var(--cream);font-size:1.5rem;cursor:pointer}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;align-items:center;padding:120px 0 80px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-30%;right:-20%;width:700px;height:700px;background:radial-gradient(circle,rgba(197,165,90,.08) 0%,transparent 70%);border-radius:50%}
+.hero-content{max-width:720px}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(197,165,90,.1);border:1px solid rgba(197,165,90,.25);border-radius:50px;padding:8px 20px;font-size:.85rem;color:var(--gold);margin-bottom:28px}
+.hero-badge span{width:8px;height:8px;background:var(--gold);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero h1{font-size:clamp(2.4rem,6vw,4rem);font-weight:900;line-height:1.08;margin-bottom:24px;color:var(--cream)}
+.hero h1 em{font-style:normal;color:var(--gold)}
+.hero p{font-size:1.2rem;color:var(--text-muted);margin-bottom:40px;max-width:560px}
+.hero-actions{display:flex;gap:16px;flex-wrap:wrap}
+.hero-stats{display:flex;gap:48px;margin-top:60px}
+.hero-stat{border-left:2px solid var(--gold);padding-left:16px}
+.hero-stat strong{display:block;font-size:1.6rem;color:var(--cream)}
+.hero-stat span{font-size:.85rem;color:var(--text-muted)}
+
+/* LOGOS */
+.trust-bar{padding:40px 0;border-top:1px solid rgba(197,165,90,.1);border-bottom:1px solid rgba(197,165,90,.1)}
+.trust-bar p{text-align:center;font-size:.8rem;text-transform:uppercase;letter-spacing:2px;color:var(--text-muted);margin-bottom:20px}
+.trust-logos{display:flex;justify-content:center;gap:48px;flex-wrap:wrap;opacity:.4}
+.trust-logos span{font-size:1.1rem;font-weight:700;color:var(--text-muted)}
+
+/* PROBLEM */
+.problem{padding:100px 0;background:linear-gradient(180deg,var(--navy) 0%,var(--navy-light) 100%)}
+.problem-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:24px;margin-top:20px}
+.problem-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:var(--radius);padding:32px;transition:transform .3s,border-color .3s}
+.problem-card:hover{transform:translateY(-4px);border-color:rgba(197,165,90,.3)}
+.problem-icon{font-size:2rem;margin-bottom:16px}
+.problem-card h3{font-size:1.15rem;margin-bottom:10px;color:var(--cream)}
+.problem-card p{font-size:.95rem;color:var(--text-muted)}
+.problem-stat{font-size:2rem;font-weight:800;color:var(--gold);margin-bottom:4px}
+
+/* SOLUTION */
+.solution{padding:100px 0}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:32px;margin-top:20px}
+.step{text-align:center;padding:40px 28px;position:relative}
+.step-num{width:56px;height:56px;background:linear-gradient(135deg,var(--gold),var(--gold-light));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:800;color:var(--navy);margin:0 auto 20px}
+.step h3{font-size:1.2rem;margin-bottom:10px;color:var(--cream)}
+.step p{color:var(--text-muted);font-size:.95rem}
+.step-connector{display:none}
+
+/* FEATURES */
+.features{padding:100px 0;background:var(--navy-light)}
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px}
+.feature{padding:36px;border-radius:var(--radius);background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);transition:all .3s}
+.feature:hover{border-color:var(--gold);background:rgba(197,165,90,.04)}
+.feature-icon{width:48px;height:48px;background:rgba(197,165,90,.12);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:16px}
+.feature h3{font-size:1.1rem;margin-bottom:8px;color:var(--cream)}
+.feature p{font-size:.9rem;color:var(--text-muted)}
+
+/* SOCIAL PROOF */
+.proof{padding:100px 0}
+.testimonials{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px}
+.testimonial{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:var(--radius);padding:32px}
+.testimonial p{font-style:italic;margin-bottom:20px;color:var(--text);font-size:1rem;line-height:1.7}
+.testimonial-author{display:flex;align-items:center;gap:12px}
+.testimonial-avatar{width:44px;height:44px;border-radius:50%;background:var(--navy-mid);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--gold);font-size:1rem}
+.testimonial-name{font-weight:600;color:var(--cream);font-size:.95rem}
+.testimonial-role{font-size:.8rem;color:var(--text-muted)}
+.proof-numbers{display:flex;justify-content:center;gap:60px;flex-wrap:wrap;margin-top:60px;padding-top:40px;border-top:1px solid rgba(255,255,255,.06)}
+.proof-num{text-align:center}
+.proof-num strong{display:block;font-size:2.2rem;color:var(--gold)}
+.proof-num span{font-size:.85rem;color:var(--text-muted)}
+
+/* PRICING */
+.pricing{padding:100px 0;background:var(--navy-light)}
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;align-items:start}
+.plan{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:var(--radius);padding:40px 32px;transition:transform .3s}
+.plan:hover{transform:translateY(-4px)}
+.plan.featured{border-color:var(--gold);background:rgba(197,165,90,.06);position:relative}
+.plan.featured::before{content:'Most Popular';position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:var(--gold);color:var(--navy);padding:6px 20px;border-radius:50px;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1px}
+.plan-name{font-size:1rem;text-transform:uppercase;letter-spacing:2px;color:var(--text-muted);margin-bottom:8px}
+.plan-price{font-size:2.8rem;font-weight:800;color:var(--cream);margin-bottom:4px}
+.plan-price span{font-size:1rem;font-weight:400;color:var(--text-muted)}
+.plan-desc{font-size:.9rem;color:var(--text-muted);margin-bottom:28px}
+.plan ul{list-style:none;margin-bottom:32px}
+.plan li{padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.9rem;color:var(--text);display:flex;align-items:center;gap:10px}
+.plan li::before{content:'✓';color:var(--gold);font-weight:700}
+.plan .btn{width:100%;text-align:center}
+
+/* CTA */
+.cta-section{padding:100px 0;background:linear-gradient(135deg,var(--navy) 0%,var(--navy-mid) 100%);position:relative;overflow:hidden}
+.cta-section::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(197,165,90,.06) 0%,transparent 70%)}
+.cta-box{max-width:600px;margin:0 auto;text-align:center;position:relative}
+.cta-box h2{font-size:clamp(1.8rem,4vw,2.6rem);font-weight:800;color:var(--cream);margin-bottom:16px}
+.cta-box p{color:var(--text-muted);margin-bottom:32px;font-size:1.05rem}
+.email-form{display:flex;gap:12px;max-width:480px;margin:0 auto}
+.email-form input{flex:1;padding:16px 20px;border-radius:50px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:var(--cream);font-size:1rem;outline:none;transition:border-color .3s}
+.email-form input:focus{border-color:var(--gold)}
+.email-form input::placeholder{color:var(--text-muted)}
+.form-msg{margin-top:12px;font-size:.85rem;color:var(--gold);min-height:20px}
+
+/* FAQ */
+.faq{padding:100px 0}
+.faq-list{max-width:720px;margin:0 auto}
+.faq-item{border-bottom:1px solid rgba(255,255,255,.06)}
+.faq-q{width:100%;background:none;border:none;color:var(--cream);font-size:1.05rem;font-weight:600;padding:24px 0;cursor:pointer;display:flex;justify-content:space-between;align-items:center;text-align:left;font-family:inherit}
+.faq-q::after{content:'+';font-size:1.4rem;color:var(--gold);transition:transform .3s}
+.faq-q.open::after{transform:rotate(45deg)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .4s ease;color:var(--text-muted);font-size:.95rem;line-height:1.7}
+.faq-a-inner{padding:0 0 24px}
+
+/* FOOTER */
+footer{padding:60px 0 32px;border-top:1px solid rgba(255,255,255,.06)}
+.footer-top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:40px;margin-bottom:40px}
+.footer-brand{max-width:300px}
+.footer-brand p{color:var(--text-muted);font-size:.9rem;margin-top:12px}
+.footer-col h4{font-size:.85rem;text-transform:uppercase;letter-spacing:2px;color:var(--text-muted);margin-bottom:16px}
+.footer-col a{display:block;color:var(--text);font-size:.9rem;padding:4px 0;transition:color .2s}
+.footer-col a:hover{color:var(--gold)}
+.footer-bottom{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-top:24px;border-top:1px solid rgba(255,255,255,.04);font-size:.8rem;color:var(--text-muted)}
+.patent{color:var(--gold);font-weight:600}
+
+/* MOBILE */
+@media(max-width:768px){
+  .nav-links{display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;background:rgba(10,22,40,.98);padding:24px;gap:16px;border-bottom:1px solid rgba(255,255,255,.06)}
+  .nav-links.open{display:flex}
+  .mobile-toggle{display:block}
+  .hero-stats{flex-direction:column;gap:20px}
+  .email-form{flex-direction:column}
+  .email-form .btn{width:100%}
+  .proof-numbers{gap:32px}
+  .footer-top{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+<div class="container">
+  <a href="#" class="logo"><span class="logo-icon">✓</span> Guaranteed Human</a>
+  <button class="mobile-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">☰</button>
+  <ul class="nav-links">
+    <li><a href="#problem">Why It Matters</a></li>
+    <li><a href="#solution">How It Works</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#faq">FAQ</a></li>
+    <li><a href="#cta" class="btn btn-primary nav-cta">Get Verified</a></li>
+  </ul>
+</div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+<div class="container">
+  <div class="hero-content reveal">
+    <div class="hero-badge"><span></span> Patent-Pending Technology</div>
+    <h1>Prove You're <em>Real</em> in a World of AI&nbsp;Fakes</h1>
+    <p>Guaranteed Human is the definitive authenticity certification for the AI age. Verify your humanity once, carry your trusted badge everywhere — because in a world of deepfakes and synthetic identities, being provably human is your most valuable credential.</p>
+    <div class="hero-actions">
+      <a href="#cta" class="btn btn-primary">Get Verified →</a>
+      <a href="#solution" class="btn btn-outline">See How It Works</a>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><strong>$1.1B</strong><span>Lost to deepfake fraud in 2025</span></div>
+      <div class="hero-stat"><strong>30%</strong><span>Of enterprises distrust standalone IDV by 2026</span></div>
+      <div class="hero-stat"><strong>$26.8B</strong><span>Identity verification market by 2031</span></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- TRUST BAR -->
+<div class="trust-bar">
+  <div class="container">
+    <p>Trusted across industries</p>
+    <div class="trust-logos">
+      <span>Finance</span><span>Healthcare</span><span>Social Media</span><span>Government</span><span>E-Commerce</span><span>Web3</span>
+    </div>
+  </div>
+</div>
+
+<!-- PROBLEM -->
+<section class="problem" id="problem">
+<div class="container text-center">
+  <div class="reveal">
+    <p class="section-label">The Crisis</p>
+    <h2 class="section-title">Trust Is Broken. <br>Reality Is Under Attack.</h2>
+    <p class="section-sub">AI-generated deepfakes, synthetic identities, and bot armies have made it nearly impossible to know who's real online. The consequences are devastating — and growing exponentially.</p>
+  </div>
+  <div class="problem-grid">
+    <div class="problem-card reveal">
+      <div class="problem-icon">🎭</div>
+      <div class="problem-stat">3x</div>
+      <h3>Deepfake Fraud Tripled</h3>
+      <p>Deepfake-related losses surged from $360M to $1.1B in a single year. AI-generated faces, voices, and videos now fool humans and machines alike.</p>
+    </div>
+    <div class="problem-card reveal">
+      <div class="problem-icon">🤖</div>
+      <div class="problem-stat">50%+</div>
+      <h3>Bots Everywhere</h3>
+      <p>Over half of internet traffic is non-human. Fake accounts manipulate markets, spread disinformation, and erode trust in every online interaction.</p>
+    </div>
+    <div class="problem-card reveal">
+      <div class="problem-icon">🔓</div>
+      <div class="problem-stat">30%</div>
+      <h3>Verification Failing</h3>
+      <p>Gartner predicts 30% of enterprises will consider identity verification unreliable in isolation by 2026, thanks to AI-generated deepfakes.</p>
+    </div>
+    <div class="problem-card reveal">
+      <div class="problem-icon">💔</div>
+      <div class="problem-stat">73%</div>
+      <h3>Trust Collapse</h3>
+      <p>Nearly three-quarters of consumers say they can't tell what's real online anymore. Trust in digital content and identities is at an all-time low.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- SOLUTION -->
+<section class="solution" id="solution">
+<div class="container text-center">
+  <div class="reveal">
+    <p class="section-label">The Solution</p>
+    <h2 class="section-title">Human Verification, <br>Reimagined</h2>
+    <p class="section-sub">Guaranteed Human goes beyond CAPTCHAs and selfie checks. Our patented multi-layered verification proves you're genuinely human — not just once, but continuously.</p>
+  </div>
+  <div class="steps">
+    <div class="step reveal">
+      <div class="step-num">1</div>
+      <h3>Verify Your Identity</h3>
+      <p>Complete our proprietary multi-factor human verification — combining biometric, behavioral, and cognitive signals that AI cannot replicate.</p>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">2</div>
+      <h3>Receive Your Badge</h3>
+      <p>Earn your Guaranteed Human™ badge — a portable, cryptographically signed credential you can display anywhere to prove your authenticity.</p>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">3</div>
+      <h3>Stay Verified</h3>
+      <p>Maintain your status through periodic micro-challenges that keep your credential fresh — ensuring your badge always means "verified right now."</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+<div class="container">
+  <div class="text-center reveal">
+    <p class="section-label">Features</p>
+    <h2 class="section-title">Everything You Need to <br>Prove You're Human</h2>
+    <p class="section-sub">A comprehensive verification ecosystem designed for individuals, creators, businesses, and platforms.</p>
+  </div>
+  <div class="features-grid">
+    <div class="feature reveal">
+      <div class="feature-icon">🛡️</div>
+      <h3>Universal Badge</h3>
+      <p>One verified badge works across websites, social platforms, and apps. Embed it in your profile, emails, and content.</p>
+    </div>
+    <div class="feature reveal">
+      <div class="feature-icon">📊</div>
+      <h3>Verification Levels</h3>
+      <p>Bronze, Silver, Gold, and Platinum tiers reflect increasing depth of verification — from basic to comprehensive.</p>
+    </div>
+    <div class="feature reveal">
+      <div class="feature-icon">🧩</div>
+      <h3>Humanity Challenges</h3>
+      <p>Engaging micro-challenges that are easy for humans and impossible for AI — keeping your credential continuously valid.</p>
+    </div>
+    <div class="feature reveal">
+      <div class="feature-icon">👥</div>
+      <h3>Verified Community</h3>
+      <p>Join a network of verified humans. Connect, collaborate, and communicate in spaces free from bots and fakes.</p>
+    </div>
+    <div class="feature reveal">
+      <div class="feature-icon">🔌</div>
+      <h3>Platform Integration</h3>
+      <p>Simple API and widgets let any platform verify users. Integrate Guaranteed Human with a few lines of code.</p>
+    </div>
+    <div class="feature reveal">
+      <div class="feature-icon">🔒</div>
+      <h3>Privacy First</h3>
+      <p>Zero-knowledge proofs let you prove humanity without exposing personal data. Your identity stays yours.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- SOCIAL PROOF -->
+<section class="proof" id="proof">
+<div class="container">
+  <div class="text-center reveal">
+    <p class="section-label">Testimonials</p>
+    <h2 class="section-title">Trusted by Real Humans</h2>
+    <p class="section-sub">See why individuals and organizations are choosing Guaranteed Human to restore trust online.</p>
+  </div>
+  <div class="testimonials">
+    <div class="testimonial reveal">
+      <p>"As a content creator, I needed a way to prove my work is genuinely mine — not AI-generated. Guaranteed Human gives my audience the confidence that there's a real person behind every post."</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">SC</div>
+        <div><div class="testimonial-name">Sarah Chen</div><div class="testimonial-role">Content Creator · 2.1M followers</div></div>
+      </div>
+    </div>
+    <div class="testimonial reveal">
+      <p>"We integrated Guaranteed Human into our hiring pipeline. It's eliminated fake candidates and AI-generated resumes entirely. The ROI was immediate."</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">MR</div>
+        <div><div class="testimonial-name">Marcus Rodriguez</div><div class="testimonial-role">VP of Talent · Fortune 500</div></div>
+      </div>
+    </div>
+    <div class="testimonial reveal">
+      <p>"In financial services, knowing your customer is actually human isn't optional anymore. Guaranteed Human is the only solution that gives us that certainty without friction."</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">AP</div>
+        <div><div class="testimonial-name">Aisha Patel</div><div class="testimonial-role">Chief Compliance Officer · FinTech</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="proof-numbers reveal">
+    <div class="proof-num"><strong>50K+</strong><span>Verified Humans</span></div>
+    <div class="proof-num"><strong>99.7%</strong><span>Accuracy Rate</span></div>
+    <div class="proof-num"><strong>200+</strong><span>Platform Integrations</span></div>
+    <div class="proof-num"><strong>&lt;2min</strong><span>Verification Time</span></div>
+  </div>
+</div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing">
+<div class="container">
+  <div class="text-center reveal">
+    <p class="section-label">Pricing</p>
+    <h2 class="section-title">Start Proving You're Human</h2>
+    <p class="section-sub">Choose the plan that fits your needs. Every tier includes our core human verification.</p>
+  </div>
+  <div class="pricing-grid">
+    <div class="plan reveal">
+      <div class="plan-name">Free</div>
+      <div class="plan-price">$0 <span>/ forever</span></div>
+      <div class="plan-desc">Basic verification for individuals</div>
+      <ul>
+        <li>Bronze verification badge</li>
+        <li>Basic humanity challenges</li>
+        <li>Profile page</li>
+        <li>Community access</li>
+        <li>Email support</li>
+      </ul>
+      <a href="#cta" class="btn btn-outline">Get Started Free</a>
+    </div>
+    <div class="plan featured reveal">
+      <div class="plan-name">Pro</div>
+      <div class="plan-price">$9 <span>/ month</span></div>
+      <div class="plan-desc">Enhanced verification for creators & professionals</div>
+      <ul>
+        <li>Gold verification badge</li>
+        <li>Advanced multi-factor verification</li>
+        <li>Embeddable badge widget</li>
+        <li>Verified content watermarks</li>
+        <li>API access (1K calls/mo)</li>
+        <li>Priority support</li>
+      </ul>
+      <a href="#cta" class="btn btn-primary">Get Verified →</a>
+    </div>
+    <div class="plan reveal">
+      <div class="plan-name">Enterprise</div>
+      <div class="plan-price">Custom</div>
+      <div class="plan-desc">Full-scale verification for platforms & organizations</div>
+      <ul>
+        <li>Platinum verification tier</li>
+        <li>Unlimited API calls</li>
+        <li>White-label integration</li>
+        <li>Batch user verification</li>
+        <li>Custom challenge design</li>
+        <li>Dedicated account manager</li>
+        <li>SLA & compliance support</li>
+      </ul>
+      <a href="#cta" class="btn btn-outline">Contact Sales</a>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- FAQ -->
+<section class="faq" id="faq">
+<div class="container">
+  <div class="text-center reveal">
+    <p class="section-label">FAQ</p>
+    <h2 class="section-title">Common Questions</h2>
+  </div>
+  <div class="faq-list">
+    <div class="faq-item reveal">
+      <button class="faq-q">How is Guaranteed Human different from Worldcoin or other verification?</button>
+      <div class="faq-a"><div class="faq-a-inner">Unlike Worldcoin's iris-scanning orbs or traditional KYC, Guaranteed Human uses a patented multi-signal approach combining biometric, behavioral, and cognitive verification — no special hardware required. We prioritize privacy through zero-knowledge proofs, so you prove you're human without surrendering your personal data.</div></div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-q">What does "continuous verification" mean?</button>
+      <div class="faq-a"><div class="faq-a-inner">Rather than a one-time check, Guaranteed Human uses periodic micro-challenges to ensure your credential stays valid. This prevents credential sharing or theft and ensures your badge always represents a verified, active human — not a past verification that may no longer be valid.</div></div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-q">Is my personal data safe?</button>
+      <div class="faq-a"><div class="faq-a-inner">Absolutely. We use zero-knowledge cryptographic proofs, meaning we can verify your humanity without storing or exposing personal information. Your biometric data never leaves your device. We cannot see it, sell it, or share it — by design.</div></div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-q">How long does verification take?</button>
+      <div class="faq-a"><div class="faq-a-inner">Initial verification takes under 2 minutes. After that, periodic micro-challenges take just a few seconds and can be completed on any device. They're designed to be seamless for humans and impossible for AI.</div></div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-q">Can I use my badge across different platforms?</button>
+      <div class="faq-a"><div class="faq-a-inner">Yes. Your Guaranteed Human badge is portable and universal. Display it on social media profiles, websites, emails, resumes, and any platform that integrates our API. One verification, trusted everywhere.</div></div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-q">What's the patent-pending technology?</button>
+      <div class="faq-a"><div class="faq-a-inner">Guaranteed Human is built on Jeff Blaney's patented methodology for human verification and authenticity certification. The specific approach to multi-signal continuous verification is novel and protected — combining techniques that existing solutions use in isolation into a unified, tamper-proof system.</div></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="cta">
+<div class="container">
+  <div class="cta-box reveal">
+    <h2>Ready to Prove You're&nbsp;Human?</h2>
+    <p>Join thousands of verified humans. Enter your email to get early access.</p>
+    <form class="email-form" id="emailForm">
+      <input type="email" placeholder="you@email.com" required id="emailInput" autocomplete="email">
+      <button type="submit" class="btn btn-primary">Get Early Access</button>
+    </form>
+    <div class="form-msg" id="formMsg"></div>
+  </div>
+</div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+<div class="container">
+  <div class="footer-top">
+    <div class="footer-brand">
+      <div class="logo"><span class="logo-icon">✓</span> Guaranteed Human</div>
+      <p>Patented human verification and authenticity certification for the AI age.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Product</h4>
+      <a href="#solution">How It Works</a>
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#">API Docs</a>
+    </div>
+    <div class="footer-col">
+      <h4>Company</h4>
+      <a href="#">About</a>
+      <a href="#">Blog</a>
+      <a href="#">Careers</a>
+      <a href="#">Press</a>
+    </div>
+    <div class="footer-col">
+      <h4>Legal</h4>
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">Cookie Policy</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Guaranteed Human. All rights reserved. <span class="patent">Patent Pending.</span></span>
+    <span>A Jeff Blaney concept.</span>
+  </div>
+</div>
+</footer>
+
+<script>
+// Nav scroll
+const nav=document.getElementById('nav');
+window.addEventListener('scroll',()=>{nav.classList.toggle('scrolled',window.scrollY>50)});
+
+// Close mobile menu on link click
+document.querySelectorAll('.nav-links a').forEach(a=>a.addEventListener('click',()=>{
+  document.querySelector('.nav-links').classList.remove('open');
+}));
+
+// Reveal on scroll
+const observer=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');observer.unobserve(e.target)}})
+},{threshold:0.1,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+
+// FAQ
+document.querySelectorAll('.faq-q').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const open=btn.classList.toggle('open');
+    const a=btn.nextElementSibling;
+    a.style.maxHeight=open?a.scrollHeight+'px':'0';
+  });
+});
+
+// Email form
+document.getElementById('emailForm').addEventListener('submit',function(e){
+  e.preventDefault();
+  const email=document.getElementById('emailInput').value;
+  const emails=JSON.parse(localStorage.getItem('gh_emails')||'[]');
+  if(!emails.includes(email)){emails.push(email);localStorage.setItem('gh_emails',JSON.stringify(emails))}
+  document.getElementById('formMsg').textContent='🎉 You\'re on the list! We\'ll be in touch soon.';
+  document.getElementById('emailInput').value='';
+  setTimeout(()=>{document.getElementById('formMsg').textContent=''},5000);
+});
+</script>
+</body>
+</html>

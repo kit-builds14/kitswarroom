@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="../auth.js"></script><link rel="stylesheet" href="../responsive.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dyer Auto Group | Vehicle Inventory</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--navy:#1a2744;--navy-light:#2a3f6a;--gold:#d4a836;--gold-hover:#c49a2e;--bg:#f4f5f7;--card:#fff;--text:#1a1a1a;--muted:#6b7280;--border:#e5e7eb;--radius:10px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+a{color:inherit;text-decoration:none}
+
+/* Header */
+.header{background:var(--navy);color:#fff;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.header h1{font-size:1.4rem;letter-spacing:.5px}
+.header h1 span{color:var(--gold)}
+.header-phone{color:var(--gold);font-weight:600;font-size:.95rem}
+
+/* Filter Bar */
+.filter-bar{background:#fff;border-bottom:1px solid var(--border);padding:12px 24px;position:sticky;top:52px;z-index:90;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.filter-row{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+.filter-group{display:flex;flex-direction:column;gap:3px;min-width:140px;flex:1}
+.filter-group label{font-size:.7rem;font-weight:600;text-transform:uppercase;color:var(--muted);letter-spacing:.5px}
+.filter-group select,.filter-group input[type=text]{padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:.85rem;background:#fff;color:var(--text)}
+.filter-group select:focus,.filter-group input:focus{outline:none;border-color:var(--navy)}
+.range-display{font-size:.8rem;color:var(--navy);font-weight:600;min-width:120px;text-align:center}
+.range-wrap{display:flex;align-items:center;gap:6px}
+.range-wrap input[type=range]{flex:1;accent-color:var(--navy);height:6px}
+.filter-actions{display:flex;gap:8px;align-items:end}
+.btn-reset{padding:7px 14px;border:1px solid var(--border);border-radius:6px;background:#fff;cursor:pointer;font-size:.82rem;color:var(--muted)}
+.btn-reset:hover{background:var(--bg)}
+
+/* Results */
+.results-bar{padding:14px 24px;display:flex;justify-content:space-between;align-items:center}
+.results-count{font-size:.95rem;color:var(--muted)}
+.results-count strong{color:var(--text)}
+
+/* Grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;padding:0 24px 40px}
+
+/* Card */
+.card{background:var(--card);border-radius:var(--radius);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);transition:transform .15s,box-shadow .15s;cursor:pointer}
+.card:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,.1)}
+.card-img{height:190px;display:flex;align-items:center;justify-content:center;position:relative}
+.card-img svg{width:90px;height:90px;opacity:.35}
+.card-badge{position:absolute;top:10px;left:10px;padding:3px 10px;border-radius:4px;font-size:.7rem;font-weight:700;text-transform:uppercase;color:#fff}
+.badge-new{background:#16a34a}
+.badge-used{background:#6b7280}
+.badge-cpo{background:#7c3aed}
+.store-badge{position:absolute;top:10px;right:10px;padding:3px 8px;border-radius:4px;font-size:.65rem;font-weight:600;background:var(--navy);color:#fff}
+.card-body{padding:14px 16px}
+.card-title{font-size:1.05rem;font-weight:700;margin-bottom:2px}
+.card-price{font-size:1.2rem;font-weight:800;color:var(--gold);margin-bottom:8px}
+.card-specs{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.78rem;color:var(--muted);margin-bottom:12px}
+.card-specs span::before{content:'';display:inline-block;width:4px;height:4px;background:var(--border);border-radius:50%;margin-right:5px;vertical-align:middle}
+.card-actions{display:flex;gap:8px}
+.btn{padding:8px 14px;border-radius:6px;font-size:.82rem;font-weight:600;border:none;cursor:pointer;transition:background .15s}
+.btn-primary{background:var(--gold);color:#fff}
+.btn-primary:hover{background:var(--gold-hover)}
+.btn-outline{background:transparent;border:1.5px solid var(--navy);color:var(--navy)}
+.btn-outline:hover{background:var(--navy);color:#fff}
+
+/* Modal Overlay */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.active{display:flex}
+.modal{background:#fff;border-radius:12px;max-width:800px;width:100%;max-height:90vh;overflow-y:auto;position:relative}
+.modal-close{position:absolute;top:12px;right:16px;font-size:1.5rem;cursor:pointer;color:var(--muted);z-index:10;background:rgba(255,255,255,.8);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:none}
+.modal-img{height:280px;display:flex;align-items:center;justify-content:center;position:relative}
+.modal-img svg{width:120px;height:120px;opacity:.3}
+.modal-badges{position:absolute;top:14px;left:14px;display:flex;gap:8px}
+.modal-body{padding:24px}
+.modal-title{font-size:1.5rem;font-weight:800}
+.modal-price{font-size:1.6rem;font-weight:800;color:var(--gold);margin:4px 0 16px}
+.specs-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;margin-bottom:20px}
+.spec-item{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:.88rem}
+.spec-item .spec-label{color:var(--muted)}
+.spec-item .spec-value{font-weight:600}
+.features-section{margin-bottom:20px}
+.features-section h3{font-size:.95rem;margin-bottom:8px;color:var(--navy)}
+.features-list{display:flex;flex-wrap:wrap;gap:6px}
+.features-list span{background:var(--bg);padding:4px 10px;border-radius:20px;font-size:.78rem;color:var(--text)}
+.modal-actions{display:flex;gap:10px;margin-bottom:24px}
+.eprice-form{background:var(--bg);padding:16px;border-radius:8px;margin-bottom:20px}
+.eprice-form h3{margin-bottom:10px;font-size:.95rem;color:var(--navy)}
+.eprice-form input{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;margin-bottom:8px;font-size:.88rem}
+.eprice-form .btn{width:100%}
+.form-msg{font-size:.82rem;color:#16a34a;margin-top:6px;display:none}
+.similar-section h3{font-size:.95rem;margin-bottom:10px;color:var(--navy)}
+.similar-scroll{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px}
+.similar-card{min-width:180px;background:var(--bg);border-radius:8px;overflow:hidden;cursor:pointer;flex-shrink:0}
+.similar-card-img{height:90px;display:flex;align-items:center;justify-content:center}
+.similar-card-img svg{width:40px;height:40px;opacity:.3}
+.similar-card-body{padding:8px 10px}
+.similar-card-body .sc-title{font-size:.78rem;font-weight:600}
+.similar-card-body .sc-price{font-size:.82rem;font-weight:700;color:var(--gold)}
+
+/* Multi-select chips */
+.ms-wrap{position:relative}
+.ms-toggle{padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:.85rem;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:space-between;min-height:34px;gap:4px;flex-wrap:wrap}
+.ms-toggle::after{content:'▾';font-size:.7rem;color:var(--muted);margin-left:4px;flex-shrink:0}
+.ms-chip{background:var(--navy);color:#fff;padding:1px 7px;border-radius:4px;font-size:.72rem}
+.ms-dropdown{display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:50;max-height:200px;overflow-y:auto}
+.ms-dropdown.open{display:block}
+.ms-dropdown label{display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:.85rem;cursor:pointer}
+.ms-dropdown label:hover{background:var(--bg)}
+
+/* Responsive */
+@media(max-width:768px){
+  .filter-row{flex-direction:column}
+  .filter-group{min-width:100%}
+  .grid{grid-template-columns:1fr;padding:0 12px 30px}
+  .results-bar{padding:12px}
+  .header{padding:10px 12px}
+  .filter-bar{padding:10px 12px}
+  .specs-grid{grid-template-columns:1fr}
+  .modal-body{padding:16px}
+}
+
+/* Color palettes for placeholder images */
+.bg-chevy{background:linear-gradient(135deg,#1a3a5c,#2563eb)}
+.bg-mazda{background:linear-gradient(135deg,#6b0f1a,#c0392b)}
+.bg-subaru{background:linear-gradient(135deg,#0c4a6e,#0ea5e9)}
+.bg-kia{background:linear-gradient(135deg,#4a1a6b,#8b5cf6)}
+
+.no-results{text-align:center;padding:60px 20px;color:var(--muted)}
+.no-results svg{width:60px;height:60px;opacity:.3;margin-bottom:12px}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <h1>DYER <span>AUTO GROUP</span></h1>
+  <span class="header-phone">📞 (954) 555-0100</span>
+</header>
+
+<div class="filter-bar">
+  <div class="filter-row">
+    <div class="filter-group">
+      <label>Condition</label>
+      <select id="fCondition"><option value="">All</option><option>New</option><option>Used</option><option>Certified Pre-Owned</option></select>
+    </div>
+    <div class="filter-group">
+      <label>Make</label>
+      <div class="ms-wrap" id="msWrapMake">
+        <div class="ms-toggle" id="msMakeToggle"><span style="color:var(--muted)">All Makes</span></div>
+        <div class="ms-dropdown" id="msMakeDD">
+          <label><input type="checkbox" value="Chevrolet"> Chevrolet</label>
+          <label><input type="checkbox" value="Mazda"> Mazda</label>
+          <label><input type="checkbox" value="Subaru"> Subaru</label>
+          <label><input type="checkbox" value="Kia"> Kia</label>
+        </div>
+      </div>
+    </div>
+    <div class="filter-group">
+      <label>Body Style</label>
+      <select id="fBody"><option value="">All</option><option>Sedan</option><option>SUV</option><option>Truck</option><option>Coupe</option><option>Convertible</option><option>Van</option><option>Crossover</option></select>
+    </div>
+    <div class="filter-group" style="min-width:200px">
+      <label>Price Range <span class="range-display" id="priceDisp">$5K – $80K</span></label>
+      <div class="range-wrap">
+        <input type="range" id="priceMin" min="5000" max="80000" step="1000" value="5000">
+        <input type="range" id="priceMax" min="5000" max="80000" step="1000" value="80000">
+      </div>
+    </div>
+    <div class="filter-group" style="min-width:180px">
+      <label>Year Range <span class="range-display" id="yearDisp">2018 – 2026</span></label>
+      <div class="range-wrap">
+        <input type="range" id="yearMin" min="2018" max="2026" step="1" value="2018">
+        <input type="range" id="yearMax" min="2018" max="2026" step="1" value="2026">
+      </div>
+    </div>
+    <div class="filter-group">
+      <label>Sort By</label>
+      <select id="fSort">
+        <option value="recent">Recently Added</option>
+        <option value="price-asc">Price: Low → High</option>
+        <option value="price-desc">Price: High → Low</option>
+        <option value="year-desc">Year: Newest</option>
+        <option value="miles-asc">Mileage: Lowest</option>
+      </select>
+    </div>
+    <div class="filter-actions">
+      <button class="btn-reset" onclick="resetFilters()">Reset</button>
+    </div>
+  </div>
+</div>
+
+<div class="results-bar">
+  <span class="results-count" id="resultsCount"></span>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+const SVG_CAR = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>`;
+
+const vehicles = [
+  // Chevrolet — New
+  {id:1,condition:"New",make:"Chevrolet",model:"Silverado 1500",trim:"LT Trail Boss",body:"Truck",year:2026,price:52990,mileage:12,transmission:"Automatic",drivetrain:"4WD",mpg:"17/23",color:"Summit White",store:"Dyer Chevy",features:["Heated Seats","Trailering Package","Z71 Off-Road","LED Headlamps","Apple CarPlay","10-Speed Auto","Spray-On Bedliner","Dual-Zone Climate"],added:1},
+  {id:2,condition:"New",make:"Chevrolet",model:"Silverado 1500",trim:"RST",body:"Truck",year:2025,price:48750,mileage:8,transmission:"Automatic",drivetrain:"RWD",mpg:"19/26",color:"Black",store:"Dyer Chevy",features:["20\" Wheels","Remote Start","Power Tailgate","Bose Audio","Lane Keep Assist","Forward Collision Alert"],added:2},
+  {id:3,condition:"New",make:"Chevrolet",model:"Equinox",trim:"RS",body:"Crossover",year:2026,price:34590,mileage:15,transmission:"Automatic",drivetrain:"AWD",mpg:"28/33",color:"Radiant Red",store:"Dyer Chevy",features:["Panoramic Sunroof","Wireless Charging","17\" Black Wheels","HD Surround Vision","Heated Steering Wheel","Adaptive Cruise"],added:3},
+  {id:4,condition:"New",make:"Chevrolet",model:"Equinox EV",trim:"2LT",body:"Crossover",year:2025,price:38995,mileage:5,transmission:"Electric",drivetrain:"FWD",mpg:"290mi Range",color:"Riptide Blue",store:"Dyer Chevy",features:["17.7\" Touchscreen","Super Cruise","DC Fast Charge","One-Pedal Driving","Wireless CarPlay","Ventilated Seats"],added:4},
+  {id:5,condition:"New",make:"Chevrolet",model:"Tahoe",trim:"Z71",body:"SUV",year:2025,price:67490,mileage:20,transmission:"Automatic",drivetrain:"4WD",mpg:"15/20",color:"Empire Beige",store:"Dyer Chevy",features:["Magnetic Ride Control","2nd Row Buckets","Rear Entertainment","Air Suspension","Head-Up Display","Power Retractable Steps","Max Trailering Package"],added:5},
+  {id:6,condition:"New",make:"Chevrolet",model:"Blazer EV",trim:"RS",body:"SUV",year:2025,price:55995,mileage:10,transmission:"Electric",drivetrain:"AWD",mpg:"279mi Range",color:"Radiant Red",store:"Dyer Chevy",features:["21\" Wheels","Super Cruise","Bose Audio","Glass Roof","Sport Suspension","Ventilated Front Seats"],added:6},
+  {id:7,condition:"New",make:"Chevrolet",model:"Trax",trim:"1RS",body:"Crossover",year:2026,price:24995,mileage:7,transmission:"Automatic",drivetrain:"FWD",mpg:"28/32",color:"Cacti Green",store:"Dyer Chevy",features:["11\" Touchscreen","Wireless CarPlay","Adaptive Cruise","Lane Keep Assist","Rear Park Assist"],added:7},
+  // Chevrolet — Used
+  {id:8,condition:"Used",make:"Chevrolet",model:"Silverado 1500",trim:"High Country",body:"Truck",year:2022,price:44900,mileage:28450,transmission:"Automatic",drivetrain:"4WD",mpg:"16/22",color:"Iridescent Pearl",store:"Dyer Chevy",features:["Leather","Sunroof","Navigation","Bose Audio","Bed Cover","Tow Package"],added:8},
+  {id:9,condition:"Certified Pre-Owned",make:"Chevrolet",model:"Equinox",trim:"Premier",body:"Crossover",year:2023,price:27500,mileage:18200,transmission:"Automatic",drivetrain:"AWD",mpg:"26/31",color:"Sterling Gray",store:"Dyer Chevy",features:["Leather","Heated Seats","Safety Package","Power Liftgate","Navigation"],added:9},
+  {id:10,condition:"Used",make:"Chevrolet",model:"Tahoe",trim:"LT",body:"SUV",year:2021,price:42990,mileage:41200,transmission:"Automatic",drivetrain:"RWD",mpg:"16/20",color:"Shadow Gray",store:"Dyer Chevy",features:["Leather","3rd Row","Tow Package","Rear Camera","Bluetooth"],added:10},
+  // Mazda — New
+  {id:11,condition:"New",make:"Mazda",model:"CX-5",trim:"Turbo Premium Plus",body:"Crossover",year:2025,price:40250,mileage:11,transmission:"Automatic",drivetrain:"AWD",mpg:"22/27",color:"Soul Red Crystal",store:"Dyer Mazda",features:["Turbo Engine","Nappa Leather","Bose 10-Speaker","Head-Up Display","360° Camera","Heated/Ventilated Seats","Power Liftgate"],added:11},
+  {id:12,condition:"New",make:"Mazda",model:"CX-50",trim:"Turbo Meridian",body:"Crossover",year:2025,price:43950,mileage:9,transmission:"Automatic",drivetrain:"AWD",mpg:"23/28",color:"Zircon Sand",store:"Dyer Mazda",features:["Turbo","Terracotta Nappa Leather","Panoramic Moonroof","Bose Audio","Wireless Charging","i-Activ AWD","Trail Mode"],added:12},
+  {id:13,condition:"New",make:"Mazda",model:"CX-90",trim:"PHEV Premium Plus",body:"SUV",year:2025,price:55800,mileage:6,transmission:"Automatic",drivetrain:"AWD",mpg:"56 MPGe",color:"Artisan Red",store:"Dyer Mazda",features:["Plug-In Hybrid","Captain's Chairs","Nappa Leather","12.3\" Display","Panoramic Moonroof","Rear Sunshades","360° Camera","Kinematic Posture Control"],added:13},
+  {id:14,condition:"New",make:"Mazda",model:"CX-90",trim:"3.3 Turbo S Premium",body:"SUV",year:2026,price:51250,mileage:14,transmission:"Automatic",drivetrain:"AWD",mpg:"24/28",color:"Machine Gray",store:"Dyer Mazda",features:["Inline-6 Turbo","3rd Row","Nappa Leather","Bose 12-Speaker","Adaptive Cruise","Head-Up Display"],added:14},
+  {id:15,condition:"New",make:"Mazda",model:"Mazda3",trim:"2.5 Turbo Premium Plus",body:"Sedan",year:2025,price:36450,mileage:13,transmission:"Automatic",drivetrain:"AWD",mpg:"23/31",color:"Polymetal Gray",store:"Dyer Mazda",features:["Turbo","Leather","Bose Audio","Sunroof","Adaptive LED","Traffic Jam Assist"],added:15},
+  {id:16,condition:"New",make:"Mazda",model:"MX-5 Miata",trim:"Grand Touring",body:"Convertible",year:2025,price:38150,mileage:4,transmission:"Manual",drivetrain:"RWD",mpg:"26/34",color:"Snowflake White Pearl",store:"Dyer Mazda",features:["Bose Audio","Bilstein Shocks","BBS Wheels","Nappa Leather","Apple CarPlay","Blind Spot Monitor"],added:16},
+  // Mazda — Used
+  {id:17,condition:"Used",make:"Mazda",model:"CX-5",trim:"Carbon Edition",body:"Crossover",year:2022,price:26800,mileage:31500,transmission:"Automatic",drivetrain:"AWD",mpg:"24/30",color:"Polymetal Gray",store:"Dyer Mazda",features:["Leather","Bose Audio","Sunroof","Heated Seats","Power Liftgate"],added:17},
+  {id:18,condition:"Certified Pre-Owned",make:"Mazda",model:"CX-50",trim:"Turbo Premium",body:"Crossover",year:2023,price:34500,mileage:14800,transmission:"Automatic",drivetrain:"AWD",mpg:"23/29",color:"Zircon Sand",store:"Dyer Mazda",features:["Turbo","Leather","Panoramic Roof","Wireless Charging","360° Camera"],added:18},
+  {id:19,condition:"Used",make:"Mazda",model:"CX-90",trim:"3.3 Turbo Premium",body:"SUV",year:2024,price:42900,mileage:12600,transmission:"Automatic",drivetrain:"AWD",mpg:"24/28",color:"Soul Red Crystal",store:"Dyer Mazda",features:["Leather","Captain's Chairs","Bose Audio","Panoramic Roof","3rd Row"],added:19},
+  // Subaru — New
+  {id:20,condition:"New",make:"Subaru",model:"Outback",trim:"Touring XT",body:"Crossover",year:2025,price:42995,mileage:8,transmission:"CVT",drivetrain:"AWD",mpg:"26/32",color:"Autumn Green",store:"Dyer Subaru",features:["Turbo","Nappa Leather","11.6\" Touchscreen","Harman Kardon","Power Liftgate","X-Mode","EyeSight","Heated/Ventilated Seats"],added:20},
+  {id:21,condition:"New",make:"Subaru",model:"Outback",trim:"Onyx Edition XT",body:"Crossover",year:2025,price:39995,mileage:10,transmission:"CVT",drivetrain:"AWD",mpg:"26/32",color:"Magnetite Gray",store:"Dyer Subaru",features:["Turbo","StarTex Upholstery","Black Accents","X-Mode","Dual X-Mode","EyeSight"],added:21},
+  {id:22,condition:"New",make:"Subaru",model:"Forester",trim:"Sport",body:"SUV",year:2025,price:36495,mileage:12,transmission:"CVT",drivetrain:"AWD",mpg:"29/33",color:"Sapphire Blue Pearl",store:"Dyer Subaru",features:["Sport Mesh Grille","Dual-Function X-Mode","EyeSight","Starlink","Panoramic Moonroof","LED Steering Responsive"],added:22},
+  {id:23,condition:"New",make:"Subaru",model:"Forester",trim:"Touring",body:"SUV",year:2026,price:39750,mileage:6,transmission:"CVT",drivetrain:"AWD",mpg:"29/33",color:"Crystal White Pearl",store:"Dyer Subaru",features:["Leather","Harman Kardon","Panoramic Moonroof","Power Liftgate","EyeSight","Heated Steering Wheel"],added:23},
+  {id:24,condition:"New",make:"Subaru",model:"Crosstrek",trim:"Limited",body:"Crossover",year:2025,price:33295,mileage:9,transmission:"CVT",drivetrain:"AWD",mpg:"29/34",color:"Offshore Blue",store:"Dyer Subaru",features:["Leather","Starlink 11.6\"","EyeSight","Blind Spot","Rear Cross Traffic","LED Headlights"],added:24},
+  {id:25,condition:"New",make:"Subaru",model:"Crosstrek",trim:"Wilderness",body:"Crossover",year:2025,price:35750,mileage:14,transmission:"CVT",drivetrain:"AWD",mpg:"27/32",color:"Oasis Blue",store:"Dyer Subaru",features:["Lifted Suspension","All-Terrain Tires","Dual X-Mode","Full-Size Spare","Roof Rails","Copper Accents"],added:25},
+  {id:26,condition:"New",make:"Subaru",model:"WRX",trim:"tS",body:"Sedan",year:2025,price:42495,mileage:5,transmission:"Manual",drivetrain:"AWD",mpg:"19/26",color:"WR Blue Pearl",store:"Dyer Subaru",features:["STI Wheels","Recaro Seats","Brembo Brakes","STI Short Throw","Ultrasuede Trim","EyeSight"],added:26},
+  {id:27,condition:"New",make:"Subaru",model:"WRX",trim:"Premium",body:"Sedan",year:2025,price:34595,mileage:7,transmission:"CVT",drivetrain:"AWD",mpg:"22/28",color:"Solar Orange Pearl",store:"Dyer Subaru",features:["Sunroof","Recaro Seats","Harman Kardon","Heated Seats","EyeSight","Blind Spot"],added:27},
+  // Subaru — Used
+  {id:28,condition:"Used",make:"Subaru",model:"Outback",trim:"Limited",body:"Crossover",year:2022,price:28900,mileage:34500,transmission:"CVT",drivetrain:"AWD",mpg:"26/32",color:"Cinnamon Brown",store:"Dyer Subaru",features:["Leather","EyeSight","Sunroof","Apple CarPlay","Power Liftgate"],added:28},
+  {id:29,condition:"Certified Pre-Owned",make:"Subaru",model:"Forester",trim:"Premium",body:"SUV",year:2023,price:29450,mileage:19800,transmission:"CVT",drivetrain:"AWD",mpg:"26/33",color:"Jasper Green",store:"Dyer Subaru",features:["X-Mode","Panoramic Roof","EyeSight","Heated Seats","All-Weather Package"],added:29},
+  {id:30,condition:"Used",make:"Subaru",model:"Crosstrek",trim:"Sport",body:"Crossover",year:2021,price:24500,mileage:42100,transmission:"CVT",drivetrain:"AWD",mpg:"28/33",color:"Plasma Yellow Pearl",store:"Dyer Subaru",features:["Sport Mesh","Dual X-Mode","StarTex","EyeSight","LED Headlights"],added:30},
+  // Kia — New
+  {id:31,condition:"New",make:"Kia",model:"Telluride",trim:"SX Prestige X-Pro",body:"SUV",year:2025,price:55990,mileage:11,transmission:"Automatic",drivetrain:"AWD",mpg:"18/24",color:"Wolf Gray",store:"Dyer Kia",features:["Nappa Leather","Dual Sunroof","Harman Kardon","Heads-Up Display","Surround View","Captain's Chairs","Digital Key 2.0","Terrain Mode"],added:31},
+  {id:32,condition:"New",make:"Kia",model:"Telluride",trim:"EX X-Line",body:"SUV",year:2025,price:46590,mileage:8,transmission:"Automatic",drivetrain:"AWD",mpg:"19/24",color:"Midnight Lake Blue",store:"Dyer Kia",features:["Leather","3rd Row","Tow Package","Blind Spot","Rear Camera","20\" Wheels"],added:32},
+  {id:33,condition:"New",make:"Kia",model:"Sportage",trim:"X-Line Prestige",body:"Crossover",year:2025,price:41990,mileage:13,transmission:"Automatic",drivetrain:"AWD",mpg:"25/30",color:"Dawning Red",store:"Dyer Kia",features:["Turbo","Dual Curved Displays","Nappa Leather","Panoramic Display","Harman Kardon","Surround View","Digital Key"],added:33},
+  {id:34,condition:"New",make:"Kia",model:"Sportage",trim:"Hybrid EX",body:"Crossover",year:2025,price:37490,mileage:6,transmission:"Automatic",drivetrain:"AWD",mpg:"38/38",color:"Snow White Pearl",store:"Dyer Kia",features:["Hybrid","Leather","Dual 12.3\" Displays","Wireless Charging","Smart Cruise","Highway Driving Assist"],added:34},
+  {id:35,condition:"New",make:"Kia",model:"Forte",trim:"GT",body:"Sedan",year:2025,price:27490,mileage:10,transmission:"DCT",drivetrain:"FWD",mpg:"27/35",color:"Gravity Gray",store:"Dyer Kia",features:["Turbo 1.6L","Sport Suspension","GT Sport Seats","LED Headlights","10.25\" Display","Wireless CarPlay"],added:35},
+  {id:36,condition:"New",make:"Kia",model:"K5",trim:"GT-Line",body:"Sedan",year:2025,price:31590,mileage:9,transmission:"Automatic",drivetrain:"FWD",mpg:"29/38",color:"Passion Red",store:"Dyer Kia",features:["Sport Styling","Panoramic Sunroof","Leather","10.25\" Touchscreen","Wireless Charging","Smart Cruise"],added:36},
+  {id:37,condition:"New",make:"Kia",model:"K5",trim:"GT",body:"Sedan",year:2025,price:35190,mileage:7,transmission:"DCT",drivetrain:"FWD",mpg:"24/32",color:"Sapphire Blue",store:"Dyer Kia",features:["2.5L Turbo","Sport Suspension","GT Sport Seats","Brembo Brakes","Launch Control","Nappa Leather"],added:37},
+  {id:38,condition:"New",make:"Kia",model:"Carnival",trim:"SX Prestige",body:"Van",year:2025,price:50190,mileage:14,transmission:"Automatic",drivetrain:"FWD",mpg:"19/26",color:"Astra Blue",store:"Dyer Kia",features:["VIP Lounge Seats","Dual Sunroof","12.3\" Displays","Harman Kardon","Power Sliding Doors","Surround View","Highway Driving Assist"],added:38},
+  // Kia — Used
+  {id:39,condition:"Used",make:"Kia",model:"Telluride",trim:"SX",body:"SUV",year:2023,price:38900,mileage:25600,transmission:"Automatic",drivetrain:"AWD",mpg:"18/24",color:"Everlasting Silver",store:"Dyer Kia",features:["Leather","Captain's Chairs","Tow Package","Harman Kardon","Sunroof"],added:39},
+  {id:40,condition:"Certified Pre-Owned",make:"Kia",model:"Sportage",trim:"SX Prestige",body:"Crossover",year:2023,price:32500,mileage:16400,transmission:"Automatic",drivetrain:"AWD",mpg:"25/32",color:"Jungle Wood Green",store:"Dyer Kia",features:["Turbo","Nappa Leather","Panoramic Display","Surround View","Ventilated Seats"],added:40},
+  {id:41,condition:"Used",make:"Kia",model:"K5",trim:"GT-Line",body:"Sedan",year:2022,price:23900,mileage:29800,transmission:"Automatic",drivetrain:"FWD",mpg:"29/38",color:"Wolf Gray",store:"Dyer Kia",features:["Panoramic Sunroof","Leather","Smart Cruise","Wireless Charging","LED Headlights"],added:41},
+  {id:42,condition:"Used",make:"Kia",model:"Forte",trim:"GT-Line",body:"Sedan",year:2021,price:18500,mileage:38200,transmission:"CVT",drivetrain:"FWD",mpg:"30/39",color:"Snow White Pearl",store:"Dyer Kia",features:["Sport Styling","Apple CarPlay","Blind Spot","Lane Keep","Forward Collision"],added:42},
+  {id:43,condition:"Used",make:"Chevrolet",model:"Blazer",trim:"RS",body:"SUV",year:2023,price:33900,mileage:21400,transmission:"Automatic",drivetrain:"AWD",mpg:"22/29",color:"Midnight Blue",store:"Dyer Chevy",features:["Leather","Panoramic Sunroof","Bose Audio","Adaptive Cruise","20\" Black Wheels"],added:43},
+  {id:44,condition:"New",make:"Subaru",model:"Solterra",trim:"Touring",body:"SUV",year:2025,price:47995,mileage:3,transmission:"Electric",drivetrain:"AWD",mpg:"228mi Range",color:"Harbor Mist",store:"Dyer Subaru",features:["12.3\" Touchscreen","Safety Sense","Panoramic Roof","Heated Seats","Wireless Charging","StarDrive AWD"],added:44},
+  {id:45,condition:"Certified Pre-Owned",make:"Chevrolet",model:"Trax",trim:"LT",body:"Crossover",year:2024,price:22900,mileage:9800,transmission:"Automatic",drivetrain:"FWD",mpg:"28/32",color:"Mosaic Black",store:"Dyer Chevy",features:["11\" Touchscreen","Wireless CarPlay","Adaptive Cruise","Lane Keep Assist"],added:45}
+];
+
+const bgClass = m => m==='Chevrolet'?'bg-chevy':m==='Mazda'?'bg-mazda':m==='Subaru'?'bg-subaru':'bg-kia';
+const badgeClass = c => c==='New'?'badge-new':c==='Certified Pre-Owned'?'badge-cpo':'badge-used';
+const fmt = n => n.toLocaleString('en-US');
+const fmtPrice = n => '$'+fmt(n);
+
+// Multi-select logic
+const makeState = new Set();
+const msMakeToggle = document.getElementById('msMakeToggle');
+const msMakeDD = document.getElementById('msMakeDD');
+msMakeToggle.addEventListener('click', e => { e.stopPropagation(); msMakeDD.classList.toggle('open'); });
+document.addEventListener('click', () => msMakeDD.classList.remove('open'));
+msMakeDD.addEventListener('click', e => e.stopPropagation());
+msMakeDD.querySelectorAll('input').forEach(cb => {
+  cb.addEventListener('change', () => {
+    if(cb.checked) makeState.add(cb.value); else makeState.delete(cb.value);
+    if(makeState.size===0) msMakeToggle.innerHTML = '<span style="color:var(--muted)">All Makes</span>';
+    else msMakeToggle.innerHTML = [...makeState].map(m=>`<span class="ms-chip">${m}</span>`).join('')+'<span></span>';
+    applyFilters();
+  });
+});
+
+const fCondition=document.getElementById('fCondition'),fBody=document.getElementById('fBody'),fSort=document.getElementById('fSort');
+const priceMin=document.getElementById('priceMin'),priceMax=document.getElementById('priceMax');
+const yearMin=document.getElementById('yearMin'),yearMax=document.getElementById('yearMax');
+const priceDisp=document.getElementById('priceDisp'),yearDisp=document.getElementById('yearDisp');
+
+[fCondition,fBody,fSort].forEach(s=>s.addEventListener('change',applyFilters));
+[priceMin,priceMax].forEach(s=>s.addEventListener('input',()=>{
+  if(+priceMin.value>+priceMax.value) priceMin.value=priceMax.value;
+  priceDisp.textContent=`$${Math.round(priceMin.value/1000)}K – $${Math.round(priceMax.value/1000)}K`;
+  applyFilters();
+}));
+[yearMin,yearMax].forEach(s=>s.addEventListener('input',()=>{
+  if(+yearMin.value>+yearMax.value) yearMin.value=yearMax.value;
+  yearDisp.textContent=`${yearMin.value} – ${yearMax.value}`;
+  applyFilters();
+}));
+
+function resetFilters(){
+  fCondition.value='';fBody.value='';fSort.value='recent';
+  priceMin.value=5000;priceMax.value=80000;yearMin.value=2018;yearMax.value=2026;
+  priceDisp.textContent='$5K – $80K';yearDisp.textContent='2018 – 2026';
+  makeState.clear();
+  msMakeDD.querySelectorAll('input').forEach(cb=>cb.checked=false);
+  msMakeToggle.innerHTML='<span style="color:var(--muted)">All Makes</span>';
+  applyFilters();
+}
+
+function applyFilters(){
+  let list = vehicles.filter(v=>{
+    if(fCondition.value && v.condition!==fCondition.value) return false;
+    if(makeState.size && !makeState.has(v.make)) return false;
+    if(fBody.value && v.body!==fBody.value) return false;
+    if(v.price<+priceMin.value || v.price>+priceMax.value) return false;
+    if(v.year<+yearMin.value || v.year>+yearMax.value) return false;
+    return true;
+  });
+  const s=fSort.value;
+  list.sort((a,b)=>{
+    if(s==='price-asc') return a.price-b.price;
+    if(s==='price-desc') return b.price-a.price;
+    if(s==='year-desc') return b.year-a.year;
+    if(s==='miles-asc') return a.mileage-b.mileage;
+    return a.added-b.added;
+  });
+  renderGrid(list);
+}
+
+function renderGrid(list){
+  const grid=document.getElementById('grid');
+  document.getElementById('resultsCount').innerHTML=`<strong>${list.length}</strong> vehicle${list.length!==1?'s':''} match your search`;
+  if(!list.length){grid.innerHTML=`<div class="no-results">${SVG_CAR}<p>No vehicles match your filters. Try adjusting your search.</p></div>`;return;}
+  grid.innerHTML=list.map(v=>`
+    <div class="card" onclick="openModal(${v.id})">
+      <div class="card-img ${bgClass(v.make)}">
+        ${SVG_CAR}
+        <span class="card-badge ${badgeClass(v.condition)}">${v.condition}</span>
+        <span class="store-badge">${v.store}</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">${v.year} ${v.make} ${v.model} ${v.trim}</div>
+        <div class="card-price">${fmtPrice(v.price)}</div>
+        <div class="card-specs">
+          <span>${v.mileage>100?fmt(v.mileage)+' mi':'New – '+v.mileage+' mi'}</span>
+          <span>${v.transmission}</span>
+          <span>${v.drivetrain}</span>
+          <span>${v.mpg} MPG</span>
+          <span>${v.color}</span>
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-primary" onclick="event.stopPropagation();openModal(${v.id})">View Details</button>
+          <button class="btn btn-outline" onclick="event.stopPropagation();openModal(${v.id},'testdrive')">Schedule Test Drive</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openModal(id, section){
+  const v=vehicles.find(x=>x.id===id);if(!v)return;
+  const similar=vehicles.filter(x=>x.id!==v.id&&x.body===v.body).slice(0,6);
+  const overlay=document.getElementById('modalOverlay');
+  document.getElementById('modal').innerHTML=`
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div class="modal-img ${bgClass(v.make)}">
+      ${SVG_CAR}
+      <div class="modal-badges">
+        <span class="card-badge ${badgeClass(v.condition)}">${v.condition}</span>
+        <span class="store-badge">${v.store}</span>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-title">${v.year} ${v.make} ${v.model} ${v.trim}</div>
+      <div class="modal-price">${fmtPrice(v.price)}</div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="document.getElementById('epForm').scrollIntoView({behavior:'smooth'})">Get E-Price</button>
+        <button class="btn btn-outline" onclick="document.getElementById('epForm').scrollIntoView({behavior:'smooth'})">Schedule Test Drive</button>
+      </div>
+      <div class="specs-grid">
+        <div class="spec-item"><span class="spec-label">Mileage</span><span class="spec-value">${v.mileage>100?fmt(v.mileage)+' mi':'New – '+v.mileage+' mi'}</span></div>
+        <div class="spec-item"><span class="spec-label">Condition</span><span class="spec-value">${v.condition}</span></div>
+        <div class="spec-item"><span class="spec-label">Transmission</span><span class="spec-value">${v.transmission}</span></div>
+        <div class="spec-item"><span class="spec-label">Drivetrain</span><span class="spec-value">${v.drivetrain}</span></div>
+        <div class="spec-item"><span class="spec-label">MPG / Range</span><span class="spec-value">${v.mpg}</span></div>
+        <div class="spec-item"><span class="spec-label">Exterior Color</span><span class="spec-value">${v.color}</span></div>
+        <div class="spec-item"><span class="spec-label">Body Style</span><span class="spec-value">${v.body}</span></div>
+        <div class="spec-item"><span class="spec-label">Store</span><span class="spec-value">${v.store}</span></div>
+      </div>
+      <div class="features-section">
+        <h3>Equipment & Features</h3>
+        <div class="features-list">${v.features.map(f=>`<span>✓ ${f}</span>`).join('')}</div>
+      </div>
+      <div class="eprice-form" id="epForm">
+        <h3>📩 Get Your E-Price / Schedule Test Drive</h3>
+        <input id="leadName" placeholder="Full Name" required>
+        <input id="leadEmail" type="email" placeholder="Email Address" required>
+        <input id="leadPhone" type="tel" placeholder="Phone Number">
+        <button class="btn btn-primary" onclick="submitLead(${v.id})">Submit Inquiry</button>
+        <div class="form-msg" id="formMsg">✓ Thank you! A Dyer team member will reach out shortly.</div>
+      </div>
+      ${similar.length?`
+      <div class="similar-section">
+        <h3>Similar Vehicles</h3>
+        <div class="similar-scroll">
+          ${similar.map(s=>`
+            <div class="similar-card" onclick="openModal(${s.id})">
+              <div class="similar-card-img ${bgClass(s.make)}">${SVG_CAR}</div>
+              <div class="similar-card-body">
+                <div class="sc-title">${s.year} ${s.make} ${s.model}</div>
+                <div class="sc-price">${fmtPrice(s.price)}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>`:''}
+    </div>
+  `;
+  overlay.classList.add('active');
+  document.body.style.overflow='hidden';
+  if(section==='testdrive') setTimeout(()=>document.getElementById('epForm').scrollIntoView({behavior:'smooth'}),100);
+}
+
+function closeModal(){
+  document.getElementById('modalOverlay').classList.remove('active');
+  document.body.style.overflow='';
+}
+document.getElementById('modalOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+
+function submitLead(vehicleId){
+  const name=document.getElementById('leadName').value.trim();
+  const email=document.getElementById('leadEmail').value.trim();
+  const phone=document.getElementById('leadPhone').value.trim();
+  if(!name||!email){alert('Please enter your name and email.');return;}
+  const leads=JSON.parse(localStorage.getItem('dyer_leads')||'[]');
+  leads.push({vehicleId,name,email,phone,date:new Date().toISOString()});
+  localStorage.setItem('dyer_leads',JSON.stringify(leads));
+  document.getElementById('formMsg').style.display='block';
+}
+
+// Init
+applyFilters();
+</script>
+</body>
+</html>

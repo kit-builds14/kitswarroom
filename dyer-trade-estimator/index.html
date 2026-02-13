@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="../auth.js"></script><link rel="stylesheet" href="../responsive.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trade-In Value Estimator | Dyer Auto Group</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--navy:#1a2744;--navy-light:#243356;--gold:#c9a84c;--gold-light:#e0c56e;--bg:#f4f5f7;--white:#fff;--text:#333;--muted:#777;--radius:12px;--shadow:0 4px 24px rgba(26,39,68,.12)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+header{background:var(--navy);padding:20px;text-align:center}
+header h1{color:var(--gold);font-size:1.4rem;letter-spacing:1px}
+header p{color:rgba(255,255,255,.7);font-size:.85rem;margin-top:4px}
+.container{max-width:560px;margin:0 auto;padding:20px}
+.progress{display:flex;gap:8px;margin-bottom:24px}
+.progress .dot{flex:1;height:5px;border-radius:3px;background:#ddd;transition:background .3s}
+.progress .dot.active{background:var(--gold)}
+.progress .dot.done{background:var(--navy)}
+.card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:28px 24px;animation:fadeIn .4s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.step{display:none}.step.active{display:block}
+h2{font-size:1.25rem;color:var(--navy);margin-bottom:20px}
+label{display:block;font-weight:600;font-size:.88rem;margin-bottom:6px;color:var(--navy)}
+.field{margin-bottom:18px}
+select,input[type=text],input[type=email],input[type=tel],input[type=number]{width:100%;padding:12px 14px;border:2px solid #e0e2e7;border-radius:8px;font-size:1rem;transition:border-color .2s;background:var(--white)}
+select:focus,input:focus{outline:none;border-color:var(--gold)}
+input[type=range]{width:100%;margin:8px 0;accent-color:var(--gold)}
+.mileage-val{text-align:center;font-size:1.1rem;font-weight:700;color:var(--navy)}
+.radio-group{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.radio-group.single-col{grid-template-columns:1fr}
+.radio-opt{position:relative}
+.radio-opt input{position:absolute;opacity:0}
+.radio-opt label{display:block;padding:12px 14px;border:2px solid #e0e2e7;border-radius:8px;cursor:pointer;font-weight:500;text-align:center;transition:all .2s}
+.radio-opt input:checked+label{border-color:var(--gold);background:rgba(201,168,76,.1);color:var(--navy)}
+.radio-opt .desc{font-weight:400;font-size:.75rem;color:var(--muted);display:block;margin-top:2px}
+.btn{width:100%;padding:14px;border:none;border-radius:8px;font-size:1.05rem;font-weight:700;cursor:pointer;transition:all .2s;margin-top:8px}
+.btn-primary{background:var(--gold);color:var(--navy)}.btn-primary:hover{background:var(--gold-light)}
+.btn-secondary{background:var(--navy);color:var(--white)}.btn-secondary:hover{background:var(--navy-light)}
+.btn-outline{background:transparent;border:2px solid var(--navy);color:var(--navy)}.btn-outline:hover{background:var(--navy);color:var(--white)}
+.btn-row{display:flex;gap:10px;margin-top:16px}.btn-row .btn{flex:1}
+.spinner-wrap{text-align:center;padding:40px 0}
+.spinner{width:60px;height:60px;border:5px solid #e0e2e7;border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 20px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.estimate-result{text-align:center;animation:fadeIn .5s ease}
+.estimate-range{font-size:2.2rem;font-weight:800;color:var(--navy);margin:16px 0 8px}
+.estimate-note{color:var(--muted);font-size:.88rem;margin-bottom:24px;line-height:1.5}
+.vehicle-summary{background:var(--bg);border-radius:8px;padding:14px;margin-bottom:20px;font-size:.9rem;text-align:left}
+.vehicle-summary strong{color:var(--navy)}
+.success-wrap{text-align:center;padding:20px 0}
+.success-wrap .check{font-size:3rem;margin-bottom:12px}
+.success-wrap h2{color:var(--navy);margin-bottom:8px}
+.success-wrap p{color:var(--muted);line-height:1.6}
+.admin-link{text-align:center;margin-top:32px;font-size:.78rem}
+.admin-link a{color:var(--muted);text-decoration:none}.admin-link a:hover{color:var(--navy)}
+.admin-panel{display:none;margin-top:20px}
+.admin-panel.show{display:block}
+.admin-panel table{width:100%;border-collapse:collapse;font-size:.8rem}
+.admin-panel th,.admin-panel td{padding:8px;border:1px solid #ddd;text-align:left}
+.admin-panel th{background:var(--navy);color:var(--white)}
+.admin-actions{display:flex;gap:10px;margin-bottom:12px}
+footer{text-align:center;padding:20px;color:var(--muted);font-size:.78rem}
+</style>
+</head>
+<body>
+<header>
+<h1>DYER AUTO GROUP</h1>
+<p>Trade-In Value Estimator</p>
+</header>
+<div class="container">
+<div class="progress"><div class="dot" id="d1"></div><div class="dot" id="d2"></div><div class="dot" id="d3"></div><div class="dot" id="d4"></div></div>
+<div class="card">
+
+<!-- STEP 1 -->
+<div class="step active" id="step1">
+<h2>🚗 Your Vehicle</h2>
+<div class="field"><label>Year</label><select id="year"></select></div>
+<div class="field"><label>Make</label><select id="make"><option value="">Select Make</option></select></div>
+<div class="field"><label>Model</label><input type="text" id="model" placeholder="e.g. Camry, F-150"></div>
+<div class="field"><label>Trim</label><input type="text" id="trim" placeholder="e.g. SE, Limited (optional)"></div>
+<div class="field"><label>Mileage</label><div class="mileage-val" id="mileageVal">50,000 mi</div><input type="range" id="mileage" min="0" max="250000" step="1000" value="50000"><div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted)"><span>0</span><span>250k</span></div></div>
+<div class="field"><label>Condition</label>
+<div class="radio-group">
+<div class="radio-opt"><input type="radio" name="condition" id="cond-exc" value="excellent"><label for="cond-exc">Excellent<span class="desc">Like new, no issues</span></label></div>
+<div class="radio-opt"><input type="radio" name="condition" id="cond-good" value="good" checked><label for="cond-good">Good<span class="desc">Minor wear only</span></label></div>
+<div class="radio-opt"><input type="radio" name="condition" id="cond-fair" value="fair"><label for="cond-fair">Fair<span class="desc">Some repairs needed</span></label></div>
+<div class="radio-opt"><input type="radio" name="condition" id="cond-poor" value="poor"><label for="cond-poor">Poor<span class="desc">Significant issues</span></label></div>
+</div></div>
+<button class="btn btn-primary" onclick="goStep(2)">Continue →</button>
+</div>
+
+<!-- STEP 2 -->
+<div class="step" id="step2">
+<h2>📋 Vehicle Details</h2>
+<div class="field"><label>Exterior Color</label><input type="text" id="color" placeholder="e.g. White, Black, Silver"></div>
+<div class="field"><label>Interior Condition</label>
+<div class="radio-group">
+<div class="radio-opt"><input type="radio" name="interior" id="int-exc" value="excellent"><label for="int-exc">Excellent</label></div>
+<div class="radio-opt"><input type="radio" name="interior" id="int-good" value="good" checked><label for="int-good">Good</label></div>
+<div class="radio-opt"><input type="radio" name="interior" id="int-fair" value="fair"><label for="int-fair">Fair</label></div>
+<div class="radio-opt"><input type="radio" name="interior" id="int-poor" value="poor"><label for="int-poor">Poor</label></div>
+</div></div>
+<div class="field"><label>Accident History</label>
+<div class="radio-group">
+<div class="radio-opt"><input type="radio" name="accidents" id="acc-none" value="none" checked><label for="acc-none">None</label></div>
+<div class="radio-opt"><input type="radio" name="accidents" id="acc-minor" value="minor"><label for="acc-minor">Minor</label></div>
+<div class="radio-opt"><input type="radio" name="accidents" id="acc-major" value="major"><label for="acc-major">Major</label></div>
+</div></div>
+<div class="field"><label>Modifications</label>
+<div class="radio-group">
+<div class="radio-opt"><input type="radio" name="mods" id="mod-none" value="none" checked><label for="mod-none">None</label></div>
+<div class="radio-opt"><input type="radio" name="mods" id="mod-some" value="some"><label for="mod-some">Some</label></div>
+<div class="radio-opt"><input type="radio" name="mods" id="mod-heavy" value="heavy"><label for="mod-heavy">Heavy</label></div>
+</div></div>
+<div class="field"><label>How Many Keys?</label>
+<div class="radio-group">
+<div class="radio-opt"><input type="radio" name="keys" id="keys-1" value="1"><label for="keys-1">1 Key</label></div>
+<div class="radio-opt"><input type="radio" name="keys" id="keys-2" value="2" checked><label for="keys-2">2 Keys</label></div>
+</div></div>
+<div class="field"><label>Tire Condition</label>
+<div class="radio-group">
+<div class="radio-opt"><input type="radio" name="tires" id="tire-new" value="new"><label for="tire-new">New</label></div>
+<div class="radio-opt"><input type="radio" name="tires" id="tire-good" value="good" checked><label for="tire-good">Good</label></div>
+<div class="radio-opt"><input type="radio" name="tires" id="tire-worn" value="worn"><label for="tire-worn">Worn</label></div>
+<div class="radio-opt"><input type="radio" name="tires" id="tire-replace" value="replace"><label for="tire-replace">Needs Replacement</label></div>
+</div></div>
+<div class="btn-row">
+<button class="btn btn-outline" onclick="goStep(1)">← Back</button>
+<button class="btn btn-primary" onclick="goStep(3)">Get My Estimate →</button>
+</div>
+</div>
+
+<!-- STEP 3 -->
+<div class="step" id="step3">
+<div class="spinner-wrap" id="calcSpinner">
+<div class="spinner"></div>
+<p style="font-weight:600;color:var(--navy)">Calculating your estimate...</p>
+<p style="color:var(--muted);font-size:.85rem;margin-top:8px">Analyzing market data & vehicle condition</p>
+</div>
+<div class="estimate-result" id="estimateResult" style="display:none">
+<h2>Your Estimated Trade-In Value</h2>
+<div class="vehicle-summary" id="vehicleSummary"></div>
+<div class="estimate-range" id="estimateRange"></div>
+<p class="estimate-note">Base value adjusted for mileage, condition, and market factors.<br>Final value determined by in-person appraisal.</p>
+<button class="btn btn-secondary" onclick="goStep(4)" style="font-size:1.1rem;padding:16px">🎯 Get Your Exact Value — Schedule a Free Appraisal</button>
+<div style="margin-top:12px"><button class="btn btn-outline" onclick="goStep(1)" style="font-size:.9rem">Start Over</button></div>
+</div>
+</div>
+
+<!-- STEP 4 -->
+<div class="step" id="step4">
+<div id="formWrap">
+<h2>📞 Get Your Free Appraisal</h2>
+<div class="field"><label>Full Name</label><input type="text" id="name" placeholder="John Smith"></div>
+<div class="field"><label>Email</label><input type="email" id="email" placeholder="john@example.com"></div>
+<div class="field"><label>Phone</label><input type="tel" id="phone" placeholder="(555) 123-4567"></div>
+<div class="field"><label>Preferred Store</label>
+<div class="radio-group">
+<div class="radio-opt"><input type="radio" name="store" id="st-chevy" value="Dyer Chevy" checked><label for="st-chevy">Chevy</label></div>
+<div class="radio-opt"><input type="radio" name="store" id="st-mazda" value="Dyer Mazda"><label for="st-mazda">Mazda</label></div>
+<div class="radio-opt"><input type="radio" name="store" id="st-subaru" value="Dyer Subaru"><label for="st-subaru">Subaru</label></div>
+<div class="radio-opt"><input type="radio" name="store" id="st-kia" value="Dyer Kia"><label for="st-kia">Kia</label></div>
+</div></div>
+<div class="field"><label>Best Time to Reach You</label>
+<select id="bestTime"><option>Morning (9am-12pm)</option><option>Afternoon (12pm-5pm)</option><option>Evening (5pm-7pm)</option><option>Anytime</option></select></div>
+<div class="field"><label>Are You Looking to Buy?</label>
+<div class="radio-group">
+<div class="radio-opt"><input type="radio" name="buying" id="buy-new" value="Yes - New"><label for="buy-new">Yes — New</label></div>
+<div class="radio-opt"><input type="radio" name="buying" id="buy-used" value="Yes - Used"><label for="buy-used">Yes — Used</label></div>
+<div class="radio-opt"><input type="radio" name="buying" id="buy-no" value="Just selling" checked><label for="buy-no">Just Selling</label></div>
+</div></div>
+<div class="btn-row">
+<button class="btn btn-outline" onclick="goStep(3)">← Back</button>
+<button class="btn btn-secondary" onclick="submitLead()">Submit for Appraisal</button>
+</div>
+</div>
+<div class="success-wrap" id="successWrap" style="display:none">
+<div class="check">✅</div>
+<h2>You're All Set!</h2>
+<p>We'll call you within <strong>24 hours</strong> to schedule your free appraisal.<br><br>Keep an eye on your email for a confirmation from Dyer Auto Group.</p>
+<button class="btn btn-primary" onclick="location.reload()" style="margin-top:20px">Estimate Another Vehicle</button>
+</div>
+</div>
+</div>
+
+<div class="admin-link"><a href="#" onclick="toggleAdmin(event)">⚙ Admin</a></div>
+<div class="admin-panel" id="adminPanel">
+<div class="card">
+<h2>Lead Export</h2>
+<div class="admin-actions">
+<button class="btn btn-primary" onclick="exportCSV()" style="width:auto;padding:10px 20px;font-size:.85rem">Download CSV</button>
+<button class="btn btn-outline" onclick="clearLeads()" style="width:auto;padding:10px 20px;font-size:.85rem;color:red;border-color:red">Clear All</button>
+</div>
+<div style="overflow-x:auto"><table id="leadsTable"></table></div>
+</div>
+</div>
+</div>
+<footer>© 2026 Dyer Auto Group. Estimates are for informational purposes only.</footer>
+
+<script>
+const makes=['Chevrolet','Ford','Toyota','Honda','Mazda','Subaru','Kia','Hyundai','Nissan','BMW','Mercedes-Benz','Audi','Jeep','Ram','GMC','Dodge','Volkswagen','Lexus','Acura','Tesla'];
+const $ = id => document.getElementById(id);
+const rv = name => document.querySelector(`input[name="${name}"]:checked`)?.value || '';
+
+// Populate dropdowns
+(function init(){
+  const ys=$('year');
+  ys.innerHTML='<option value="">Select Year</option>';
+  for(let y=2026;y>=2010;y--)ys.innerHTML+=`<option>${y}</option>`;
+  const ms=$('make');
+  makes.forEach(m=>ms.innerHTML+=`<option value="${m}">${m}</option>`);
+  $('mileage').oninput=function(){$('mileageVal').textContent=Number(this.value).toLocaleString()+' mi'};
+})();
+
+let currentStep=1, estimateLow=0, estimateHigh=0;
+
+function goStep(n){
+  if(n===2 && currentStep===1){
+    if(!$('year').value||!$('make').value||!$('model').value.trim()){alert('Please fill in Year, Make, and Model.');return}
+  }
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  $('step'+n).classList.add('active');
+  currentStep=n;
+  for(let i=1;i<=4;i++){
+    const d=$('d'+i);
+    d.classList.toggle('active',i===n);
+    d.classList.toggle('done',i<n);
+  }
+  if(n===3)calcEstimate();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function calcEstimate(){
+  $('calcSpinner').style.display='block';
+  $('estimateResult').style.display='none';
+  setTimeout(()=>{
+    const year=+$('year').value, age=2026-year, miles=+$('mileage').value;
+    const condMap={excellent:1.1,good:1.0,fair:0.85,poor:0.65};
+    const intMap={excellent:1.03,good:1.0,fair:0.95,poor:0.88};
+    const accMap={none:1.0,minor:0.92,major:0.75};
+    const modMap={none:1.0,some:0.97,heavy:0.9};
+    const keyMap={'1':0.98,'2':1.0};
+    const tireMap={new:1.02,good:1.0,worn:0.97,replace:0.93};
+
+    let base=35000-(1500*age)-(0.12*miles);
+    base*=condMap[rv('condition')]||1;
+    base*=intMap[rv('interior')]||1;
+    base*=accMap[rv('accidents')]||1;
+    base*=modMap[rv('mods')]||1;
+    base*=keyMap[rv('keys')]||1;
+    base*=tireMap[rv('tires')]||1;
+    base=Math.max(base,1500);
+    estimateLow=Math.round(base*0.9/100)*100;
+    estimateHigh=Math.round(base*1.1/100)*100;
+
+    $('vehicleSummary').innerHTML=`<strong>${$('year').value} ${$('make').value} ${$('model').value}</strong>${$('trim').value?' '+$('trim').value:''}<br>${Number($('mileage').value).toLocaleString()} miles · ${rv('condition').charAt(0).toUpperCase()+rv('condition').slice(1)} condition`;
+    $('estimateRange').textContent=`$${estimateLow.toLocaleString()} – $${estimateHigh.toLocaleString()}`;
+    $('calcSpinner').style.display='none';
+    $('estimateResult').style.display='block';
+  },2000);
+}
+
+function submitLead(){
+  if(!$('name').value.trim()||!$('email').value.trim()||!$('phone').value.trim()){alert('Please fill in your contact info.');return}
+  const lead={
+    timestamp:new Date().toISOString(),
+    name:$('name').value,email:$('email').value,phone:$('phone').value,
+    store:rv('store'),bestTime:$('bestTime').value,buying:rv('buying'),
+    year:$('year').value,make:$('make').value,model:$('model').value,trim:$('trim').value,
+    mileage:$('mileage').value,condition:rv('condition'),color:$('color').value,
+    interior:rv('interior'),accidents:rv('accidents'),mods:rv('mods'),keys:rv('keys'),tires:rv('tires'),
+    estimateLow,estimateHigh
+  };
+  const leads=JSON.parse(localStorage.getItem('dyer_leads')||'[]');
+  leads.push(lead);
+  localStorage.setItem('dyer_leads',JSON.stringify(leads));
+  $('formWrap').style.display='none';
+  $('successWrap').style.display='block';
+}
+
+function toggleAdmin(e){e.preventDefault();const p=$('adminPanel');p.classList.toggle('show');if(p.classList.contains('show'))renderLeads()}
+function renderLeads(){
+  const leads=JSON.parse(localStorage.getItem('dyer_leads')||'[]');
+  if(!leads.length){$('leadsTable').innerHTML='<tr><td style="padding:20px;text-align:center;color:var(--muted)">No leads yet</td></tr>';return}
+  const cols=['timestamp','name','phone','email','store','year','make','model','estimateLow','estimateHigh','buying'];
+  let h='<tr>'+cols.map(c=>`<th>${c}</th>`).join('')+'</tr>';
+  leads.forEach(l=>h+='<tr>'+cols.map(c=>`<td>${l[c]||''}</td>`).join('')+'</tr>');
+  $('leadsTable').innerHTML=h;
+}
+function exportCSV(){
+  const leads=JSON.parse(localStorage.getItem('dyer_leads')||'[]');
+  if(!leads.length){alert('No leads to export.');return}
+  const keys=Object.keys(leads[0]);
+  let csv=keys.join(',')+'\n';
+  leads.forEach(l=>csv+=keys.map(k=>`"${(l[k]+'').replace(/"/g,'""')}"`).join(',')+'\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='dyer_leads_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+}
+function clearLeads(){if(confirm('Delete all leads?')){localStorage.removeItem('dyer_leads');renderLeads()}}
+</script>
+</body>
+</html>

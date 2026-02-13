@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="../auth.js"></script><link rel="stylesheet" href="../responsive.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dyer Auto Group — Deal Profit Calculator</title>
+<style>
+:root{--navy:#1a2744;--navy-light:#243356;--gold:#c9a84c;--gold-light:#e0c97a;--bg:#f0f2f5;--card:#fff;--text:#1a1a2e;--muted:#6b7280;--green:#16a34a;--red:#dc2626;--radius:10px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+header{background:var(--navy);color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+header h1{font-size:1.25rem;font-weight:700;letter-spacing:.5px}
+header h1 span{color:var(--gold)}
+.header-actions{display:flex;gap:8px}
+.header-actions button{background:var(--gold);color:var(--navy);border:none;padding:8px 16px;border-radius:6px;font-weight:600;font-size:.85rem;cursor:pointer;transition:background .15s}
+.header-actions button:hover{background:var(--gold-light)}
+.header-actions button.secondary{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.3)}
+.header-actions button.secondary:hover{border-color:#fff}
+main{max-width:1200px;margin:0 auto;padding:16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.card{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.card h2{font-size:.9rem;text-transform:uppercase;letter-spacing:1px;color:var(--navy);margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold)}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:.78rem;font-weight:600;color:var(--muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px}
+.field input{width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:.95rem;transition:border .15s}
+.field input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.15)}
+.row{display:flex;gap:12px}
+.row .field{flex:1}
+.fi-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;align-items:end;margin-bottom:10px}
+.fi-row .fi-label{font-size:.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding-bottom:3px}
+.fi-row input{width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:.9rem}
+.fi-row input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.15)}
+.fi-row .fi-profit{font-size:.9rem;font-weight:700;padding:8px 10px;background:#f9fafb;border-radius:6px;text-align:right;min-height:36px;display:flex;align-items:center;justify-content:flex-end}
+.results{grid-column:1/-1}
+.results-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.result-card{background:var(--navy);color:#fff;border-radius:var(--radius);padding:16px;text-align:center}
+.result-card.highlight{background:linear-gradient(135deg,var(--navy),var(--navy-light));border:2px solid var(--gold)}
+.result-card .label{font-size:.7rem;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.7);margin-bottom:6px}
+.result-card .value{font-size:1.6rem;font-weight:800}
+.result-card .value.positive{color:#4ade80}
+.result-card .value.negative{color:#f87171}
+.result-card .value.gold{color:var(--gold)}
+.deals-panel{display:none;position:fixed;top:0;right:0;width:380px;height:100%;background:#fff;box-shadow:-4px 0 20px rgba(0,0,0,.15);z-index:200;overflow-y:auto}
+.deals-panel.open{display:block}
+.deals-panel .panel-header{background:var(--navy);color:#fff;padding:16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0}
+.deals-panel .panel-header h3{font-size:1rem}
+.deals-panel .close-btn{background:none;border:none;color:#fff;font-size:1.4rem;cursor:pointer}
+.deal-item{padding:14px 16px;border-bottom:1px solid #e5e7eb;cursor:pointer;transition:background .1s}
+.deal-item:hover{background:#f9fafb}
+.deal-item .deal-title{font-weight:600;font-size:.9rem}
+.deal-item .deal-meta{font-size:.78rem;color:var(--muted);margin-top:2px}
+.deal-item .deal-gross{font-weight:700;font-size:.9rem;margin-top:4px}
+.no-deals{padding:40px 16px;text-align:center;color:var(--muted)}
+@media(max-width:768px){.grid{grid-template-columns:1fr}.row{flex-direction:column}.results-grid{grid-template-columns:1fr 1fr}.fi-row{grid-template-columns:1fr 1fr}}
+@media print{header,.header-actions,.deals-panel{display:none!important}main{padding:0}body{background:#fff}.card{box-shadow:none;break-inside:avoid;border:1px solid #ddd}.result-card{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style>
+</head>
+<body>
+<header>
+  <h1><span>DYER</span> AUTO GROUP — Deal Calculator</h1>
+  <div class="header-actions">
+    <button class="secondary" onclick="toggleDeals()">📋 Saved</button>
+    <button class="secondary" onclick="printDeal()">🖨 Print</button>
+    <button onclick="resetDeal()">↺ New Deal</button>
+  </div>
+</header>
+<main>
+<div class="grid">
+  <!-- Vehicle Info -->
+  <div class="card">
+    <h2>Vehicle Info</h2>
+    <div class="row">
+      <div class="field"><label>Stock #</label><input id="stock" placeholder="A12345"></div>
+      <div class="field"><label>Year / Make / Model</label><input id="ymm" placeholder="2026 Toyota Camry"></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Invoice Cost</label><input id="invoice" type="number" step="0.01" placeholder="0.00"></div>
+      <div class="field"><label>MSRP</label><input id="msrp" type="number" step="0.01" placeholder="0.00"></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Holdback %</label><input id="holdback" type="number" step="0.1" value="3" placeholder="3"></div>
+      <div class="field"><label>Pack Amount</label><input id="pack" type="number" step="0.01" value="0" placeholder="0.00"></div>
+    </div>
+  </div>
+
+  <!-- Deal Structure -->
+  <div class="card">
+    <h2>Deal Structure</h2>
+    <div class="row">
+      <div class="field"><label>Selling Price</label><input id="sellingPrice" type="number" step="0.01" placeholder="0.00"></div>
+      <div class="field"><label>Trade-In Value (Shown)</label><input id="tradeValue" type="number" step="0.01" value="0" placeholder="0.00"></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Trade ACV</label><input id="tradeAcv" type="number" step="0.01" value="0" placeholder="0.00"></div>
+      <div class="field"><label>Trade Payoff</label><input id="payoff" type="number" step="0.01" value="0" placeholder="0.00"></div>
+    </div>
+  </div>
+
+  <!-- F&I Products -->
+  <div class="card">
+    <h2>F&I Products</h2>
+    <div class="fi-row" style="margin-bottom:6px"><div class="fi-label">Product</div><div class="fi-label">Cost</div><div class="fi-label" style="text-align:right">Sell → Profit</div></div>
+    <div class="fi-row"><div class="fi-label" style="display:flex;align-items:center">Warranty</div><input id="warrantyC" type="number" step="0.01" value="0"><input id="warrantyS" type="number" step="0.01" value="0"></div>
+    <div class="fi-row"><div class="fi-label" style="display:flex;align-items:center">GAP</div><input id="gapC" type="number" step="0.01" value="0"><input id="gapS" type="number" step="0.01" value="0"></div>
+    <div class="fi-row"><div class="fi-label" style="display:flex;align-items:center">Maintenance</div><input id="maintC" type="number" step="0.01" value="0"><input id="maintS" type="number" step="0.01" value="0"></div>
+    <div class="fi-row"><div class="fi-label" style="display:flex;align-items:center">Other</div><input id="otherC" type="number" step="0.01" value="0"><input id="otherS" type="number" step="0.01" value="0"></div>
+  </div>
+
+  <!-- Fees & Rebates -->
+  <div class="card">
+    <h2>Fees & Rebates</h2>
+    <div class="row">
+      <div class="field"><label>Doc Fee</label><input id="docFee" type="number" step="0.01" value="799" placeholder="799"></div>
+      <div class="field"><label>Tag / Title</label><input id="tagTitle" type="number" step="0.01" value="0" placeholder="0.00"></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Dealer Adds</label><input id="dealerAdds" type="number" step="0.01" value="0" placeholder="0.00"></div>
+      <div class="field"><label>Mfr Rebate</label><input id="mfrRebate" type="number" step="0.01" value="0" placeholder="0.00"></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Dealer Cash</label><input id="dealerCash" type="number" step="0.01" value="0" placeholder="0.00"></div>
+      <div class="field"><label>Customer Cash</label><input id="custCash" type="number" step="0.01" value="0" placeholder="0.00"></div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="results">
+    <div class="card" style="background:var(--bg);border:2px solid var(--navy)">
+      <h2>Deal Summary</h2>
+      <div class="results-grid">
+        <div class="result-card"><div class="label">Front-End Gross</div><div class="value" id="rFront">$0</div></div>
+        <div class="result-card"><div class="label">Back-End Gross</div><div class="value" id="rBack">$0</div></div>
+        <div class="result-card highlight"><div class="label">Total Gross</div><div class="value gold" id="rTotal">$0</div></div>
+        <div class="result-card"><div class="label">Trade Equity</div><div class="value" id="rEquity">$0</div></div>
+        <div class="result-card"><div class="label">Est. OTD Cost</div><div class="value" id="rOtd">$0</div></div>
+        <div class="result-card"><div class="label">Commission (25%)</div><div class="value" id="rComm">$0</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+</main>
+
+<!-- Saved Deals Panel -->
+<div class="deals-panel" id="dealsPanel">
+  <div class="panel-header"><h3>Saved Deals</h3><button class="close-btn" onclick="toggleDeals()">✕</button></div>
+  <div id="dealsList"></div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const n = id => parseFloat($(id).value) || 0;
+const fmt = v => v < 0 ? '-$' + Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0}) : '$' + v.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
+
+function calc() {
+  const invoice = n('invoice'), msrp = n('msrp'), holdback = n('holdback'), pack = n('pack');
+  const selling = n('sellingPrice'), tradeVal = n('tradeValue'), tradeAcv = n('tradeAcv'), payoff = n('payoff');
+  const docFee = n('docFee'), tagTitle = n('tagTitle'), dealerAdds = n('dealerAdds');
+  const mfrRebate = n('mfrRebate'), dealerCash = n('dealerCash'), custCash = n('custCash');
+
+  const holdbackAmt = msrp * (holdback / 100);
+  const trueCost = invoice - holdbackAmt - dealerCash + pack;
+  const tradeOverAllow = tradeVal - tradeAcv; // over-allowance on trade reduces front
+  const frontGross = selling - trueCost - mfrRebate - custCash - tradeOverAllow + dealerAdds;
+
+  const fiProducts = [['warrantyC','warrantyS'],['gapC','gapS'],['maintC','maintS'],['otherC','otherS']];
+  let backGross = 0;
+  fiProducts.forEach(([c,s]) => { backGross += n(s) - n(c); });
+
+  const totalGross = frontGross + backGross;
+  const tradeEquity = tradeAcv - payoff;
+
+  // OTD: selling + fees + F&I sell prices - trade equity - customer cash - mfr rebate
+  const fiSellTotal = n('warrantyS') + n('gapS') + n('maintS') + n('otherS');
+  const otd = selling + docFee + tagTitle + dealerAdds + fiSellTotal - (tradeVal - payoff) - custCash - mfrRebate;
+
+  const commission = frontGross * 0.25;
+
+  function set(id, val) {
+    const el = $(id);
+    el.textContent = fmt(Math.round(val));
+    el.className = 'value' + (id === 'rTotal' ? ' gold' : '') + (val >= 0 ? ' positive' : ' negative');
+  }
+  set('rFront', frontGross);
+  set('rBack', backGross);
+  set('rTotal', totalGross);
+  set('rEquity', tradeEquity);
+  set('rOtd', otd);
+  set('rComm', commission);
+
+  // Auto-save
+  clearTimeout(window._saveTimer);
+  window._saveTimer = setTimeout(saveDeal, 2000);
+}
+
+// Live update
+document.querySelectorAll('input[type="number"]').forEach(i => i.addEventListener('input', calc));
+
+function saveDeal() {
+  const stock = $('stock').value.trim(), ymm = $('ymm').value.trim();
+  if (!stock && !ymm) return;
+  const deals = JSON.parse(localStorage.getItem('dyerDeals') || '[]');
+  const data = {};
+  document.querySelectorAll('input').forEach(i => { data[i.id] = i.value; });
+  const entry = { id: Date.now(), date: new Date().toLocaleString(), stock, ymm, data, totalGross: $('rTotal').textContent };
+  // Replace if same stock #
+  const idx = deals.findIndex(d => d.stock && d.stock === stock);
+  if (idx >= 0) deals[idx] = entry; else deals.unshift(entry);
+  localStorage.setItem('dyerDeals', JSON.stringify(deals.slice(0, 10)));
+}
+
+function loadDeal(id) {
+  const deals = JSON.parse(localStorage.getItem('dyerDeals') || '[]');
+  const deal = deals.find(d => d.id === id);
+  if (!deal) return;
+  Object.entries(deal.data).forEach(([k, v]) => { if ($(k)) $(k).value = v; });
+  calc();
+  toggleDeals();
+}
+
+function renderDeals() {
+  const deals = JSON.parse(localStorage.getItem('dyerDeals') || '[]');
+  const el = $('dealsList');
+  if (!deals.length) { el.innerHTML = '<div class="no-deals">No saved deals yet</div>'; return; }
+  el.innerHTML = deals.map(d => `<div class="deal-item" onclick="loadDeal(${d.id})"><div class="deal-title">${d.ymm || 'Unknown'}</div><div class="deal-meta">#${d.stock} · ${d.date}</div><div class="deal-gross">Total: ${d.totalGross}</div></div>`).join('');
+}
+
+function toggleDeals() { const p = $('dealsPanel'); p.classList.toggle('open'); if (p.classList.contains('open')) renderDeals(); }
+function resetDeal() { document.querySelectorAll('input').forEach(i => { i.value = i.defaultValue || ''; }); calc(); }
+function printDeal() { window.print(); }
+
+calc();
+</script>
+</body>
+</html>

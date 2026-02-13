@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="../auth.js"></script><link rel="stylesheet" href="../responsive.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Dyer Auto Group - Customer Feedback</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--primary:#1a3a5c;--accent:#2980b9;--green:#27ae60;--red:#e74c3c;--orange:#f39c12;--bg:#f7f9fc;--card:#fff;--text:#2c3e50;--muted:#7f8c8d;--border:#e0e4e8;--radius:12px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5}
+.container{max-width:560px;margin:0 auto;padding:16px}
+header{text-align:center;padding:20px 0 10px}
+header h1{font-size:1.3rem;color:var(--primary);font-weight:700;letter-spacing:-.5px}
+header p{color:var(--muted);font-size:.85rem;margin-top:4px}
+.logo{font-size:1.6rem;font-weight:800;color:var(--primary);margin-bottom:2px}
+.logo span{color:var(--accent)}
+.card{background:var(--card);border-radius:var(--radius);padding:24px;margin:12px 0;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.step{display:none}.step.active{display:block}
+h2{font-size:1.1rem;margin-bottom:16px;color:var(--primary)}
+h3{font-size:.95rem;margin:18px 0 8px;color:var(--text)}
+.survey-types{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.survey-type{border:2px solid var(--border);border-radius:var(--radius);padding:18px 12px;text-align:center;cursor:pointer;transition:.2s;font-size:.9rem;font-weight:600;color:var(--text)}
+.survey-type:hover,.survey-type.selected{border-color:var(--accent);background:#eaf2fb;color:var(--accent)}
+.survey-type .icon{font-size:1.8rem;margin-bottom:6px;display:block}
+.slider-wrap{text-align:center;padding:10px 0}
+.emoji-display{font-size:2.5rem;margin-bottom:8px;transition:.2s}
+.slider-val{font-size:2rem;font-weight:700;color:var(--accent)}
+input[type=range]{-webkit-appearance:none;width:100%;height:8px;border-radius:4px;background:linear-gradient(90deg,var(--red),var(--orange),var(--green));outline:none;margin:12px 0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:var(--card);border:3px solid var(--accent);cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.nps-row{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin:8px 0}
+.nps-btn{width:38px;height:38px;border-radius:8px;border:2px solid var(--border);background:var(--card);font-weight:700;font-size:.85rem;cursor:pointer;transition:.2s;color:var(--text)}
+.nps-btn:hover{border-color:var(--accent)}.nps-btn.selected{background:var(--accent);color:#fff;border-color:var(--accent)}
+.nps-labels{display:flex;justify-content:space-between;font-size:.7rem;color:var(--muted);margin-top:2px}
+textarea,input[type=text],input[type=email],input[type=tel]{width:100%;border:2px solid var(--border);border-radius:8px;padding:10px 12px;font-size:.9rem;font-family:inherit;resize:vertical;transition:.2s;background:var(--card);color:var(--text)}
+textarea:focus,input:focus{border-color:var(--accent);outline:none}
+textarea{min-height:70px}
+.stars{display:flex;gap:4px;margin:4px 0}
+.star{font-size:1.8rem;cursor:pointer;color:var(--border);transition:.15s}.star.active,.star:hover{color:#f1c40f}
+.yn-group{display:flex;gap:8px;margin:4px 0}
+.yn-btn{padding:8px 20px;border:2px solid var(--border);border-radius:8px;background:var(--card);cursor:pointer;font-weight:600;font-size:.85rem;transition:.2s;color:var(--text)}
+.yn-btn:hover{border-color:var(--accent)}.yn-btn.selected{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn{display:block;width:100%;padding:14px;border:none;border-radius:var(--radius);font-size:1rem;font-weight:700;cursor:pointer;transition:.2s;margin-top:12px}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:#2471a3}
+.btn-secondary{background:var(--border);color:var(--text)}.btn-secondary:hover{background:#cfd4d8}
+.btn-success{background:var(--green);color:#fff}.btn-success:hover{background:#219150}
+.btn-row{display:flex;gap:8px;margin-top:12px}.btn-row .btn{flex:1}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:.85rem;font-weight:600;margin-bottom:4px;color:var(--text)}
+.thank-you{text-align:center;padding:30px 0}
+.thank-you .big-emoji{font-size:4rem;margin-bottom:12px}
+.thank-you h2{font-size:1.3rem;margin-bottom:10px}
+.thank-you p{color:var(--muted);margin-bottom:20px;font-size:.95rem}
+.progress-bar{height:4px;background:var(--border);border-radius:2px;margin:8px 0 4px;overflow:hidden}
+.progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s}
+.progress-text{font-size:.75rem;color:var(--muted);text-align:right}
+
+/* Admin */
+.admin-wrap{max-width:1100px;margin:0 auto;padding:16px}
+.admin-wrap header{text-align:left}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:12px 0}
+.stat-card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.stat-card .label{font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.stat-card .value{font-size:1.8rem;font-weight:800;margin-top:4px}
+.stat-card .value.good{color:var(--green)}.stat-card .value.warn{color:var(--orange)}.stat-card .value.bad{color:var(--red)}
+table{width:100%;border-collapse:collapse;font-size:.8rem;margin:12px 0}
+th{background:var(--primary);color:#fff;padding:8px 6px;text-align:left;font-weight:600;position:sticky;top:0}
+td{padding:7px 6px;border-bottom:1px solid var(--border)}
+tr:hover td{background:#f0f4f8}
+tr.alert td{background:#fdecea}
+.table-wrap{max-height:400px;overflow:auto;border-radius:var(--radius);box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.chart-area{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.06);margin:12px 0}
+canvas{width:100%!important;max-height:250px}
+.admin-actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.admin-actions .btn{width:auto;flex:none;padding:8px 16px;font-size:.85rem}
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
+.filter-row select{padding:6px 10px;border:2px solid var(--border);border-radius:8px;font-size:.85rem;background:var(--card)}
+@media(max-width:400px){.survey-types{grid-template-columns:1fr}.nps-btn{width:32px;height:32px;font-size:.75rem}}
+</style>
+</head>
+<body>
+
+<!-- ==================== SURVEY VIEW ==================== -->
+<div id="surveyView" class="container">
+  <header>
+    <div class="logo">DYER <span>AUTO GROUP</span></div>
+    <p>We value your feedback</p>
+  </header>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  <div class="progress-text" id="progressText"></div>
+
+  <!-- Step 1: Type -->
+  <div class="step active" data-step="1">
+    <div class="card">
+      <h2>How can we help you today?</h2>
+      <div class="survey-types" id="typeGrid">
+        <div class="survey-type" data-type="sales" onclick="selectType(this)"><span class="icon">🚗</span>Sales Experience</div>
+        <div class="survey-type" data-type="service" onclick="selectType(this)"><span class="icon">🔧</span>Service Experience</div>
+        <div class="survey-type" data-type="collision" onclick="selectType(this)"><span class="icon">🛠️</span>Collision Repair</div>
+        <div class="survey-type" data-type="parts" onclick="selectType(this)"><span class="icon">📦</span>Parts Counter</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2: Core -->
+  <div class="step" data-step="2">
+    <div class="card">
+      <h2>Rate Your Experience</h2>
+      <h3>Overall Satisfaction</h3>
+      <div class="slider-wrap">
+        <div class="emoji-display" id="satEmoji">😐</div>
+        <div class="slider-val" id="satVal">5</div>
+        <input type="range" min="1" max="10" value="5" id="satSlider" oninput="updateSlider()">
+        <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted)"><span>Poor</span><span>Excellent</span></div>
+      </div>
+      <h3>How likely are you to recommend us? (0-10)</h3>
+      <div class="nps-row" id="npsRow"></div>
+      <div class="nps-labels"><span>Not at all likely</span><span>Extremely likely</span></div>
+      <h3>What did we do well?</h3>
+      <textarea id="doWell" placeholder="Tell us what you liked..."></textarea>
+      <h3>What could we improve?</h3>
+      <textarea id="improve" placeholder="How can we do better?"></textarea>
+    </div>
+    <div class="btn-row"><button class="btn btn-secondary" onclick="goStep(-1)">Back</button><button class="btn btn-primary" onclick="goStep(1)">Next</button></div>
+  </div>
+
+  <!-- Step 3: Department-specific -->
+  <div class="step" data-step="3">
+    <div class="card" id="specificCard">
+      <!-- filled dynamically -->
+    </div>
+    <div class="btn-row"><button class="btn btn-secondary" onclick="goStep(-1)">Back</button><button class="btn btn-primary" onclick="goStep(1)">Next</button></div>
+  </div>
+
+  <!-- Step 4: Contact -->
+  <div class="step" data-step="4">
+    <div class="card">
+      <h2>Contact Info <span style="font-weight:400;font-size:.8rem;color:var(--muted)">(optional)</span></h2>
+      <div class="field"><label>Name</label><input type="text" id="cName" placeholder="Your name"></div>
+      <div class="field"><label>Phone</label><input type="tel" id="cPhone" placeholder="(555) 123-4567"></div>
+      <div class="field"><label>Email</label><input type="email" id="cEmail" placeholder="you@example.com"></div>
+      <h3>May we contact you about your feedback?</h3>
+      <div class="yn-group"><button class="yn-btn" onclick="pickYN(this,'contactOk','yes')">Yes</button><button class="yn-btn" onclick="pickYN(this,'contactOk','no')">No</button></div>
+    </div>
+    <div class="btn-row"><button class="btn btn-secondary" onclick="goStep(-1)">Back</button><button class="btn btn-success" onclick="submitSurvey()">Submit Feedback</button></div>
+  </div>
+
+  <!-- Step 5: Thank You -->
+  <div class="step" data-step="5">
+    <div class="card thank-you" id="thankYou"></div>
+  </div>
+</div>
+
+<!-- ==================== ADMIN VIEW ==================== -->
+<div id="adminView" class="admin-wrap" style="display:none">
+  <header>
+    <div class="logo">DYER <span>AUTO GROUP</span> — Admin Dashboard</div>
+  </header>
+  <div class="stats-grid" id="statsGrid"></div>
+  <div class="admin-actions">
+    <button class="btn btn-primary" onclick="exportCSV()">📥 Export CSV</button>
+    <button class="btn btn-secondary" onclick="clearData()">🗑️ Clear All Data</button>
+  </div>
+  <div class="filter-row">
+    <label style="font-weight:600;font-size:.85rem">Filter:</label>
+    <select id="deptFilter" onchange="renderAdmin()"><option value="all">All Departments</option><option value="sales">Sales</option><option value="service">Service</option><option value="collision">Collision</option><option value="parts">Parts</option></select>
+  </div>
+  <div class="chart-area"><canvas id="trendChart"></canvas></div>
+  <div class="table-wrap"><table id="responseTable"></table></div>
+</div>
+
+<script>
+// State
+let currentStep=1,totalSteps=5,data={type:'',satisfaction:5,nps:null,doWell:'',improve:'',specific:{},contact:{},contactOk:''};
+const STORAGE_KEY='dyer_csi_responses';
+const EMOJIS={1:'😡',2:'😠',3:'😤',4:'😟',5:'😐',6:'🙂',7:'😊',8:'😄',9:'🤩',10:'🥳'};
+
+// Init
+(function(){
+  if(new URLSearchParams(location.search).get('admin')==='true'){
+    document.getElementById('surveyView').style.display='none';
+    document.getElementById('adminView').style.display='block';
+    renderAdmin();return;
+  }
+  // Build NPS buttons
+  let h='';for(let i=0;i<=10;i++)h+=`<button class="nps-btn" onclick="pickNPS(this,${i})">${i}</button>`;
+  document.getElementById('npsRow').innerHTML=h;
+  updateProgress();
+})();
+
+function updateSlider(){
+  const v=+document.getElementById('satSlider').value;
+  data.satisfaction=v;
+  document.getElementById('satVal').textContent=v;
+  document.getElementById('satEmoji').textContent=EMOJIS[v];
+}
+
+function selectType(el){
+  document.querySelectorAll('.survey-type').forEach(e=>e.classList.remove('selected'));
+  el.classList.add('selected');data.type=el.dataset.type;
+  buildSpecific();goStep(1);
+}
+
+function pickNPS(el,v){
+  document.querySelectorAll('.nps-btn').forEach(e=>e.classList.remove('selected'));
+  el.classList.add('selected');data.nps=v;
+}
+
+function pickYN(el,key,val){
+  el.parentElement.querySelectorAll('.yn-btn').forEach(e=>e.classList.remove('selected'));
+  el.classList.add('selected');
+  if(key.startsWith('sp_'))data.specific[key]=val;
+  else data[key]=val;
+}
+
+function pickMulti(el,key,val){
+  el.parentElement.querySelectorAll('.yn-btn').forEach(e=>e.classList.remove('selected'));
+  el.classList.add('selected');data.specific[key]=val;
+}
+
+function makeStars(key,label){
+  return `<h3>${label}</h3><div class="stars" data-key="${key}">${[1,2,3,4,5].map(i=>`<span class="star" onclick="rateStar('${key}',${i})">★</span>`).join('')}</div>`;
+}
+
+function rateStar(key,val){
+  data.specific[key]=val;
+  document.querySelectorAll(`.stars[data-key="${key}"] .star`).forEach((s,i)=>s.classList.toggle('active',i<val));
+}
+
+function makeYN(key,label,options){
+  const opts=options||['Yes','No'];
+  return `<h3>${label}</h3><div class="yn-group">${opts.map(o=>`<button class="yn-btn" onclick="pickMulti(this,'${key}','${o.toLowerCase()}')">${o}</button>`).join('')}</div>`;
+}
+
+function buildSpecific(){
+  let h='<h2>Department Details</h2>';
+  if(data.type==='sales'){
+    h+=makeStars('sp_salesperson','Salesperson Rating');
+    h+=makeStars('sp_fi','F&I Experience');
+    h+=makeStars('sp_delivery','Vehicle Delivery');
+    h+=makeYN('sp_ready','Was the vehicle ready on time?');
+    h+=makeYN('sp_features','Were all features explained?');
+  }else if(data.type==='service'){
+    h+=makeStars('sp_advisor','Service Advisor Rating');
+    h+=makeYN('sp_firsttime','Was the repair done right the first time?');
+    h+=makeStars('sp_wait','Wait Time Satisfaction');
+    h+=makeYN('sp_cost','Was the final cost what you expected?',['Yes','No','Higher','Lower']);
+  }else if(data.type==='collision'){
+    h+=makeStars('sp_advisor','Advisor Rating');
+    h+=makeStars('sp_quality','Repair Quality');
+    h+=makeYN('sp_firsttime','Was the repair done right the first time?');
+    h+=makeYN('sp_timeline','Was the repair completed on time?');
+  }else{
+    h+=makeStars('sp_staff','Staff Helpfulness');
+    h+=makeStars('sp_availability','Parts Availability');
+    h+=makeYN('sp_found','Did we have what you needed?');
+  }
+  document.getElementById('specificCard').innerHTML=h;
+}
+
+function goStep(dir){
+  if(dir===1&&currentStep===1&&!data.type)return;
+  currentStep+=dir;
+  document.querySelectorAll('.step').forEach(s=>s.classList.toggle('active',+s.dataset.step===currentStep));
+  updateProgress();window.scrollTo(0,0);
+}
+
+function updateProgress(){
+  const pct=Math.round(((currentStep-1)/(totalSteps-1))*100);
+  document.getElementById('progressFill').style.width=pct+'%';
+  document.getElementById('progressText').textContent=currentStep<5?`Step ${currentStep} of 4`:'';
+}
+
+function submitSurvey(){
+  data.doWell=document.getElementById('doWell').value;
+  data.improve=document.getElementById('improve').value;
+  data.contact={name:document.getElementById('cName').value,phone:document.getElementById('cPhone').value,email:document.getElementById('cEmail').value};
+  data.timestamp=new Date().toISOString();
+  data.id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+
+  const responses=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');
+  responses.push({...data});
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(responses));
+
+  // Thank you routing
+  const score=data.satisfaction;
+  const ty=document.getElementById('thankYou');
+  if(score>=8){
+    ty.innerHTML=`<div class="big-emoji">🌟</div><h2>Thank You!</h2><p>We're thrilled you had a great experience!</p><p>We'd love if you shared your experience online:</p><a href="https://search.google.com/local/writereview?placeid=YOUR_PLACE_ID" target="_blank" class="btn btn-success" style="display:inline-block;width:auto;padding:12px 28px;text-decoration:none;margin:8px">⭐ Leave a Google Review</a><p style="font-size:.8rem;margin-top:16px">Your feedback helps others find us!</p>`;
+  }else{
+    ty.innerHTML=`<div class="big-emoji">🙏</div><h2>Thank You for Your Honesty</h2><p>Thank you for helping us improve. A manager will reach out within 24 hours.</p><p style="font-size:.85rem;color:var(--muted);margin-top:12px">Your feedback is important to us and will be reviewed today.</p>`;
+  }
+  goStep(1);
+}
+
+// ==================== ADMIN ====================
+function getResponses(){return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]')}
+
+function renderAdmin(){
+  const all=getResponses();
+  const filter=document.getElementById('deptFilter').value;
+  const data=filter==='all'?all:all.filter(r=>r.type===filter);
+
+  // Stats
+  const npsScores=data.filter(r=>r.nps!==null).map(r=>r.nps);
+  const promoters=npsScores.filter(s=>s>=9).length;
+  const detractors=npsScores.filter(s=>s<=6).length;
+  const nps=npsScores.length?Math.round(((promoters-detractors)/npsScores.length)*100):'-';
+  const avgSat=data.length?(data.reduce((a,r)=>a+r.satisfaction,0)/data.length).toFixed(1):'-';
+  const alerts=data.filter(r=>r.satisfaction<7).length;
+
+  const deptAvgs={};
+  ['sales','service','collision','parts'].forEach(d=>{
+    const dr=all.filter(r=>r.type===d);
+    deptAvgs[d]=dr.length?(dr.reduce((a,r)=>a+r.satisfaction,0)/dr.length).toFixed(1):'-';
+  });
+
+  const npsClass=nps==='-'?'':nps>=50?'good':nps>=0?'warn':'bad';
+  const satClass=avgSat==='-'?'':avgSat>=8?'good':avgSat>=6?'warn':'bad';
+
+  document.getElementById('statsGrid').innerHTML=`
+    <div class="stat-card"><div class="label">Total Responses</div><div class="value">${data.length}</div></div>
+    <div class="stat-card"><div class="label">NPS Score</div><div class="value ${npsClass}">${nps}</div></div>
+    <div class="stat-card"><div class="label">Avg Satisfaction</div><div class="value ${satClass}">${avgSat}</div></div>
+    <div class="stat-card"><div class="label">🚨 Alerts (&lt;7)</div><div class="value ${alerts?'bad':''}">${alerts}</div></div>
+    <div class="stat-card"><div class="label">Sales Avg</div><div class="value">${deptAvgs.sales}</div></div>
+    <div class="stat-card"><div class="label">Service Avg</div><div class="value">${deptAvgs.service}</div></div>
+    <div class="stat-card"><div class="label">Collision Avg</div><div class="value">${deptAvgs.collision}</div></div>
+    <div class="stat-card"><div class="label">Parts Avg</div><div class="value">${deptAvgs.parts}</div></div>
+  `;
+
+  // Table
+  let th='<thead><tr><th>Date</th><th>Type</th><th>Sat</th><th>NPS</th><th>Name</th><th>Contact OK</th><th>Well</th><th>Improve</th></tr></thead><tbody>';
+  const sorted=[...data].sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+  sorted.forEach(r=>{
+    const cls=r.satisfaction<7?'alert':'';
+    const d=new Date(r.timestamp);
+    const ds=`${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
+    th+=`<tr class="${cls}"><td>${ds}</td><td>${r.type}</td><td>${r.satisfaction}</td><td>${r.nps??'-'}</td><td>${r.contact?.name||'-'}</td><td>${r.contactOk||'-'}</td><td>${(r.doWell||'').slice(0,50)}</td><td>${(r.improve||'').slice(0,50)}</td></tr>`;
+  });
+  th+='</tbody>';
+  document.getElementById('responseTable').innerHTML=th;
+
+  // Trend chart
+  renderTrend(all);
+}
+
+function renderTrend(data){
+  const canvas=document.getElementById('trendChart');
+  const ctx=canvas.getContext('2d');
+  const W=canvas.parentElement.clientWidth-32;
+  canvas.width=W*2;canvas.height=300;canvas.style.height='150px';
+  ctx.scale(2,2);
+  ctx.clearRect(0,0,W,150);
+
+  // Last 30 days
+  const now=new Date();const days=[];
+  for(let i=29;i>=0;i--){const d=new Date(now);d.setDate(d.getDate()-i);days.push(d.toISOString().slice(0,10));}
+
+  const byDay={};days.forEach(d=>byDay[d]=[]);
+  data.forEach(r=>{const d=r.timestamp?.slice(0,10);if(byDay[d])byDay[d].push(r.satisfaction);});
+  const avgs=days.map(d=>byDay[d].length?byDay[d].reduce((a,b)=>a+b,0)/byDay[d].length:null);
+
+  const pad={l:30,r:10,t:10,b:25};
+  const cw=W-pad.l-pad.r,ch=150-pad.t-pad.b;
+
+  // Grid
+  ctx.strokeStyle='#e0e4e8';ctx.lineWidth=.5;
+  for(let i=1;i<=10;i++){const y=pad.t+ch-(i/10)*ch;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+cw,y);ctx.stroke();}
+  ctx.fillStyle='#7f8c8d';ctx.font='9px sans-serif';ctx.textAlign='right';
+  [1,5,10].forEach(v=>{ctx.fillText(v,pad.l-4,pad.t+ch-(v/10)*ch+3);});
+
+  // Line
+  ctx.strokeStyle='#2980b9';ctx.lineWidth=2;ctx.beginPath();
+  let started=false;
+  avgs.forEach((v,i)=>{
+    if(v===null)return;
+    const x=pad.l+(i/(days.length-1))*cw;
+    const y=pad.t+ch-(v/10)*ch;
+    if(!started){ctx.moveTo(x,y);started=true;}else ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+
+  // Dots
+  avgs.forEach((v,i)=>{
+    if(v===null)return;
+    const x=pad.l+(i/(days.length-1))*cw;const y=pad.t+ch-(v/10)*ch;
+    ctx.fillStyle=v>=8?'#27ae60':v>=6?'#f39c12':'#e74c3c';
+    ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fill();
+  });
+
+  // X labels
+  ctx.fillStyle='#7f8c8d';ctx.font='8px sans-serif';ctx.textAlign='center';
+  [0,7,14,21,29].forEach(i=>{
+    if(i<days.length){const x=pad.l+(i/(days.length-1))*cw;ctx.fillText(days[i].slice(5),x,150-4);}
+  });
+}
+
+function exportCSV(){
+  const data=getResponses();if(!data.length)return alert('No data');
+  const headers=['timestamp','type','satisfaction','nps','doWell','improve','name','phone','email','contactOk'];
+  const rows=data.map(r=>headers.map(h=>{
+    if(h==='name')return r.contact?.name||'';if(h==='phone')return r.contact?.phone||'';if(h==='email')return r.contact?.email||'';
+    return JSON.stringify(r[h]??'').replace(/^"|"$/g,'');
+  }));
+  let csv=headers.join(',')+'\n'+rows.map(r=>r.map(c=>`"${c}"`).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download=`dyer-csi-export-${new Date().toISOString().slice(0,10)}.csv`;a.click();
+}
+
+function clearData(){if(confirm('Delete all survey responses?')){localStorage.removeItem(STORAGE_KEY);renderAdmin();}}
+</script>
+</body>
+</html>

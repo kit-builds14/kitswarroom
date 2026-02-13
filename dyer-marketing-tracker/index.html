@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="../auth.js"></script><link rel="stylesheet" href="../responsive.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dyer Auto Group - Marketing Campaign Tracker</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0a0e1a;--card:#111827;--card2:#1a2235;--border:#2a3450;--navy:#1e3a5f;--gold:#d4a843;--gold2:#f0c94d;--text:#e0e6ed;--muted:#8899aa;--green:#34d399;--yellow:#fbbf24;--red:#f87171;--blue:#60a5fa}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.header{background:linear-gradient(135deg,#0f1b2e,#1e3a5f);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--gold)}
+.header h1{font-size:1.4rem;color:var(--gold)}
+.header span{color:var(--muted);font-size:.85rem}
+.nav{display:flex;gap:4px;padding:8px 24px;background:var(--card)}
+.nav button{padding:8px 20px;border:none;background:transparent;color:var(--muted);cursor:pointer;border-radius:6px;font-size:.9rem;transition:.2s}
+.nav button.active{background:var(--navy);color:var(--gold)}
+.nav button:hover{color:var(--text)}
+.container{max-width:1400px;margin:0 auto;padding:20px}
+.tab{display:none}.tab.active{display:block}
+/* Dashboard */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;text-align:center}
+.kpi .label{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.kpi .value{font-size:1.8rem;font-weight:700;color:var(--gold);margin:6px 0}
+.kpi .sub{font-size:.8rem;color:var(--muted)}
+.kpi.best{border-color:var(--green)}.kpi.worst{border-color:var(--red)}
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.chart-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px}
+.chart-box h3{font-size:.9rem;color:var(--gold);margin-bottom:12px}
+.chart-box canvas{max-height:280px}
+.funnel{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:24px}
+.funnel h3{color:var(--gold);margin-bottom:16px;font-size:.9rem}
+.funnel-steps{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.funnel-step{text-align:center;flex:1;min-width:120px}
+.funnel-step .num{font-size:1.6rem;font-weight:700;color:var(--gold)}
+.funnel-step .lbl{font-size:.75rem;color:var(--muted);margin-top:4px}
+.funnel-step .rate{font-size:.7rem;color:var(--blue);margin-top:2px}
+.funnel-arrow{color:var(--muted);font-size:1.2rem}
+/* Campaigns */
+.toolbar{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.toolbar select,.toolbar input{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:6px;font-size:.85rem}
+.btn{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-size:.85rem;font-weight:600;transition:.2s}
+.btn-gold{background:var(--gold);color:#000}.btn-gold:hover{background:var(--gold2)}
+.btn-sm{padding:4px 10px;font-size:.75rem}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}.btn-outline:hover{border-color:var(--gold)}
+.campaigns-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.camp-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;transition:.2s}
+.camp-card:hover{border-color:var(--gold)}
+.camp-card .top{display:flex;justify-content:space-between;align-items:start;margin-bottom:8px}
+.camp-card .name{font-weight:700;font-size:1rem}
+.camp-card .channel{font-size:.7rem;padding:3px 8px;border-radius:20px;background:var(--navy);color:var(--gold)}
+.camp-card .meta{font-size:.75rem;color:var(--muted);margin-bottom:10px}
+.camp-card .metrics{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.camp-card .metric{text-align:center;padding:6px;background:var(--card2);border-radius:6px}
+.camp-card .metric .mv{font-weight:700;font-size:.9rem}
+.camp-card .metric .ml{font-size:.65rem;color:var(--muted)}
+.status-badge{font-size:.65rem;padding:2px 8px;border-radius:10px;font-weight:600}
+.status-Active{background:#065f4620;color:var(--green)}.status-Paused{background:#92400e20;color:var(--yellow)}.status-Completed{background:#1e3a5f40;color:var(--blue)}.status-Archived{background:#37415120;color:var(--muted)}
+.camp-card .actions{display:flex;gap:6px;margin-top:10px}
+.roi-green{color:var(--green)}.roi-yellow{color:var(--yellow)}.roi-red{color:var(--red)}
+/* Table */
+table{width:100%;border-collapse:collapse;background:var(--card);border-radius:10px;overflow:hidden}
+th,td{padding:10px 14px;text-align:left;font-size:.82rem;border-bottom:1px solid var(--border)}
+th{background:var(--navy);color:var(--gold);cursor:pointer;user-select:none;white-space:nowrap}
+th:hover{background:#264a6f}
+td{color:var(--text)}
+tr:hover td{background:var(--card2)}
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:999}
+.modal-bg.show{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;width:90%;max-width:600px;max-height:90vh;overflow-y:auto}
+.modal h2{color:var(--gold);margin-bottom:16px;font-size:1.1rem}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group.full{grid-column:1/-1}
+.form-group label{font-size:.75rem;color:var(--muted)}
+.form-group input,.form-group select{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:8px;border-radius:6px;font-size:.85rem}
+.form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+@media(max-width:768px){.charts-grid{grid-template-columns:1fr}.campaigns-grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🏢 Dyer Auto Group — Marketing Tracker</h1>
+  <span>Campaign Performance & ROI Dashboard</span>
+</div>
+<div class="nav">
+  <button class="active" onclick="showTab('dashboard')">📊 Dashboard</button>
+  <button onclick="showTab('campaigns')">📋 Campaigns</button>
+  <button onclick="showTab('comparison')">📈 Channel Comparison</button>
+  <button class="btn btn-sm btn-outline" onclick="exportCSV()" style="margin-left:auto">⬇ Export CSV</button>
+</div>
+<div class="container">
+  <!-- Dashboard -->
+  <div id="tab-dashboard" class="tab active">
+    <div class="kpi-row" id="kpis"></div>
+    <div class="funnel" id="funnel"></div>
+    <div class="charts-grid">
+      <div class="chart-box"><h3>Spend by Channel</h3><canvas id="chartSpendChannel"></canvas></div>
+      <div class="chart-box"><h3>ROI by Channel</h3><canvas id="chartROIChannel"></canvas></div>
+      <div class="chart-box"><h3>Monthly Spend Trend</h3><canvas id="chartMonthly"></canvas></div>
+      <div class="chart-box"><h3>Leads by Store</h3><canvas id="chartStoreLeads"></canvas></div>
+    </div>
+  </div>
+  <!-- Campaigns -->
+  <div id="tab-campaigns" class="tab">
+    <div class="toolbar">
+      <button class="btn btn-gold" onclick="openModal()">+ New Campaign</button>
+      <select id="filterChannel" onchange="renderCampaigns()"><option value="">All Channels</option></select>
+      <select id="filterStore" onchange="renderCampaigns()"><option value="">All Stores</option></select>
+      <select id="filterStatus" onchange="renderCampaigns()"><option value="">All Statuses</option><option>Active</option><option>Paused</option><option>Completed</option><option>Archived</option></select>
+      <input type="text" id="searchCamp" placeholder="Search..." oninput="renderCampaigns()">
+    </div>
+    <div class="campaigns-grid" id="campaignsGrid"></div>
+  </div>
+  <!-- Comparison -->
+  <div id="tab-comparison" class="tab">
+    <div style="overflow-x:auto"><table id="compTable"><thead></thead><tbody></tbody></table></div>
+  </div>
+</div>
+<!-- Modal -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h2 id="modalTitle">New Campaign</h2>
+    <div class="form-grid">
+      <div class="form-group full"><label>Campaign Name</label><input id="fName"></div>
+      <div class="form-group"><label>Channel</label><select id="fChannel"></select></div>
+      <div class="form-group"><label>Store</label><select id="fStore"></select></div>
+      <div class="form-group"><label>Department</label><select id="fDept"><option>Sales</option><option>Service</option><option>Collision</option><option>Marine</option></select></div>
+      <div class="form-group"><label>Status</label><select id="fStatus"><option>Active</option><option>Paused</option><option>Completed</option></select></div>
+      <div class="form-group"><label>Start Date</label><input type="date" id="fStart"></div>
+      <div class="form-group"><label>End Date</label><input type="date" id="fEnd"></div>
+      <div class="form-group"><label>Budget ($)</label><input type="number" id="fBudget"></div>
+      <div class="form-group"><label>Spend ($)</label><input type="number" id="fSpend"></div>
+      <div class="form-group"><label>Revenue ($)</label><input type="number" id="fRevenue"></div>
+      <div class="form-group"><label>Impressions</label><input type="number" id="fImpressions"></div>
+      <div class="form-group"><label>Clicks</label><input type="number" id="fClicks"></div>
+      <div class="form-group"><label>Leads</label><input type="number" id="fLeads"></div>
+      <div class="form-group"><label>Appointments</label><input type="number" id="fAppts"></div>
+      <div class="form-group"><label>Sales</label><input type="number" id="fSales"></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-gold" onclick="saveCampaign()">Save</button>
+    </div>
+  </div>
+</div>
+<script>
+const CHANNELS=['Google Ads','Facebook','Instagram','TikTok','TV','Radio','Direct Mail','Email','Billboard','Event/Sponsorship'];
+const STORES=['All','Chevy','Mazda','Subaru','Kia'];
+const LS_KEY='dyer_campaigns';
+let campaigns=[];let editingId=null;let sortCol=null;let sortAsc=true;let charts={};
+
+function defaultCampaigns(){return[
+{id:1,name:'Spring Sales Blitz',channel:'Google Ads',store:'Chevy',dept:'Sales',status:'Active',start:'2025-03-01',end:'2025-05-31',budget:25000,spend:18500,revenue:142000,impressions:850000,clicks:12400,leads:310,appts:145,sales:48},
+{id:2,name:'Facebook Lease Specials',channel:'Facebook',store:'All',dept:'Sales',status:'Active',start:'2025-02-15',end:'2025-04-15',budget:15000,spend:12800,revenue:98000,impressions:620000,clicks:8900,leads:220,appts:95,sales:32},
+{id:3,name:'Instagram Stories – New Arrivals',channel:'Instagram',store:'Mazda',dept:'Sales',status:'Active',start:'2025-03-10',end:'2025-06-10',budget:8000,spend:5200,revenue:67000,impressions:410000,clicks:6200,leads:155,appts:68,sales:21},
+{id:4,name:'TikTok Test Drive Challenge',channel:'TikTok',store:'Kia',dept:'Sales',status:'Paused',start:'2025-01-15',end:'2025-03-15',budget:6000,spend:5800,revenue:34000,impressions:1200000,clicks:18000,leads:85,appts:30,sales:9},
+{id:5,name:'Super Bowl TV Spot',channel:'TV',store:'All',dept:'Sales',status:'Completed',start:'2025-02-01',end:'2025-02-10',budget:50000,spend:50000,revenue:210000,impressions:2000000,clicks:0,leads:420,appts:180,sales:62},
+{id:6,name:'Drive Time Radio Ads',channel:'Radio',store:'Chevy',dept:'Sales',status:'Active',start:'2025-01-01',end:'2025-06-30',budget:18000,spend:10500,revenue:78000,impressions:900000,clicks:0,leads:190,appts:82,sales:27},
+{id:7,name:'Service Coupon Mailer',channel:'Direct Mail',store:'Subaru',dept:'Service',status:'Completed',start:'2025-01-10',end:'2025-02-28',budget:12000,spend:11800,revenue:45000,impressions:75000,clicks:0,leads:890,appts:420,sales:380},
+{id:8,name:'Email – Oil Change Promo',channel:'Email',store:'All',dept:'Service',status:'Active',start:'2025-03-01',end:'2025-03-31',budget:2000,spend:1200,revenue:28000,impressions:45000,clicks:6800,leads:1200,appts:580,sales:490},
+{id:9,name:'Highway Billboard – Mazda CX-90',channel:'Billboard',store:'Mazda',dept:'Sales',status:'Active',start:'2025-01-01',end:'2025-12-31',budget:36000,spend:18000,revenue:95000,impressions:5000000,clicks:0,leads:110,appts:45,sales:15},
+{id:10,name:'Boat Show Sponsorship',channel:'Event/Sponsorship',store:'All',dept:'Marine',status:'Completed',start:'2025-02-20',end:'2025-02-23',budget:20000,spend:19500,revenue:185000,impressions:50000,clicks:0,leads:340,appts:120,sales:18},
+{id:11,name:'Google PMax – Subaru Outback',channel:'Google Ads',store:'Subaru',dept:'Sales',status:'Active',start:'2025-02-01',end:'2025-04-30',budget:20000,spend:14200,revenue:118000,impressions:720000,clicks:10800,leads:280,appts:125,sales:41},
+{id:12,name:'Collision Center Facebook Ads',channel:'Facebook',store:'Chevy',dept:'Collision',status:'Active',start:'2025-03-01',end:'2025-05-31',budget:5000,spend:3200,revenue:52000,impressions:180000,clicks:3400,leads:160,appts:95,sales:78}
+]}
+
+function load(){const d=localStorage.getItem(LS_KEY);campaigns=d?JSON.parse(d):defaultCampaigns();if(!d)save()}
+function save(){localStorage.setItem(LS_KEY,JSON.stringify(campaigns))}
+function fmt(n){return n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(1)+'K':n.toLocaleString()}
+function money(n){return'$'+n.toLocaleString()}
+function roi(c){return c.spend>0?((c.revenue-c.spend)/c.spend*100):0}
+function cpl(c){return c.leads>0?(c.spend/c.leads):0}
+function cps(c){return c.sales>0?(c.spend/c.sales):0}
+function roiClass(r){return r>200?'roi-green':r>100?'roi-yellow':'roi-red'}
+
+function showTab(t){document.querySelectorAll('.tab').forEach(e=>e.classList.remove('active'));document.getElementById('tab-'+t).classList.add('active');document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));event.target.classList.add('active');if(t==='dashboard')renderDashboard();if(t==='campaigns')renderCampaigns();if(t==='comparison')renderComparison()}
+
+function populateSelects(){
+  [document.getElementById('fChannel'),document.getElementById('filterChannel')].forEach(s=>{if(!s)return;const v=s.value;if(s.id.startsWith('filter'))s.innerHTML='<option value="">All Channels</option>';else s.innerHTML='';CHANNELS.forEach(c=>{const o=document.createElement('option');o.textContent=c;s.appendChild(o)});s.value=v});
+  [document.getElementById('fStore'),document.getElementById('filterStore')].forEach(s=>{if(!s)return;const v=s.value;if(s.id.startsWith('filter'))s.innerHTML='<option value="">All Stores</option>';else s.innerHTML='';STORES.forEach(c=>{const o=document.createElement('option');o.textContent=c;s.appendChild(o)});s.value=v});
+}
+
+function renderDashboard(){
+  const active=campaigns.filter(c=>c.status!=='Archived');
+  const totalSpend=active.reduce((s,c)=>s+c.spend,0);
+  const totalRev=active.reduce((s,c)=>s+c.revenue,0);
+  const totalROI=totalSpend>0?((totalRev-totalSpend)/totalSpend*100):0;
+  const best=active.reduce((a,b)=>roi(a)>roi(b)?a:b,active[0]);
+  const worst=active.reduce((a,b)=>roi(a)<roi(b)?a:b,active[0]);
+  document.getElementById('kpis').innerHTML=`
+    <div class="kpi"><div class="label">Total Spend</div><div class="value">${money(totalSpend)}</div></div>
+    <div class="kpi"><div class="label">Total Revenue</div><div class="value">${money(totalRev)}</div></div>
+    <div class="kpi"><div class="label">Overall ROI</div><div class="value ${roiClass(totalROI)}">${totalROI.toFixed(0)}%</div></div>
+    <div class="kpi best"><div class="label">🏆 Best Campaign</div><div class="value" style="font-size:1rem">${best?best.name:'-'}</div><div class="sub">${best?roi(best).toFixed(0)+'% ROI':''}</div></div>
+    <div class="kpi worst"><div class="label">⚠️ Lowest ROI</div><div class="value" style="font-size:1rem">${worst?worst.name:'-'}</div><div class="sub">${worst?roi(worst).toFixed(0)+'% ROI':''}</div></div>
+    <div class="kpi"><div class="label">Active Campaigns</div><div class="value">${active.filter(c=>c.status==='Active').length}</div></div>`;
+  // Funnel
+  const ti=active.reduce((s,c)=>s+c.impressions,0),tc=active.reduce((s,c)=>s+c.clicks,0),tl=active.reduce((s,c)=>s+c.leads,0),ta=active.reduce((s,c)=>s+c.appts,0),ts=active.reduce((s,c)=>s+c.sales,0);
+  document.getElementById('funnel').innerHTML=`<h3>Lead Funnel</h3><div class="funnel-steps">
+    <div class="funnel-step"><div class="num">${fmt(ti)}</div><div class="lbl">Impressions</div></div><div class="funnel-arrow">→</div>
+    <div class="funnel-step"><div class="num">${fmt(tc)}</div><div class="lbl">Clicks</div><div class="rate">${ti?(tc/ti*100).toFixed(2):'0'}%</div></div><div class="funnel-arrow">→</div>
+    <div class="funnel-step"><div class="num">${fmt(tl)}</div><div class="lbl">Leads</div><div class="rate">${tc?(tl/tc*100).toFixed(1):'0'}%</div></div><div class="funnel-arrow">→</div>
+    <div class="funnel-step"><div class="num">${fmt(ta)}</div><div class="lbl">Appointments</div><div class="rate">${tl?(ta/tl*100).toFixed(1):'0'}%</div></div><div class="funnel-arrow">→</div>
+    <div class="funnel-step"><div class="num">${fmt(ts)}</div><div class="lbl">Sales</div><div class="rate">${ta?(ts/ta*100).toFixed(1):'0'}%</div></div></div>`;
+  // Charts
+  const chData={};CHANNELS.forEach(ch=>{chData[ch]={spend:0,revenue:0,leads:0}});
+  active.forEach(c=>{if(chData[c.channel]){chData[c.channel].spend+=c.spend;chData[c.channel].revenue+=c.revenue;chData[c.channel].leads+=c.leads}});
+  const usedCh=CHANNELS.filter(ch=>chData[ch].spend>0);
+  const gold='#d4a843',goldA='#d4a84380';
+  const chartColors=['#d4a843','#60a5fa','#34d399','#f87171','#a78bfa','#fb923c','#f472b6','#38bdf8','#facc15','#4ade80'];
+  function makeOrUpdate(id,cfg){if(charts[id]){charts[id].destroy()}charts[id]=new Chart(document.getElementById(id),cfg)}
+  makeOrUpdate('chartSpendChannel',{type:'doughnut',data:{labels:usedCh,datasets:[{data:usedCh.map(c=>chData[c].spend),backgroundColor:chartColors}]},options:{plugins:{legend:{labels:{color:'#8899aa',font:{size:11}}}},responsive:true}});
+  makeOrUpdate('chartROIChannel',{type:'bar',data:{labels:usedCh,datasets:[{label:'ROI %',data:usedCh.map(c=>chData[c].spend>0?((chData[c].revenue-chData[c].spend)/chData[c].spend*100):0),backgroundColor:goldA,borderColor:gold,borderWidth:1}]},options:{plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8899aa'}},y:{ticks:{color:'#8899aa',callback:v=>v+'%'},grid:{color:'#2a3450'}}},responsive:true}});
+  // Monthly spend - group by month from start date
+  const monthly={};active.forEach(c=>{const m=c.start.substring(0,7);monthly[m]=(monthly[m]||0)+c.spend});
+  const months=Object.keys(monthly).sort();
+  makeOrUpdate('chartMonthly',{type:'line',data:{labels:months,datasets:[{label:'Spend',data:months.map(m=>monthly[m]),borderColor:gold,backgroundColor:goldA,fill:true,tension:.3}]},options:{plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8899aa'}},y:{ticks:{color:'#8899aa',callback:v=>'$'+fmt(v)},grid:{color:'#2a3450'}}},responsive:true}});
+  // Leads by store
+  const storeData={};STORES.forEach(s=>storeData[s]=0);active.forEach(c=>storeData[c.store]=(storeData[c.store]||0)+c.leads);
+  makeOrUpdate('chartStoreLeads',{type:'bar',data:{labels:STORES,datasets:[{label:'Leads',data:STORES.map(s=>storeData[s]),backgroundColor:chartColors.slice(0,5)}]},options:{plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8899aa'}},y:{ticks:{color:'#8899aa'},grid:{color:'#2a3450'}}},responsive:true}});
+}
+
+function renderCampaigns(){
+  const fc=document.getElementById('filterChannel').value;
+  const fs=document.getElementById('filterStore').value;
+  const fst=document.getElementById('filterStatus').value;
+  const q=document.getElementById('searchCamp').value.toLowerCase();
+  let list=campaigns.filter(c=>{
+    if(fc&&c.channel!==fc)return false;if(fs&&c.store!==fs)return false;if(fst&&c.status!==fst)return false;
+    if(q&&!c.name.toLowerCase().includes(q))return false;return true});
+  document.getElementById('campaignsGrid').innerHTML=list.map(c=>{
+    const r=roi(c);return`<div class="camp-card">
+      <div class="top"><div><div class="name">${c.name}</div><span class="status-badge status-${c.status}">${c.status}</span></div><span class="channel">${c.channel}</span></div>
+      <div class="meta">${c.store} · ${c.dept} · ${c.start} → ${c.end} · Budget: ${money(c.budget)}</div>
+      <div class="metrics">
+        <div class="metric"><div class="mv">${money(c.spend)}</div><div class="ml">Spend</div></div>
+        <div class="metric"><div class="mv">${money(c.revenue)}</div><div class="ml">Revenue</div></div>
+        <div class="metric"><div class="mv ${roiClass(r)}">${r.toFixed(0)}%</div><div class="ml">ROI</div></div>
+        <div class="metric"><div class="mv">${fmt(c.impressions)}</div><div class="ml">Impressions</div></div>
+        <div class="metric"><div class="mv">${fmt(c.leads)}</div><div class="ml">Leads</div></div>
+        <div class="metric"><div class="mv">${c.sales}</div><div class="ml">Sales</div></div>
+        <div class="metric"><div class="mv">${money(Math.round(cpl(c)))}</div><div class="ml">Cost/Lead</div></div>
+        <div class="metric"><div class="mv">${money(Math.round(cps(c)))}</div><div class="ml">Cost/Sale</div></div>
+        <div class="metric"><div class="mv">${fmt(c.clicks)}</div><div class="ml">Clicks</div></div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-sm btn-outline" onclick="editCampaign(${c.id})">✏️ Edit</button>
+        <button class="btn btn-sm btn-outline" onclick="archiveCampaign(${c.id})">${c.status==='Archived'?'🔄 Restore':'📦 Archive'}</button>
+        <button class="btn btn-sm btn-outline" onclick="deleteCampaign(${c.id})" style="color:var(--red)">🗑</button>
+      </div></div>`}).join('')}
+
+function renderComparison(){
+  const chData={};CHANNELS.forEach(ch=>chData[ch]={spend:0,revenue:0,impressions:0,clicks:0,leads:0,appts:0,sales:0,count:0});
+  campaigns.filter(c=>c.status!=='Archived').forEach(c=>{const d=chData[c.channel];if(!d)return;d.spend+=c.spend;d.revenue+=c.revenue;d.impressions+=c.impressions;d.clicks+=c.clicks;d.leads+=c.leads;d.appts+=c.appts;d.sales+=c.sales;d.count++});
+  const cols=['Channel','Campaigns','Spend','Revenue','ROI','Impressions','Clicks','Leads','Appts','Sales','CPL','CPS'];
+  const t=document.getElementById('compTable');
+  t.querySelector('thead').innerHTML='<tr>'+cols.map((c,i)=>`<th onclick="sortComparison(${i})">${c} ↕</th>`).join('')+'</tr>';
+  let rows=CHANNELS.filter(ch=>chData[ch].count>0).map(ch=>{const d=chData[ch];const r=d.spend>0?((d.revenue-d.spend)/d.spend*100):0;return[ch,d.count,d.spend,d.revenue,r,d.impressions,d.clicks,d.leads,d.appts,d.sales,d.leads>0?d.spend/d.leads:0,d.sales>0?d.spend/d.sales:0]});
+  if(sortCol!==null){rows.sort((a,b)=>sortAsc?a[sortCol]>b[sortCol]?1:-1:a[sortCol]<b[sortCol]?1:-1)}
+  t.querySelector('tbody').innerHTML=rows.map(r=>`<tr>
+    <td><strong>${r[0]}</strong></td><td>${r[1]}</td><td>${money(r[2])}</td><td>${money(r[3])}</td>
+    <td class="${roiClass(r[4])}"><strong>${r[4].toFixed(0)}%</strong></td>
+    <td>${fmt(r[5])}</td><td>${fmt(r[6])}</td><td>${fmt(r[7])}</td><td>${fmt(r[8])}</td><td>${r[9]}</td>
+    <td>${money(Math.round(r[10]))}</td><td>${money(Math.round(r[11]))}</td></tr>`).join('')}
+
+window._sortCompCol=null;
+function sortComparison(i){if(sortCol===i)sortAsc=!sortAsc;else{sortCol=i;sortAsc=true}renderComparison()}
+
+function openModal(id){
+  editingId=id||null;document.getElementById('modalTitle').textContent=id?'Edit Campaign':'New Campaign';
+  if(id){const c=campaigns.find(x=>x.id===id);if(!c)return;document.getElementById('fName').value=c.name;document.getElementById('fChannel').value=c.channel;document.getElementById('fStore').value=c.store;document.getElementById('fDept').value=c.dept;document.getElementById('fStatus').value=c.status;document.getElementById('fStart').value=c.start;document.getElementById('fEnd').value=c.end;document.getElementById('fBudget').value=c.budget;document.getElementById('fSpend').value=c.spend;document.getElementById('fRevenue').value=c.revenue;document.getElementById('fImpressions').value=c.impressions;document.getElementById('fClicks').value=c.clicks;document.getElementById('fLeads').value=c.leads;document.getElementById('fAppts').value=c.appts;document.getElementById('fSales').value=c.sales}
+  else{['fName','fBudget','fSpend','fRevenue','fImpressions','fClicks','fLeads','fAppts','fSales'].forEach(id=>document.getElementById(id).value='');document.getElementById('fStart').value='';document.getElementById('fEnd').value=''}
+  document.getElementById('modalBg').classList.add('show')}
+function closeModal(){document.getElementById('modalBg').classList.remove('show')}
+function editCampaign(id){openModal(id)}
+function archiveCampaign(id){const c=campaigns.find(x=>x.id===id);if(c){c.status=c.status==='Archived'?'Active':'Archived';save();renderCampaigns()}}
+function deleteCampaign(id){if(!confirm('Delete this campaign?'))return;campaigns=campaigns.filter(c=>c.id!==id);save();renderCampaigns()}
+
+function saveCampaign(){
+  const data={name:document.getElementById('fName').value,channel:document.getElementById('fChannel').value,store:document.getElementById('fStore').value,dept:document.getElementById('fDept').value,status:document.getElementById('fStatus').value,start:document.getElementById('fStart').value,end:document.getElementById('fEnd').value,budget:+document.getElementById('fBudget').value||0,spend:+document.getElementById('fSpend').value||0,revenue:+document.getElementById('fRevenue').value||0,impressions:+document.getElementById('fImpressions').value||0,clicks:+document.getElementById('fClicks').value||0,leads:+document.getElementById('fLeads').value||0,appts:+document.getElementById('fAppts').value||0,sales:+document.getElementById('fSales').value||0};
+  if(!data.name){alert('Name is required');return}
+  if(editingId){const c=campaigns.find(x=>x.id===editingId);Object.assign(c,data)}
+  else{data.id=Date.now();campaigns.push(data)}
+  save();closeModal();renderCampaigns()}
+
+function exportCSV(){
+  const h=['Name','Channel','Store','Department','Status','Start','End','Budget','Spend','Revenue','Impressions','Clicks','Leads','Appointments','Sales','CPL','CPS','ROI%'];
+  const rows=campaigns.map(c=>[c.name,c.channel,c.store,c.dept,c.status,c.start,c.end,c.budget,c.spend,c.revenue,c.impressions,c.clicks,c.leads,c.appts,c.sales,cpl(c).toFixed(2),cps(c).toFixed(2),roi(c).toFixed(1)]);
+  const csv=[h,...rows].map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='dyer_campaigns_'+new Date().toISOString().slice(0,10)+'.csv';a.click()}
+
+// Init
+load();populateSelects();renderDashboard();renderCampaigns();
+</script>
+</body>
+</html>

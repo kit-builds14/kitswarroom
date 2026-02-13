@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="../auth.js"></script><link rel="stylesheet" href="../responsive.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Schedule Service | Dyer Auto Group</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:#1a3a5c;--primary-light:#2a5a8c;--accent:#c8102e;--accent-hover:#a00d24;--bg:#f4f6f8;--card:#fff;--text:#1a1a2e;--text-light:#5a6678;--border:#dde2e8;--success:#16a34a;--radius:12px;--shadow:0 2px 12px rgba(0,0,0,.08)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.header{background:var(--primary);color:#fff;padding:16px 20px;text-align:center}
+.header h1{font-size:1.25rem;font-weight:700;letter-spacing:.5px}
+.header p{font-size:.8rem;opacity:.8;margin-top:2px}
+.progress-bar{display:flex;align-items:center;justify-content:center;padding:20px 16px 8px;max-width:500px;margin:0 auto}
+.progress-step{display:flex;align-items:center;flex-direction:column;flex:1;position:relative}
+.progress-step .dot{width:32px;height:32px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:var(--text-light);transition:all .3s;z-index:1}
+.progress-step.active .dot,.progress-step.done .dot{background:var(--primary);color:#fff}
+.progress-step.done .dot{background:var(--success)}
+.progress-step .label{font-size:.65rem;color:var(--text-light);margin-top:4px;text-align:center}
+.progress-step.active .label{color:var(--primary);font-weight:600}
+.progress-step:not(:last-child)::after{content:'';position:absolute;top:16px;left:calc(50% + 20px);width:calc(100% - 40px);height:3px;background:var(--border);z-index:0}
+.progress-step.done:not(:last-child)::after{background:var(--success)}
+.container{max-width:500px;margin:0 auto;padding:16px}
+.step{display:none;animation:fadeIn .3s ease}
+.step.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.card{background:var(--card);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);margin-bottom:16px}
+.card h2{font-size:1.1rem;margin-bottom:4px;color:var(--primary)}
+.card .subtitle{font-size:.8rem;color:var(--text-light);margin-bottom:16px}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:.8rem;font-weight:600;margin-bottom:4px;color:var(--text)}
+.form-group .optional{font-weight:400;color:var(--text-light)}
+input[type=text],input[type=email],input[type=tel],input[type=number],select,textarea{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.9rem;font-family:inherit;transition:border-color .2s;background:#fff}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary)}
+textarea{resize:vertical;min-height:70px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-row.three{grid-template-columns:1fr 1fr 1fr}
+.checkbox-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.checkbox-item{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;transition:all .2s;font-size:.85rem}
+.checkbox-item:hover{border-color:var(--primary-light)}
+.checkbox-item.checked{border-color:var(--primary);background:#eef3f9}
+.checkbox-item input{display:none}
+.checkbox-item .check{width:18px;height:18px;border:2px solid var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+.checkbox-item.checked .check{background:var(--primary);border-color:var(--primary)}
+.checkbox-item.checked .check::after{content:'✓';color:#fff;font-size:.7rem;font-weight:700}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:16px}
+.cal-header{font-size:.65rem;text-align:center;font-weight:700;color:var(--text-light);padding:4px}
+.cal-day{padding:10px 4px;text-align:center;border-radius:8px;font-size:.8rem;cursor:pointer;border:1.5px solid var(--border);transition:all .2s}
+.cal-day:hover:not(.disabled){border-color:var(--primary-light);background:#f0f4fa}
+.cal-day.selected{background:var(--primary);color:#fff;border-color:var(--primary)}
+.cal-day.disabled{opacity:.3;cursor:default;background:#f9f9f9}
+.cal-day.empty{border:none;cursor:default}
+.time-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-height:250px;overflow-y:auto}
+.time-slot{padding:8px;text-align:center;border-radius:8px;font-size:.8rem;cursor:pointer;border:1.5px solid var(--border);transition:all .2s;position:relative}
+.time-slot:hover{border-color:var(--primary-light)}
+.time-slot.selected{background:var(--primary);color:#fff;border-color:var(--primary)}
+.time-slot .popular{position:absolute;top:2px;right:4px;font-size:.5rem;color:var(--accent);font-weight:700}
+.time-slot.selected .popular{color:#ffcdd2}
+.radio-group{display:flex;gap:8px;flex-wrap:wrap}
+.radio-item{flex:1;min-width:80px;padding:10px;text-align:center;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;font-size:.85rem;transition:all .2s}
+.radio-item:hover{border-color:var(--primary-light)}
+.radio-item.selected{border-color:var(--primary);background:#eef3f9;font-weight:600}
+.btn-row{display:flex;gap:10px;margin-top:20px}
+.btn{flex:1;padding:14px;border:none;border-radius:8px;font-size:.9rem;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent-hover)}
+.btn-primary:disabled{background:#ccc;cursor:default}
+.btn-secondary{background:var(--border);color:var(--text)}
+.btn-secondary:hover{background:#cdd3db}
+.error{border-color:var(--accent)!important}
+.error-msg{color:var(--accent);font-size:.75rem;margin-top:2px;display:none}
+.error-msg.show{display:block}
+.confirm-card{background:var(--card);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);text-align:center}
+.confirm-card .icon{font-size:3rem;margin-bottom:8px}
+.confirm-card h2{color:var(--success);margin-bottom:4px}
+.confirm-card .subtext{color:var(--text-light);font-size:.85rem;margin-bottom:20px}
+.summary{text-align:left;background:var(--bg);border-radius:8px;padding:16px;margin-bottom:16px}
+.summary-row{display:flex;justify-content:space-between;padding:6px 0;font-size:.85rem;border-bottom:1px solid var(--border)}
+.summary-row:last-child{border:none}
+.summary-row .lbl{color:var(--text-light)}
+.summary-row .val{font-weight:600;text-align:right;max-width:60%}
+.duration-badge{display:inline-block;background:var(--primary);color:#fff;padding:6px 16px;border-radius:20px;font-size:.85rem;font-weight:600;margin-bottom:16px}
+.admin-link{text-align:center;padding:12px;font-size:.7rem}
+.admin-link a{color:var(--text-light);text-decoration:none}
+.admin-panel{display:none;max-width:500px;margin:0 auto;padding:16px}
+.admin-panel.active{display:block}
+.admin-panel .card{overflow-x:auto}
+.admin-panel table{width:100%;font-size:.75rem;border-collapse:collapse}
+.admin-panel th,.admin-panel td{padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)}
+.admin-panel th{font-weight:700;color:var(--primary)}
+</style>
+</head>
+<body>
+<div class="header">
+<h1>DYER AUTO GROUP</h1>
+<p>Schedule Your Service Appointment</p>
+</div>
+
+<div class="progress-bar" id="progressBar">
+<div class="progress-step active" data-step="1"><div class="dot">1</div><div class="label">Vehicle</div></div>
+<div class="progress-step" data-step="2"><div class="dot">2</div><div class="label">Service</div></div>
+<div class="progress-step" data-step="3"><div class="dot">3</div><div class="label">Schedule</div></div>
+<div class="progress-step" data-step="4"><div class="dot">4</div><div class="label">Contact</div></div>
+</div>
+
+<div class="container">
+<!-- Step 1: Vehicle -->
+<div class="step active" id="step1">
+<div class="card">
+<h2>Vehicle Information</h2>
+<p class="subtitle">Tell us about your vehicle</p>
+<div class="form-row three">
+<div class="form-group">
+<label>Year *</label>
+<select id="vYear"><option value="">Year</option></select>
+</div>
+<div class="form-group">
+<label>Make *</label>
+<select id="vMake">
+<option value="">Make</option>
+<option>Chevy</option><option>Mazda</option><option>Subaru</option><option>Kia</option><option>Other</option>
+</select>
+</div>
+<div class="form-group">
+<label>Model *</label>
+<input type="text" id="vModel" placeholder="e.g. Malibu">
+</div>
+</div>
+<div class="form-row">
+<div class="form-group">
+<label>VIN <span class="optional">(optional)</span></label>
+<input type="text" id="vVin" placeholder="17 characters" maxlength="17">
+</div>
+<div class="form-group">
+<label>Mileage *</label>
+<input type="number" id="vMileage" placeholder="Current miles">
+</div>
+</div>
+</div>
+<div class="btn-row"><div style="flex:1"></div><button class="btn btn-primary" onclick="goStep(2)">Continue</button></div>
+</div>
+
+<!-- Step 2: Service -->
+<div class="step" id="step2">
+<div class="card">
+<h2>Service Needed</h2>
+<p class="subtitle">Select all that apply</p>
+<div class="checkbox-grid" id="serviceGrid"></div>
+<div class="form-group" style="margin-top:14px">
+<label>Additional Concerns <span class="optional">(optional)</span></label>
+<textarea id="sConcerns" placeholder="Describe any other issues..."></textarea>
+</div>
+</div>
+<div class="btn-row"><button class="btn btn-secondary" onclick="goStep(1)">Back</button><button class="btn btn-primary" onclick="goStep(3)">Continue</button></div>
+</div>
+
+<!-- Step 3: Schedule -->
+<div class="step" id="step3">
+<div class="card">
+<h2>Pick a Date</h2>
+<p class="subtitle">Next 14 available days (no Sundays)</p>
+<div class="calendar-grid" id="calGrid"></div>
+<h2 style="margin-top:8px">Pick a Time</h2>
+<p class="subtitle">Available 30-minute slots</p>
+<div class="time-grid" id="timeGrid"></div>
+<div class="form-group" style="margin-top:14px">
+<label>Preferred Advisor <span class="optional">(optional)</span></label>
+<select id="sAdvisor">
+<option value="">No preference</option>
+<option>Mike Johnson</option><option>Sarah Chen</option><option>David Martinez</option><option>Lisa Thompson</option>
+</select>
+</div>
+</div>
+<div class="btn-row"><button class="btn btn-secondary" onclick="goStep(2)">Back</button><button class="btn btn-primary" onclick="goStep(4)">Continue</button></div>
+</div>
+
+<!-- Step 4: Contact -->
+<div class="step" id="step4">
+<div class="card">
+<h2>Contact Information</h2>
+<p class="subtitle">How can we reach you?</p>
+<div class="form-group">
+<label>Full Name *</label>
+<input type="text" id="cName" placeholder="John Doe">
+</div>
+<div class="form-row">
+<div class="form-group">
+<label>Phone *</label>
+<input type="tel" id="cPhone" placeholder="(555) 123-4567">
+</div>
+<div class="form-group">
+<label>Email *</label>
+<input type="email" id="cEmail" placeholder="john@email.com">
+</div>
+</div>
+<div class="form-group">
+<label>Preferred Contact Method</label>
+<div class="radio-group" id="contactMethod">
+<div class="radio-item selected" data-val="call" onclick="selectRadio(this)">📞 Call</div>
+<div class="radio-item" data-val="text" onclick="selectRadio(this)">💬 Text</div>
+<div class="radio-item" data-val="email" onclick="selectRadio(this)">📧 Email</div>
+</div>
+</div>
+<div class="form-group">
+<label>Need a Loaner Car?</label>
+<div class="radio-group" id="loanerCar">
+<div class="radio-item" data-val="yes" onclick="selectRadio(this)">Yes</div>
+<div class="radio-item selected" data-val="no" onclick="selectRadio(this)">No</div>
+</div>
+</div>
+</div>
+<div class="btn-row"><button class="btn btn-secondary" onclick="goStep(3)">Back</button><button class="btn btn-primary" onclick="submitAppointment()">Submit Request</button></div>
+</div>
+
+<!-- Confirmation -->
+<div class="step" id="step5">
+<div class="confirm-card">
+<div class="icon">✅</div>
+<h2>Appointment Request Submitted!</h2>
+<p class="subtext">We'll confirm your appointment within 1 business hour.</p>
+<div class="duration-badge" id="estDuration"></div>
+<div class="summary" id="summaryBox"></div>
+<div class="btn-row">
+<button class="btn btn-primary" onclick="downloadICS()">📅 Add to Calendar</button>
+</div>
+<div class="btn-row">
+<button class="btn btn-secondary" onclick="resetForm()">Schedule Another</button>
+</div>
+</div>
+</div>
+</div>
+
+<div class="admin-link"><a href="#" onclick="toggleAdmin(event)">Admin Panel</a></div>
+<div class="admin-panel" id="adminPanel">
+<div class="card">
+<h2>Appointment Submissions</h2>
+<p class="subtitle" id="adminCount"></p>
+<div style="overflow-x:auto" id="adminTable"></div>
+<div class="btn-row" style="margin-top:12px">
+<button class="btn btn-secondary" onclick="exportCSV()">Export CSV</button>
+<button class="btn btn-secondary" onclick="clearData()">Clear All</button>
+</div>
+</div>
+</div>
+
+<script>
+const SERVICES = ['Oil Change','Tire Rotation','Brake Inspection','Battery Check','AC Service','Transmission Service','Check Engine Light','Recall Service','Other'];
+const DURATIONS = {'Oil Change':30,'Tire Rotation':30,'Brake Inspection':45,'Battery Check':20,'AC Service':60,'Transmission Service':120,'Check Engine Light':60,'Recall Service':90,'Other':30};
+const POPULAR_TIMES = ['8:00 AM','8:30 AM','9:00 AM','10:00 AM','3:00 PM','3:30 PM'];
+let state = {date:null, time:null};
+
+// Init year dropdown
+const ySel = document.getElementById('vYear');
+for(let y=2026;y>=2015;y--) ySel.innerHTML += `<option>${y}</option>`;
+
+// Init services
+const sg = document.getElementById('serviceGrid');
+SERVICES.forEach(s => {
+  const d = document.createElement('div');
+  d.className = 'checkbox-item';
+  d.innerHTML = `<input type="checkbox" value="${s}"><div class="check"></div>${s}`;
+  d.onclick = () => { d.classList.toggle('checked'); d.querySelector('input').checked = d.classList.contains('checked'); };
+  sg.appendChild(d);
+});
+
+// Calendar
+function buildCalendar(){
+  const g = document.getElementById('calGrid');
+  g.innerHTML = '';
+  ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => g.innerHTML += `<div class="cal-header">${d}</div>`);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const days = [];
+  for(let i=1;days.length<14;i++){
+    const d = new Date(today); d.setDate(today.getDate()+i);
+    if(d.getDay()!==0) days.push(d);
+  }
+  // pad first week
+  const firstDay = days[0].getDay();
+  for(let i=0;i<firstDay;i++) g.innerHTML += `<div class="cal-day empty"></div>`;
+  days.forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'cal-day';
+    el.textContent = d.getDate();
+    el.title = d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+    el.onclick = () => {
+      document.querySelectorAll('.cal-day').forEach(c=>c.classList.remove('selected'));
+      el.classList.add('selected');
+      state.date = d;
+    };
+    g.appendChild(el);
+  });
+}
+buildCalendar();
+
+// Time slots
+function buildTimes(){
+  const g = document.getElementById('timeGrid');
+  g.innerHTML = '';
+  for(let h=7;h<17;h++){
+    for(let m=0;m<60;m+=30){
+      const hr = h>12?h-12:h; const ap = h>=12?'PM':'AM';
+      const label = `${hr}:${m===0?'00':'30'} ${ap}`;
+      const el = document.createElement('div');
+      el.className = 'time-slot';
+      const pop = POPULAR_TIMES.includes(label);
+      el.innerHTML = label + (pop?'<span class="popular">● BUSY</span>':'');
+      el.onclick = () => {
+        document.querySelectorAll('.time-slot').forEach(c=>c.classList.remove('selected'));
+        el.classList.add('selected');
+        state.time = label;
+      };
+      g.appendChild(el);
+    }
+  }
+}
+buildTimes();
+
+function selectRadio(el){
+  el.parentElement.querySelectorAll('.radio-item').forEach(r=>r.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function getSelectedServices(){
+  return [...document.querySelectorAll('#serviceGrid input:checked')].map(i=>i.value);
+}
+
+function estimateDuration(){
+  const svcs = getSelectedServices();
+  if(!svcs.length) return 30;
+  return svcs.reduce((t,s)=>t+DURATIONS[s],0);
+}
+
+function validate(step){
+  if(step===2){
+    const y=document.getElementById('vYear').value, m=document.getElementById('vMake').value,
+          mo=document.getElementById('vModel').value.trim(), mi=document.getElementById('vMileage').value;
+    if(!y||!m||!mo||!mi){alert('Please fill in all required vehicle fields.');return false;}
+  }
+  if(step===3){
+    if(!getSelectedServices().length){alert('Please select at least one service.');return false;}
+  }
+  if(step===4){
+    if(!state.date||!state.time){alert('Please select both a date and time.');return false;}
+  }
+  return true;
+}
+
+function goStep(n){
+  if(!validate(n)) return;
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  document.getElementById('step'+n).classList.add('active');
+  document.querySelectorAll('.progress-step').forEach(s=>{
+    const sn = +s.dataset.step;
+    s.classList.remove('active','done');
+    if(sn===n) s.classList.add('active');
+    else if(sn<n) s.classList.add('done');
+  });
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function submitAppointment(){
+  const n=document.getElementById('cName').value.trim(), p=document.getElementById('cPhone').value.trim(),
+        e=document.getElementById('cEmail').value.trim();
+  if(!n||!p||!e){alert('Please fill in all contact fields.');return;}
+
+  const appt = {
+    id: Date.now(),
+    vehicle: {year:document.getElementById('vYear').value, make:document.getElementById('vMake').value,
+              model:document.getElementById('vModel').value.trim(), vin:document.getElementById('vVin').value.trim(),
+              mileage:document.getElementById('vMileage').value},
+    services: getSelectedServices(),
+    concerns: document.getElementById('sConcerns').value.trim(),
+    date: state.date.toISOString().split('T')[0],
+    dateDisplay: state.date.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}),
+    time: state.time,
+    advisor: document.getElementById('sAdvisor').value,
+    contact: {name:n, phone:p, email:e,
+              method: document.querySelector('#contactMethod .selected').dataset.val,
+              loaner: document.querySelector('#loanerCar .selected').dataset.val},
+    estMinutes: estimateDuration(),
+    submittedAt: new Date().toISOString()
+  };
+
+  const all = JSON.parse(localStorage.getItem('dyer_appointments')||'[]');
+  all.push(appt);
+  localStorage.setItem('dyer_appointments', JSON.stringify(all));
+  state.appt = appt;
+  showConfirmation(appt);
+}
+
+function showConfirmation(a){
+  const mins = a.estMinutes;
+  const hrs = Math.floor(mins/60); const rm = mins%60;
+  document.getElementById('estDuration').textContent = `Est. Duration: ${hrs?hrs+'h ':''}${rm?rm+'min':''}`;
+  const rows = [
+    ['Vehicle',`${a.vehicle.year} ${a.vehicle.make} ${a.vehicle.model}`],
+    ['Mileage',Number(a.vehicle.mileage).toLocaleString()+' mi'],
+    ['Services',a.services.join(', ')],
+    ['Date',a.dateDisplay],
+    ['Time',a.time],
+    ['Advisor',a.advisor||'No preference'],
+    ['Name',a.contact.name],
+    ['Phone',a.contact.phone],
+    ['Email',a.contact.email],
+    ['Contact Via',a.contact.method],
+    ['Loaner',a.contact.loaner==='yes'?'Requested':'Not needed']
+  ];
+  if(a.vehicle.vin) rows.splice(1,0,['VIN',a.vehicle.vin]);
+  if(a.concerns) rows.splice(4,0,['Concerns',a.concerns]);
+  document.getElementById('summaryBox').innerHTML = rows.map(r=>`<div class="summary-row"><span class="lbl">${r[0]}</span><span class="val">${r[1]}</span></div>`).join('');
+  goStep(5);
+  document.getElementById('progressBar').style.display='none';
+}
+
+function downloadICS(){
+  const a = state.appt;
+  const d = new Date(a.date+'T'+parseTime(a.time));
+  const end = new Date(d.getTime()+a.estMinutes*60000);
+  const fmt = t => t.toISOString().replace(/[-:]/g,'').replace(/\.\d+/,'');
+  const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nDTSTART:${fmt(d)}\nDTEND:${fmt(end)}\nSUMMARY:Service Appointment - Dyer Auto Group\nDESCRIPTION:${a.services.join(', ')} for ${a.vehicle.year} ${a.vehicle.make} ${a.vehicle.model}\nLOCATION:Dyer Auto Group Service Center\nEND:VEVENT\nEND:VCALENDAR`;
+  const blob = new Blob([ics],{type:'text/calendar'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'dyer-service-appointment.ics';
+  link.click();
+}
+
+function parseTime(t){
+  const [time,ap] = t.split(' ');
+  let [h,m] = time.split(':').map(Number);
+  if(ap==='PM'&&h!==12) h+=12;
+  if(ap==='AM'&&h===12) h=0;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:00`;
+}
+
+function resetForm(){
+  location.reload();
+}
+
+function toggleAdmin(e){
+  e.preventDefault();
+  document.getElementById('adminPanel').classList.toggle('active');
+  renderAdmin();
+}
+
+function renderAdmin(){
+  const all = JSON.parse(localStorage.getItem('dyer_appointments')||'[]');
+  document.getElementById('adminCount').textContent = all.length+' submissions';
+  if(!all.length){document.getElementById('adminTable').innerHTML='<p style="font-size:.85rem;color:#999">No appointments yet.</p>';return;}
+  let html='<table><tr><th>Date</th><th>Name</th><th>Vehicle</th><th>Services</th><th>Time</th></tr>';
+  all.slice().reverse().forEach(a=>{
+    html+=`<tr><td>${a.dateDisplay}</td><td>${a.contact.name}</td><td>${a.vehicle.year} ${a.vehicle.make} ${a.vehicle.model}</td><td>${a.services.join(', ')}</td><td>${a.time}</td></tr>`;
+  });
+  document.getElementById('adminTable').innerHTML=html+'</table>';
+}
+
+function exportCSV(){
+  const all = JSON.parse(localStorage.getItem('dyer_appointments')||'[]');
+  if(!all.length) return alert('No data to export.');
+  const headers = ['Date','Time','Name','Phone','Email','Contact Method','Year','Make','Model','VIN','Mileage','Services','Concerns','Advisor','Loaner','Est Minutes','Submitted'];
+  const rows = all.map(a=>[a.dateDisplay,a.time,a.contact.name,a.contact.phone,a.contact.email,a.contact.method,a.vehicle.year,a.vehicle.make,a.vehicle.model,a.vehicle.vin,a.vehicle.mileage,a.services.join('; '),a.concerns,a.advisor,a.contact.loaner,a.estMinutes,a.submittedAt]);
+  const csv = [headers,...rows].map(r=>r.map(c=>`"${String(c||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv],{type:'text/csv'});
+  const link = document.createElement('a');
+  link.href=URL.createObjectURL(blob);
+  link.download='dyer-service-appointments.csv';
+  link.click();
+}
+
+function clearData(){
+  if(confirm('Delete all appointment data?')){localStorage.removeItem('dyer_appointments');renderAdmin();}
+}
+</script>
+</body>
+</html>

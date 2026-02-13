@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="../auth.js"></script><link rel="stylesheet" href="../responsive.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dyer Auto Group – Employee Onboarding</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--primary:#1a3a5c;--accent:#2980b9;--success:#27ae60;--warn:#e67e22;--danger:#c0392b;--bg:#f5f7fa;--card:#fff;--text:#2c3e50;--muted:#7f8c8d;--border:#dce1e8;--radius:10px}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh}
+a{color:var(--accent);text-decoration:none}
+button{cursor:pointer;font-family:inherit}
+
+/* Header */
+.header{background:linear-gradient(135deg,var(--primary),#234b73);color:#fff;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.header h1{font-size:1.25rem;font-weight:600;letter-spacing:.5px}
+.header h1 span{opacity:.6;font-weight:400}
+.header-actions{display:flex;gap:8px}
+.header-actions button{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;padding:7px 14px;border-radius:6px;font-size:.82rem;transition:.2s}
+.header-actions button:hover{background:rgba(255,255,255,.25)}
+
+/* Nav tabs */
+.nav{display:flex;background:var(--card);border-bottom:1px solid var(--border);overflow-x:auto}
+.nav button{flex:1;min-width:120px;padding:12px 16px;border:none;background:none;font-size:.85rem;font-weight:500;color:var(--muted);border-bottom:3px solid transparent;transition:.2s;white-space:nowrap}
+.nav button.active{color:var(--primary);border-bottom-color:var(--accent)}
+.nav button:hover{color:var(--primary);background:rgba(0,0,0,.02)}
+
+/* Container */
+.container{max-width:1100px;margin:0 auto;padding:20px}
+.view{display:none}.view.active{display:block}
+
+/* Cards */
+.card{background:var(--card);border-radius:var(--radius);box-shadow:0 1px 4px rgba(0,0,0,.06);border:1px solid var(--border);padding:24px;margin-bottom:20px}
+.card h2{font-size:1.1rem;margin-bottom:16px;color:var(--primary)}
+.card h3{font-size:.95rem;margin-bottom:10px;color:var(--primary)}
+
+/* Form */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group label{font-size:.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.form-group input,.form-group select{padding:9px 12px;border:1px solid var(--border);border-radius:6px;font-size:.9rem;transition:.2s}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(41,128,185,.12)}
+
+/* Buttons */
+.btn{padding:9px 18px;border:none;border-radius:6px;font-size:.85rem;font-weight:500;transition:.2s}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:#2471a3}
+.btn-success{background:var(--success);color:#fff}.btn-success:hover{background:#219a52}
+.btn-danger{background:var(--danger);color:#fff}.btn-danger:hover{background:#a93226}
+.btn-outline{background:none;border:1px solid var(--border);color:var(--text)}.btn-outline:hover{background:var(--bg)}
+.btn-sm{padding:5px 12px;font-size:.8rem}
+.btn-group{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+
+/* Photo placeholder */
+.photo-placeholder{width:90px;height:90px;border-radius:50%;background:var(--bg);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.7rem;text-align:center;cursor:pointer;overflow:hidden;flex-shrink:0}
+.photo-placeholder img{width:100%;height:100%;object-fit:cover}
+
+/* Progress ring */
+.progress-ring-wrap{position:relative;width:110px;height:110px;flex-shrink:0}
+.progress-ring-wrap svg{transform:rotate(-90deg)}
+.progress-ring-bg{fill:none;stroke:var(--border);stroke-width:8}
+.progress-ring-fg{fill:none;stroke:var(--success);stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset .6s ease}
+.progress-ring-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:700;color:var(--primary)}
+
+/* Dashboard stats */
+.stats-row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.stat-card{flex:1;min-width:130px;background:var(--bg);border-radius:8px;padding:16px;text-align:center}
+.stat-card .val{font-size:1.6rem;font-weight:700;color:var(--primary)}
+.stat-card .lbl{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-top:2px}
+
+/* Accordion */
+.accordion{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:12px}
+.accordion-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:var(--bg);cursor:pointer;user-select:none;font-weight:600;font-size:.92rem;transition:.2s}
+.accordion-header:hover{background:#ebeef3}
+.accordion-header .phase-progress{font-size:.78rem;font-weight:400;color:var(--muted)}
+.accordion-header .arrow{transition:transform .2s;font-size:.7rem;color:var(--muted)}
+.accordion.open .arrow{transform:rotate(180deg)}
+.accordion-body{display:none;padding:6px 18px 14px}
+.accordion.open .accordion-body{display:block}
+
+/* Checklist items */
+.check-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f0f2f5}
+.check-item:last-child{border-bottom:none}
+.check-item input[type=checkbox]{width:18px;height:18px;accent-color:var(--success);flex-shrink:0;cursor:pointer}
+.check-item .item-text{flex:1;font-size:.9rem}
+.check-item .item-text.done{text-decoration:line-through;color:var(--muted)}
+.check-item .item-date{font-size:.72rem;color:var(--muted)}
+.check-item.overdue .item-text{color:var(--danger);font-weight:500}
+
+/* Employee list */
+.emp-table{width:100%;border-collapse:collapse}
+.emp-table th{text-align:left;font-size:.75rem;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:10px 12px;border-bottom:2px solid var(--border)}
+.emp-table td{padding:10px 12px;border-bottom:1px solid #f0f2f5;font-size:.88rem}
+.emp-table tr:hover td{background:rgba(41,128,185,.03)}
+.emp-table tr{cursor:pointer}
+.status-badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:.75rem;font-weight:600}
+.status-on-track{background:#d5f5e3;color:#1e8449}
+.status-behind{background:#fadbd8;color:#922b21}
+.status-complete{background:#d4efdf;color:#1a5276}
+
+/* Filter bar */
+.filter-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.filter-bar select,.filter-bar input{padding:7px 12px;border:1px solid var(--border);border-radius:6px;font-size:.85rem}
+
+/* Template editor */
+.template-phase{margin-bottom:16px}
+.template-item{display:flex;align-items:center;gap:8px;padding:5px 0}
+.template-item input[type=text]{flex:1;padding:7px 10px;border:1px solid var(--border);border-radius:5px;font-size:.85rem}
+.template-item button{background:none;border:none;color:var(--danger);font-size:1.1rem;padding:4px}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:var(--card);border-radius:var(--radius);padding:28px;max-width:500px;width:90%;max-height:85vh;overflow-y:auto;box-shadow:0 8px 30px rgba(0,0,0,.2)}
+.modal h2{margin-bottom:16px}
+
+/* Responsive */
+@media(max-width:600px){
+  .container{padding:12px}
+  .form-grid{grid-template-columns:1fr}
+  .stats-row{flex-direction:column}
+  .header h1{font-size:1rem}
+  .emp-table{font-size:.8rem}
+  .emp-table th,.emp-table td{padding:8px 6px}
+}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--primary);color:#fff;padding:12px 20px;border-radius:8px;font-size:.88rem;z-index:300;opacity:0;transform:translateY(10px);transition:.3s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>DYER AUTO GROUP <span>| Onboarding</span></h1>
+  <div class="header-actions">
+    <button onclick="exportCSV()">📥 Export CSV</button>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="active" data-view="dashboard" onclick="switchView('dashboard',this)">📊 Dashboard</button>
+  <button data-view="employees" onclick="switchView('employees',this)">👥 Employees</button>
+  <button data-view="onboarding" onclick="switchView('onboarding',this)">📋 Onboarding</button>
+  <button data-view="templates" onclick="switchView('templates',this)">⚙️ Templates</button>
+</div>
+
+<div class="container">
+  <!-- DASHBOARD -->
+  <div id="v-dashboard" class="view active"></div>
+
+  <!-- EMPLOYEES LIST -->
+  <div id="v-employees" class="view">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+        <h2 style="margin:0">Active Onboarding</h2>
+        <button class="btn btn-primary" onclick="showNewHireModal()">+ New Hire</button>
+      </div>
+      <div class="filter-bar">
+        <select id="filterStore" onchange="renderEmployeeList()"><option value="">All Stores</option></select>
+        <select id="filterDept" onchange="renderEmployeeList()"><option value="">All Departments</option></select>
+        <input type="search" id="filterSearch" placeholder="Search name…" oninput="renderEmployeeList()">
+      </div>
+      <div style="overflow-x:auto"><table class="emp-table"><thead><tr>
+        <th>Employee</th><th>Position</th><th>Store</th><th>Start Date</th><th>Progress</th><th>Status</th>
+      </tr></thead><tbody id="empTableBody"></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- ONBOARDING DETAIL -->
+  <div id="v-onboarding" class="view"></div>
+
+  <!-- TEMPLATES -->
+  <div id="v-templates" class="view"></div>
+</div>
+
+<!-- New Hire Modal -->
+<div class="modal-overlay" id="newHireModal">
+  <div class="modal">
+    <h2>Add New Hire</h2>
+    <div class="form-grid">
+      <div class="form-group"><label>Full Name</label><input id="nh-name" required></div>
+      <div class="form-group"><label>Position</label><input id="nh-position"></div>
+      <div class="form-group"><label>Department</label>
+        <select id="nh-dept"><option>Sales</option><option>Service</option><option>Parts</option><option>Finance</option><option>Admin</option><option>BDC</option><option>Management</option></select>
+      </div>
+      <div class="form-group"><label>Store</label>
+        <select id="nh-store"><option>Dyer Chevy</option><option>Dyer Ford</option><option>Dyer Kia</option><option>Dyer CDJR</option><option>Dyer Mazda</option><option>Dyer Subaru</option></select>
+      </div>
+      <div class="form-group"><label>Start Date</label><input id="nh-start" type="date"></div>
+      <div class="form-group"><label>Manager</label><input id="nh-manager"></div>
+    </div>
+    <div class="form-group" style="margin-top:12px"><label>Role Template</label>
+      <select id="nh-template"></select>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="saveNewHire()">Save</button>
+      <button class="btn btn-outline" onclick="closeModal('newHireModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===================== DATA ===================== */
+const DEFAULT_PHASES = [
+  { name:'Pre-Start (Before Day 1)', dueDayOffset:-1, items:[
+    'Offer letter signed','Background check complete','Drug screening passed',
+    'Desk/workspace assigned','Computer/login credentials created',
+    'DMS access requested (CDK/Reynolds)','CRM access requested',
+    'Uniforms ordered','Business cards ordered','Parking assigned'
+  ]},
+  { name:'Day 1', dueDayOffset:0, items:[
+    'Welcome meeting with GM','Office tour',
+    'HR paperwork (I-9, W-4, benefits enrollment)',
+    'Employee handbook reviewed & signed','IT setup (email, phone, computer)',
+    'DMS training scheduled','CRM training scheduled',
+    'Introduce to team','Mentor assigned','Lunch with team'
+  ]},
+  { name:'Week 1', dueDayOffset:7, items:[
+    'Product knowledge training started','Shadow experienced team member (3 days)',
+    'Complete manufacturer online training modules','Learn phone system',
+    'Process walkthroughs for role','Meet with each department head',
+    'First 1-on-1 with manager'
+  ]},
+  { name:'30/60/90 Day Reviews', dueDayOffset:90, items:[
+    '30-day review completed','60-day review completed',
+    '90-day review completed','Core values assessment',
+    'GWC evaluation (per EOS)'
+  ]}
+];
+
+const STORES = ['Dyer Chevy','Dyer Ford','Dyer Kia','Dyer CDJR','Dyer Mazda','Dyer Subaru'];
+const DEPTS = ['Sales','Service','Parts','Finance','Admin','BDC','Management'];
+
+function load(k,d){try{return JSON.parse(localStorage.getItem(k))||d}catch{return d}}
+function save(k,v){localStorage.setItem(k,JSON.stringify(v))}
+
+let employees = load('dyer_employees',[]);
+let templates = load('dyer_templates',{Default:JSON.parse(JSON.stringify(DEFAULT_PHASES))});
+let currentEmpId = null;
+
+function persist(){save('dyer_employees',employees);save('dyer_templates',templates)}
+
+function genId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
+
+/* ===================== VIEWS ===================== */
+function switchView(v,btn){
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('v-'+v).classList.add('active');
+  if(btn)btn.classList.add('active');
+  if(v==='dashboard')renderDashboard();
+  if(v==='employees')renderEmployeeList();
+  if(v==='onboarding')renderOnboarding();
+  if(v==='templates')renderTemplates();
+}
+
+/* ===================== DASHBOARD ===================== */
+function renderDashboard(){
+  const el=document.getElementById('v-dashboard');
+  const active=employees.filter(e=>getProgress(e)<100);
+  const complete=employees.filter(e=>getProgress(e)>=100);
+  const behind=employees.filter(e=>getOverdueCount(e)>0);
+  
+  let nextItems=[];
+  employees.forEach(emp=>{
+    emp.phases.forEach(ph=>{
+      ph.items.forEach(it=>{
+        if(!it.done) nextItems.push({emp:emp.name,item:it.text,phase:ph.name,empId:emp.id});
+      });
+    });
+  });
+  nextItems=nextItems.slice(0,8);
+
+  el.innerHTML=`
+    <div class="stats-row">
+      <div class="stat-card"><div class="val">${employees.length}</div><div class="lbl">Total Hires</div></div>
+      <div class="stat-card"><div class="val">${active.length}</div><div class="lbl">In Progress</div></div>
+      <div class="stat-card"><div class="val" style="color:var(--danger)">${behind.length}</div><div class="lbl">Behind</div></div>
+      <div class="stat-card"><div class="val" style="color:var(--success)">${complete.length}</div><div class="lbl">Complete</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div class="card" style="grid-column:${employees.length?'1':'1/3'}">
+        <h2>Upcoming Tasks</h2>
+        ${nextItems.length?nextItems.map(n=>`<div style="padding:6px 0;border-bottom:1px solid #f0f2f5;font-size:.88rem">
+          <strong>${n.emp}</strong> — ${n.item}<br><span style="font-size:.75rem;color:var(--muted)">${n.phase}</span>
+        </div>`).join(''):'<p style="color:var(--muted)">No pending items. Add a new hire to get started.</p>'}
+      </div>
+      ${employees.length?`<div class="card">
+        <h2>Employee Progress</h2>
+        ${employees.slice(0,6).map(emp=>{
+          const p=getProgress(emp);
+          return `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;cursor:pointer" onclick="openEmployee('${emp.id}')">
+            <div style="flex:1;font-size:.88rem"><strong>${emp.name}</strong><br><span style="font-size:.75rem;color:var(--muted)">${emp.store} · ${emp.department}</span></div>
+            <div style="width:100px;height:6px;background:var(--border);border-radius:3px"><div style="height:100%;width:${p}%;background:${p>=100?'var(--success)':p>50?'var(--accent)':'var(--warn)'};border-radius:3px"></div></div>
+            <span style="font-size:.8rem;font-weight:600;width:36px;text-align:right">${p}%</span>
+          </div>`;
+        }).join('')}
+      </div>`:''}
+    </div>
+  `;
+}
+
+/* ===================== EMPLOYEES ===================== */
+function renderEmployeeList(){
+  populateFilters();
+  const fs=document.getElementById('filterStore').value;
+  const fd=document.getElementById('filterDept').value;
+  const fq=document.getElementById('filterSearch').value.toLowerCase();
+  
+  let list=employees.filter(e=>{
+    if(fs&&e.store!==fs)return false;
+    if(fd&&e.department!==fd)return false;
+    if(fq&&!e.name.toLowerCase().includes(fq))return false;
+    return true;
+  });
+  
+  const tbody=document.getElementById('empTableBody');
+  tbody.innerHTML=list.map(emp=>{
+    const p=getProgress(emp);
+    const status=p>=100?'Complete':getOverdueCount(emp)>0?'Behind':'On Track';
+    const cls=status==='Complete'?'status-complete':status==='Behind'?'status-behind':'status-on-track';
+    return `<tr onclick="openEmployee('${emp.id}')">
+      <td><strong>${emp.name}</strong><br><span style="font-size:.75rem;color:var(--muted)">${emp.department}</span></td>
+      <td>${emp.position}</td><td>${emp.store}</td><td>${emp.startDate}</td>
+      <td><div style="display:flex;align-items:center;gap:6px"><div style="width:60px;height:5px;background:var(--border);border-radius:3px"><div style="height:100%;width:${p}%;background:${p>=100?'var(--success)':'var(--accent)'};border-radius:3px"></div></div><span style="font-size:.8rem">${p}%</span></div></td>
+      <td><span class="status-badge ${cls}">${status}</span></td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:30px">No employees found. Click "+ New Hire" to add one.</td></tr>';
+}
+
+function populateFilters(){
+  const stores=new Set(employees.map(e=>e.store));
+  const depts=new Set(employees.map(e=>e.department));
+  const ss=document.getElementById('filterStore'),sd=document.getElementById('filterDept');
+  const sv=ss.value,dv=sd.value;
+  ss.innerHTML='<option value="">All Stores</option>'+[...stores].map(s=>`<option>${s}</option>`).join('');
+  sd.innerHTML='<option value="">All Departments</option>'+[...depts].map(d=>`<option>${d}</option>`).join('');
+  ss.value=sv;sd.value=dv;
+}
+
+/* ===================== NEW HIRE ===================== */
+function showNewHireModal(){
+  document.getElementById('nh-name').value='';
+  document.getElementById('nh-position').value='';
+  document.getElementById('nh-start').value=new Date().toISOString().slice(0,10);
+  const tSel=document.getElementById('nh-template');
+  tSel.innerHTML=Object.keys(templates).map(t=>`<option>${t}</option>`).join('');
+  document.getElementById('newHireModal').classList.add('show');
+}
+
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+
+function saveNewHire(){
+  const name=document.getElementById('nh-name').value.trim();
+  if(!name){toast('Name is required');return}
+  const tplName=document.getElementById('nh-template').value;
+  const tpl=templates[tplName]||templates.Default||DEFAULT_PHASES;
+  const emp={
+    id:genId(), name,
+    position:document.getElementById('nh-position').value.trim(),
+    department:document.getElementById('nh-dept').value,
+    store:document.getElementById('nh-store').value,
+    startDate:document.getElementById('nh-start').value,
+    manager:document.getElementById('nh-manager').value.trim(),
+    photo:null,
+    phases:JSON.parse(JSON.stringify(tpl)).map(ph=>({
+      ...ph,
+      items:ph.items.map(it=>typeof it==='string'?{text:it,done:false,doneDate:null}:it)
+    }))
+  };
+  employees.push(emp);persist();
+  closeModal('newHireModal');
+  openEmployee(emp.id);
+  toast('New hire added!');
+}
+
+/* ===================== ONBOARDING DETAIL ===================== */
+function openEmployee(id){
+  currentEmpId=id;
+  switchView('onboarding',document.querySelector('[data-view="onboarding"]'));
+}
+
+function renderOnboarding(){
+  const el=document.getElementById('v-onboarding');
+  if(!currentEmpId){el.innerHTML='<div class="card"><p style="color:var(--muted)">Select an employee from the Employees tab.</p></div>';return}
+  const emp=employees.find(e=>e.id===currentEmpId);
+  if(!emp){el.innerHTML='<div class="card"><p>Employee not found.</p></div>';return}
+
+  const p=getProgress(emp);
+  const daysSince=Math.floor((Date.now()-new Date(emp.startDate))/(86400000));
+  const total=emp.phases.reduce((a,ph)=>a+ph.items.length,0);
+  const done=emp.phases.reduce((a,ph)=>a+ph.items.filter(i=>i.done).length,0);
+  const overdue=getOverdueCount(emp);
+  const circumference=2*Math.PI*46;
+  const offset=circumference-(p/100)*circumference;
+
+  el.innerHTML=`
+    <div class="card" style="display:flex;gap:24px;flex-wrap:wrap;align-items:center">
+      <div class="photo-placeholder" onclick="uploadPhoto('${emp.id}')" title="Click to add photo">
+        ${emp.photo?`<img src="${emp.photo}">`:'📷<br>Photo'}
+      </div>
+      <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="handlePhoto(event,'${emp.id}')">
+      <div style="flex:1;min-width:200px">
+        <h2 style="margin:0;font-size:1.3rem">${emp.name}</h2>
+        <p style="color:var(--muted);font-size:.9rem">${emp.position} · ${emp.department} · ${emp.store}</p>
+        <p style="font-size:.85rem">Manager: <strong>${emp.manager||'—'}</strong> &nbsp;|&nbsp; Start: <strong>${emp.startDate}</strong></p>
+      </div>
+      <div class="progress-ring-wrap">
+        <svg width="110" height="110"><circle class="progress-ring-bg" cx="55" cy="55" r="46"/><circle class="progress-ring-fg" cx="55" cy="55" r="46" stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"/></svg>
+        <div class="progress-ring-text">${p}%</div>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="val">${done}/${total}</div><div class="lbl">Tasks Done</div></div>
+      <div class="stat-card"><div class="val">${daysSince>=0?daysSince:Math.abs(daysSince)+'d until start'}</div><div class="lbl">${daysSince>=0?'Days Since Start':'Countdown'}</div></div>
+      <div class="stat-card"><div class="val" style="color:${overdue?'var(--danger)':'var(--success)'}">${overdue}</div><div class="lbl">Overdue</div></div>
+    </div>
+    ${emp.phases.map((ph,pi)=>{
+      const phDone=ph.items.filter(i=>i.done).length;
+      const phTotal=ph.items.length;
+      return `<div class="accordion${pi===0?' open':''}">
+        <div class="accordion-header" onclick="this.parentElement.classList.toggle('open')">
+          <span>${ph.name}</span>
+          <span><span class="phase-progress">${phDone}/${phTotal}</span> &nbsp;<span class="arrow">▼</span></span>
+        </div>
+        <div class="accordion-body">
+          ${ph.items.map((it,ii)=>{
+            const isOverdue=!it.done&&isItemOverdue(emp,ph);
+            return `<div class="check-item${isOverdue?' overdue':''}">
+              <input type="checkbox" ${it.done?'checked':''} onchange="toggleItem('${emp.id}',${pi},${ii},this.checked)">
+              <span class="item-text${it.done?' done':''}">${it.text}</span>
+              ${it.doneDate?`<span class="item-date">✓ ${it.doneDate}</span>`:''}
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }).join('')}
+    <div class="btn-group">
+      <button class="btn btn-outline" onclick="switchView('employees',document.querySelector('[data-view=employees]'))">← Back</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteEmployee('${emp.id}')">Delete Employee</button>
+    </div>
+  `;
+}
+
+function toggleItem(empId,pi,ii,checked){
+  const emp=employees.find(e=>e.id===empId);
+  if(!emp)return;
+  emp.phases[pi].items[ii].done=checked;
+  emp.phases[pi].items[ii].doneDate=checked?new Date().toLocaleDateString():null;
+  persist();renderOnboarding();
+}
+
+function uploadPhoto(empId){document.getElementById('photoInput').click()}
+function handlePhoto(e,empId){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    const emp=employees.find(e=>e.id===empId);
+    if(emp){emp.photo=ev.target.result;persist();renderOnboarding()}
+  };
+  reader.readAsDataURL(file);
+}
+
+function deleteEmployee(id){
+  if(!confirm('Delete this employee?'))return;
+  employees=employees.filter(e=>e.id!==id);
+  currentEmpId=null;persist();
+  switchView('employees',document.querySelector('[data-view=employees]'));
+  toast('Employee deleted');
+}
+
+/* ===================== TEMPLATES ===================== */
+function renderTemplates(){
+  const el=document.getElementById('v-templates');
+  const names=Object.keys(templates);
+  
+  el.innerHTML=`
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+        <h2 style="margin:0">Checklist Templates</h2>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary btn-sm" onclick="addTemplate()">+ New Template</button>
+          <button class="btn btn-outline btn-sm" onclick="resetTemplates()">Reset Defaults</button>
+        </div>
+      </div>
+      <div class="filter-bar">
+        <select id="tplSelect" onchange="renderTemplateDetail()">${names.map(n=>`<option>${n}</option>`).join('')}</select>
+        <button class="btn btn-danger btn-sm" onclick="deleteTemplate()">Delete</button>
+        <button class="btn btn-outline btn-sm" onclick="renameTemplate()">Rename</button>
+      </div>
+      <div id="tplDetail"></div>
+    </div>
+  `;
+  renderTemplateDetail();
+}
+
+function renderTemplateDetail(){
+  const name=document.getElementById('tplSelect')?.value;
+  if(!name)return;
+  const tpl=templates[name];
+  const el=document.getElementById('tplDetail');
+  
+  el.innerHTML=tpl.map((ph,pi)=>`
+    <div class="template-phase">
+      <h3>${ph.name} <button class="btn btn-outline btn-sm" style="margin-left:8px" onclick="addTemplateItem(${pi})">+ Item</button></h3>
+      ${(ph.items||[]).map((it,ii)=>{
+        const txt=typeof it==='string'?it:it.text;
+        return `<div class="template-item">
+          <input type="text" value="${txt}" onchange="updateTemplateItem('${name}',${pi},${ii},this.value)">
+          <button onclick="removeTemplateItem('${name}',${pi},${ii})">✕</button>
+        </div>`;
+      }).join('')}
+    </div>
+  `).join('')+`<button class="btn btn-outline btn-sm" onclick="addTemplatePhase('${name}')">+ Add Phase</button>`;
+}
+
+function addTemplate(){
+  const name=prompt('Template name:');
+  if(!name||templates[name])return;
+  templates[name]=JSON.parse(JSON.stringify(DEFAULT_PHASES));
+  persist();renderTemplates();
+  document.getElementById('tplSelect').value=name;renderTemplateDetail();
+}
+
+function deleteTemplate(){
+  const name=document.getElementById('tplSelect').value;
+  if(Object.keys(templates).length<=1){toast("Can't delete last template");return}
+  if(!confirm(`Delete template "${name}"?`))return;
+  delete templates[name];persist();renderTemplates();
+}
+
+function renameTemplate(){
+  const old=document.getElementById('tplSelect').value;
+  const nw=prompt('New name:',old);
+  if(!nw||nw===old||templates[nw])return;
+  templates[nw]=templates[old];delete templates[old];persist();renderTemplates();
+  document.getElementById('tplSelect').value=nw;renderTemplateDetail();
+}
+
+function resetTemplates(){
+  if(!confirm('Reset all templates to defaults?'))return;
+  templates={Default:JSON.parse(JSON.stringify(DEFAULT_PHASES))};persist();renderTemplates();toast('Templates reset');
+}
+
+function updateTemplateItem(tplName,pi,ii,val){
+  const item=templates[tplName][pi].items[ii];
+  if(typeof item==='string')templates[tplName][pi].items[ii]=val;
+  else item.text=val;
+  persist();
+}
+
+function removeTemplateItem(tplName,pi,ii){
+  templates[tplName][pi].items.splice(ii,1);persist();renderTemplateDetail();
+}
+
+function addTemplateItem(pi){
+  const name=document.getElementById('tplSelect').value;
+  const txt=prompt('New checklist item:');
+  if(!txt)return;
+  templates[name][pi].items.push(txt);persist();renderTemplateDetail();
+}
+
+function addTemplatePhase(tplName){
+  const name=prompt('Phase name:');
+  if(!name)return;
+  templates[tplName].push({name,dueDayOffset:30,items:[]});persist();renderTemplateDetail();
+}
+
+/* ===================== HELPERS ===================== */
+function getProgress(emp){
+  const total=emp.phases.reduce((a,ph)=>a+ph.items.length,0);
+  if(!total)return 100;
+  const done=emp.phases.reduce((a,ph)=>a+ph.items.filter(i=>i.done).length,0);
+  return Math.round(done/total*100);
+}
+
+function isItemOverdue(emp,phase){
+  if(!emp.startDate)return false;
+  const start=new Date(emp.startDate);
+  const due=new Date(start);
+  due.setDate(due.getDate()+(phase.dueDayOffset||0));
+  return Date.now()>due.getTime();
+}
+
+function getOverdueCount(emp){
+  let count=0;
+  emp.phases.forEach(ph=>{
+    if(isItemOverdue(emp,ph)){
+      ph.items.forEach(it=>{if(!it.done)count++});
+    }
+  });
+  return count;
+}
+
+/* ===================== CSV EXPORT ===================== */
+function exportCSV(){
+  if(!employees.length){toast('No employees to export');return}
+  let rows=[['Name','Position','Department','Store','Start Date','Manager','Phase','Task','Done','Date Completed']];
+  employees.forEach(emp=>{
+    emp.phases.forEach(ph=>{
+      ph.items.forEach(it=>{
+        rows.push([emp.name,emp.position,emp.department,emp.store,emp.startDate,emp.manager,ph.name,it.text,it.done?'Yes':'No',it.doneDate||'']);
+      });
+    });
+  });
+  const csv=rows.map(r=>r.map(c=>`"${(c+'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`dyer-onboarding-${new Date().toISOString().slice(0,10)}.csv`;a.click();
+  toast('CSV exported!');
+}
+
+/* Init */
+renderDashboard();
+</script>
+</body>
+</html>
