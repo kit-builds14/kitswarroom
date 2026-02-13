@@ -312,7 +312,16 @@
 
     async function fetchData() {
       try {
-        const response = await fetch('/api/status');
+        // Try live tunnel first, then local API, then static fallback
+        const apiUrls = [
+          'https://accessibility-stars-greensboro-coordinator.trycloudflare.com/api/status',
+          '/api/status'
+        ];
+        let response;
+        for (const url of apiUrls) {
+          try { response = await fetch(url); if (response.ok) break; } catch(e) { continue; }
+        }
+        if (!response || !response.ok) throw new Error('All API endpoints failed');
         const data = await response.json();
         currentData = data;
         renderDashboard(data);
