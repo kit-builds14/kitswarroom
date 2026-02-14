@@ -180,8 +180,7 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 460px;
-  padding: 40px 0;
+  min-height: 0;
 }
 #constellation-svg {
   position: absolute;
@@ -195,8 +194,8 @@ body::before {
 /* ── Nodes Container ── */
 .nodes-container {
   position: relative;
-  width: 520px;
-  height: 520px;
+  width: min(520px, 90%);
+  height: min(520px, 100%);
   overflow: visible;
 }
 
@@ -550,7 +549,9 @@ function layoutNodes() {
   const isMobile = window.innerWidth < 768;
   const kitSize = isMobile ? 80 : 130;
   const agentSize = isMobile ? 52 : 86;
-  const radius = isMobile ? 140 : 185;
+  // Use container actual size to compute radius, leaving room for labels (~50px)
+  const maxRadius = Math.min(rect.width, rect.height) / 2 - (agentSize / 2) - 50;
+  const radius = isMobile ? Math.min(140, maxRadius) : Math.min(185, maxRadius);
 
   // Kit — position so circle center is at (cx, cy)
   const kitEl = nodeElements.Kit;
