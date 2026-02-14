@@ -148,6 +148,28 @@ body {
   background: rgba(43,76,126,.15); border-radius: 4px; padding: 1px 6px; letter-spacing: .3px;
 }
 
+/* Comms Lines */
+.agents-wrapper { position: relative; }
+.comms-svg {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 1;
+}
+.comms-line {
+  stroke: var(--green); stroke-width: 2; fill: none;
+  stroke-dasharray: 8 4; animation: dashFlow 1s linear infinite;
+}
+.comms-line.inactive { stroke: var(--text-muted); stroke-width: 1; opacity: .4; animation: none; }
+@keyframes dashFlow { to { stroke-dashoffset: -12; } }
+.comms-dot {
+  fill: var(--green); r: 4;
+}
+.comms-dot.inactive { fill: var(--text-muted); opacity: .4; }
+.comms-label {
+  font-family: var(--mono); font-size: 9px; fill: var(--text-secondary);
+  text-anchor: middle; dominant-baseline: middle;
+}
+.agent-card { position: relative; z-index: 2; }
+
 /* Connecting state */
 .connecting { text-align: center; padding: 60px 20px; color: var(--text-secondary); font-size: 15px; }
 .connecting-spinner { width: 24px; height: 24px; border: 2px solid var(--border); border-top-color: var(--accent);
@@ -157,7 +179,7 @@ body {
 /* Mobile */
 @media (max-width: 768px) {
   .layout { grid-template-columns: 1fr; }
-  .activity { border-left: none; border-top: 1px solid var(--border); position: static; max-height: 400px; }
+  .activity { border-left: none; border-top: 1px solid var(--border); position: static; max-height: none; }
   .stats-grid { grid-template-columns: repeat(3, 1fr); }
   .agents-grid { grid-template-columns: repeat(2, 1fr); }
   .main { padding: 16px; }
@@ -192,8 +214,7 @@ body {
 </div>
 
 <script>
-// Use relative path if served from dashboard.kitswarroom.com, otherwise use full URL
-const API = location.hostname.includes('dashboard') ? '/api/status' : 'https://dashboard.kitswarroom.com/api/status';
+const API = '/api/status';
 const KEY = '689b1f85c91ffc61ef7469ea7b4c75f796a7025848bb3c7c';
 let prevStatuses = {};
 let initialized = false;
@@ -225,15 +246,14 @@ function formatUptime(seconds) {
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
 }
 
-function renderStats(stats, labels) {
-  const l = labels || {};
+function renderStats(stats) {
   const items = [
-    { label: l.linesOfCode || 'Total Tokens', value: stats.linesOfCode, key: 'loc' },
-    { label: l.files || 'Sessions', value: stats.files, key: 'files' },
-    { label: l.screens || 'Agents', value: stats.screens, key: 'screens' },
-    { label: l.components || 'Active Now', value: stats.components, key: 'comps' },
-    { label: l.commits || 'Commits', value: stats.commits, key: 'commits' },
-    { label: l.uptime || 'Uptime', value: stats.uptime, key: 'uptime', format: formatUptime },
+    { label: 'Lines of Code', value: stats.linesOfCode, key: 'loc' },
+    { label: 'Files', value: stats.files, key: 'files' },
+    { label: 'Screens', value: stats.screens, key: 'screens' },
+    { label: 'Components', value: stats.components, key: 'comps' },
+    { label: 'Commits', value: stats.commits, key: 'commits' },
+    { label: 'Uptime', value: stats.uptime, key: 'uptime', format: formatUptime },
   ];
   return `<div class="stats-grid">${items.map((s, i) =>
     `<div class="stat-card"><div class="stat-value" data-key="${s.key}" data-target="${s.value}" data-delay="${i * 100}" data-format="${s.key === 'uptime' ? 'uptime' : ''}">${s.format ? s.format(s.value) : s.value.toLocaleString()}</div><div class="stat-label">${s.label}</div></div>`
@@ -252,9 +272,9 @@ function statusIcon(s) {
 }
 
 function renderAgents(agents) {
-  return `<div class="agents-grid">${agents.map(a => {
+  return `<div class="agents-wrapper"><svg class="comms-svg" id="commsSvg"></svg><div class="agents-grid">${agents.map(a => {
     const changed = prevStatuses[a.name] && prevStatuses[a.name] !== a.status;
-    return `<div class="agent-card${changed ? ' pulse-green' : ''}">
+    return `<div class="agent-card${changed ? ' pulse-green' : ''}" data-agent="${a.name.toLowerCase()}">
       <div class="agent-emoji">${a.emoji}</div>
       <div class="agent-name">${a.name}</div>
       <div class="agent-role">${a.role}</div>
@@ -262,7 +282,42 @@ function renderAgents(agents) {
       <div class="agent-task">${a.task}</div>
       <div class="agent-status ${statusClass(a.status)}">${statusIcon(a.status)} ${statusLabel(a.status)}</div>
     </div>`;
-  }).join('')}</div>`;
+  }).join('')}</div></div>`;
+}
+
+function renderCommsLines(links) {
+  if (!links || !links.length) { const svg = document.getElementById('commsSvg'); if(svg) svg.innerHTML = ''; return; }
+  requestAnimationFrame(() => {
+    const svg = document.getElementById('commsSvg');
+    if (!svg) return;
+    const wrapper = svg.parentElement;
+    const wRect = wrapper.getBoundingClientRect();
+    svg.setAttribute('viewBox', `0 0 ${wRect.width} ${wRect.height}`);
+    svg.style.width = wRect.width + 'px';
+    svg.style.height = wRect.height + 'px';
+    let html = '<defs><marker id="arrowG" markerWidth="6" markerHeight="4" refX="6" refY="2" orient="auto"><polygon points="0 0, 6 2, 0 4" fill="#10B981"/></marker><marker id="arrowM" markerWidth="6" markerHeight="4" refX="6" refY="2" orient="auto"><polygon points="0 0, 6 2, 0 4" fill="#6B7280"/></marker></defs>';
+    for (const link of links) {
+      const fromEl = wrapper.querySelector(`[data-agent="${link.from}"]`);
+      const toEl = wrapper.querySelector(`[data-agent="${link.to}"]`);
+      if (!fromEl || !toEl) continue;
+      const fR = fromEl.getBoundingClientRect();
+      const tR = toEl.getBoundingClientRect();
+      const fx = fR.left + fR.width/2 - wRect.left;
+      const fy = fR.top + fR.height/2 - wRect.top;
+      const tx = tR.left + tR.width/2 - wRect.left;
+      const ty = tR.top + tR.height/2 - wRect.top;
+      const cls = link.active ? 'comms-line' : 'comms-line inactive';
+      const marker = link.active ? 'url(#arrowG)' : 'url(#arrowM)';
+      // Curved line
+      const mx = (fx+tx)/2, my = (fy+ty)/2 - 30;
+      html += `<path class="${cls}" d="M${fx},${fy} Q${mx},${my} ${tx},${ty}" marker-end="${marker}"/>`;
+      if (link.label) {
+        const lx = (fx+tx)/2, ly = (fy+ty)/2 - 18;
+        html += `<text class="comms-label" x="${lx}" y="${ly}">${link.label.substring(0,20)}</text>`;
+      }
+    }
+    svg.innerHTML = html;
+  });
 }
 
 function renderActivity(items) {
@@ -286,7 +341,8 @@ async function fetchData() {
 
     const main = document.getElementById('main');
     const isFirst = !initialized;
-    main.innerHTML = renderStats(data.stats, data.statLabels) + renderAgents(data.agents);
+    main.innerHTML = renderStats(data.stats) + renderAgents(data.agents);
+    renderCommsLines(data.commsLinks || []);
 
     if (isFirst) {
       // Animate stats on first load
