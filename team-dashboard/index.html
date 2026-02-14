@@ -545,10 +545,10 @@ function layoutNodes() {
   const agentSize = isMobile ? 60 : 86;
   const radius = isMobile ? 140 : 220;
 
-  // Kit
+  // Kit — position so circle center is at (cx, cy)
   const kitEl = nodeElements.Kit;
   kitEl.style.left = (cx - kitSize / 2) + 'px';
-  kitEl.style.top = (cy - kitSize / 2 - 20) + 'px';
+  kitEl.style.top = (cy - kitSize / 2) + 'px';
 
   // Clear SVG
   svg.innerHTML = '';
@@ -557,24 +557,19 @@ function layoutNodes() {
   const defs = document.createElementNS(svgNS, 'defs');
   svg.appendChild(defs);
 
-  // SVG viewBox matches constellation
-  const svgRect = svg.getBoundingClientRect();
-  // Kit center in SVG coords
-  const kitCx = cx + container.offsetLeft;
-  const kitCy = cy - 20 + container.offsetTop;
-
   AGENT_ORDER.forEach((name, i) => {
     const angle = (i / 7) * Math.PI * 2 - Math.PI / 2;
     const ax = cx + Math.cos(angle) * radius;
     const ay = cy + Math.sin(angle) * radius;
 
+    // Position agent so circle center is at (ax, ay)
     const el = nodeElements[name];
     el.style.left = (ax - agentSize / 2) + 'px';
-    el.style.top = (ay - agentSize / 2 - 14) + 'px';
+    el.style.top = (ay - agentSize / 2) + 'px';
 
-    // SVG line (bezier) — anchor at circle edges, not centers
-    const rawKitX = cx, rawKitY = cy - 20;
-    const rawAgentX = ax, rawAgentY = ay - 14;
+    // SVG line — from Kit circle center to Agent circle center, then offset to edges
+    const rawKitX = cx, rawKitY = cy;
+    const rawAgentX = ax, rawAgentY = ay;
     // Vector from Kit center to Agent center
     const dx = rawAgentX - rawKitX;
     const dy = rawAgentY - rawKitY;
