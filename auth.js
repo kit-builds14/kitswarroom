@@ -66,7 +66,7 @@
     async function tryLogin() {
       var pw = input.value;
       var hashed = await sha256(pw);
-      if (hashed === '93b809afe864725999f24f103dcdf496a682eb833179783fed8b2d838414d233') {
+      if (hashed === '41d3c70005e91c5e765e6b57e2085c44756e02cb860cd586b46b006ac76154a9') {
         setAuthenticated();
         location.reload();
       } else {
