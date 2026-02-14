@@ -180,7 +180,7 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 500px;
+  min-height: 460px;
 }
 #constellation-svg {
   position: absolute;
@@ -194,8 +194,8 @@ body::before {
 /* ── Nodes Container ── */
 .nodes-container {
   position: relative;
-  width: 560px;
-  height: 560px;
+  width: 520px;
+  height: 520px;
   overflow: visible;
 }
 
@@ -549,7 +549,7 @@ function layoutNodes() {
   const isMobile = window.innerWidth < 768;
   const kitSize = isMobile ? 80 : 130;
   const agentSize = isMobile ? 52 : 86;
-  const radius = isMobile ? 140 : 200;
+  const radius = isMobile ? 140 : 185;
 
   // Kit — position so circle center is at (cx, cy)
   const kitEl = nodeElements.Kit;
