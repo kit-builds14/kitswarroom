@@ -478,25 +478,45 @@ function getWeatherEmoji(code) {
   return '🌤️';
 }
 
-async function fetchWeather(location, tempId, descId, detailsId) {
+// Open-Meteo coords: Vero Beach 27.6386,-80.3973 / Long Island 40.7891,-73.1350
+const LOCATIONS = {
+  vero: { lat: 27.6386, lon: -80.3973, ids: ['temp-vero','desc-vero','details-vero'] },
+  li:   { lat: 40.7891, lon: -73.1350, ids: ['temp-li','desc-li','details-li'] }
+};
+
+function describeWeather(code) {
+  if (code === 0) return ['☀️','Clear skies'];
+  if (code <= 3) return ['⛅','Partly cloudy'];
+  if (code <= 48) return ['🌫️','Foggy'];
+  if (code <= 57) return ['🌧️','Drizzle'];
+  if (code <= 67) return ['🌧️','Rain'];
+  if (code <= 77) return ['🌨️','Snow'];
+  if (code <= 82) return ['🌧️','Rain showers'];
+  if (code <= 86) return ['🌨️','Snow showers'];
+  if (code <= 99) return ['⛈️','Thunderstorm'];
+  return ['🌤️','Fair'];
+}
+
+async function fetchWeather(key) {
+  const loc = LOCATIONS[key];
   try {
-    const url = `https://wttr.in/${encodeURIComponent(location)}?format=j1`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&temperature_unit=fahrenheit&wind_speed_unit=mph`;
     const res = await fetch(url);
     const data = await res.json();
-    const cur = data.current_condition[0];
-    const emoji = getWeatherEmoji(cur.weatherCode);
-    document.getElementById(tempId).innerHTML = `${emoji} ${cur.temp_F}°F`;
-    document.getElementById(descId).textContent = cur.weatherDesc[0].value;
-    document.getElementById(detailsId).innerHTML =
-      `<span>💨 ${cur.windspeedMiles}mph</span><span>💧 ${cur.humidity}%</span><span>🌡️ Feels ${cur.FeelsLikeF}°F</span>`;
+    const c = data.current;
+    const [emoji, desc] = describeWeather(c.weather_code);
+    document.getElementById(loc.ids[0]).innerHTML = `${emoji} ${Math.round(c.temperature_2m)}°F`;
+    document.getElementById(loc.ids[1]).textContent = desc;
+    document.getElementById(loc.ids[2]).innerHTML =
+      `<span>💨 ${Math.round(c.wind_speed_10m)}mph</span><span>💧 ${c.relative_humidity_2m}%</span><span>🌡️ Feels ${Math.round(c.apparent_temperature)}°F</span>`;
   } catch(e) {
-    document.getElementById(tempId).innerHTML = '—';
+    document.getElementById(loc.ids[0]).innerHTML = '—';
   }
 }
 
 function loadWeather() {
-  fetchWeather('Vero Beach,FL', 'temp-vero', 'desc-vero', 'details-vero');
-  fetchWeather('Long Island,NY', 'temp-li', 'desc-li', 'details-li');
+  fetchWeather('vero');
+  fetchWeather('li');
 }
 
 loadWeather();
