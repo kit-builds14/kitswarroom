@@ -363,10 +363,13 @@ body::before {
 }
 @media (max-width: 768px) {
   .main { flex-direction: column; }
-  .constellation { min-height: 400px; }
-  .nodes-container { width: 360px; height: 360px; }
-  .node.kit .node-circle { width: 90px; height: 90px; font-size: 36px; }
-  .node-circle { width: 60px; height: 60px; font-size: 24px; }
+  .constellation { min-height: 420px; }
+  .nodes-container { width: 380px; height: 380px; }
+  .node.kit .node-circle { width: 80px; height: 80px; font-size: 32px; }
+  .node-circle { width: 52px; height: 52px; font-size: 22px; }
+  .node-name { font-size: 10px; margin-top: 5px; }
+  .node-role { display: none; }
+  .node-task { font-size: 9px; max-width: 90px; margin-top: 2px; }
   .activity-panel {
     width: 100%;
     max-height: 300px;
@@ -543,9 +546,9 @@ function layoutNodes() {
   const cx = rect.width / 2;
   const cy = rect.height / 2;
   const isMobile = window.innerWidth < 768;
-  const kitSize = isMobile ? 90 : 130;
-  const agentSize = isMobile ? 60 : 86;
-  const radius = isMobile ? 140 : 220;
+  const kitSize = isMobile ? 80 : 130;
+  const agentSize = isMobile ? 52 : 86;
+  const radius = isMobile ? 155 : 220;
 
   // Kit — position so circle center is at (cx, cy)
   const kitEl = nodeElements.Kit;
@@ -783,10 +786,27 @@ function updateDashboard(data) {
     const roleEl = el.querySelector('.node-role');
     if (roleEl && agent.role) roleEl.textContent = agent.role;
 
-    // Task
+    // Task — show meaningful info based on status
     const taskEl = document.getElementById(`task-${agent.name}`);
-    if (taskEl) taskEl.textContent = agent.task ? (agent.task.length > 40 ? agent.task.slice(0, 40) + '…' : agent.task) : '';
-    if (taskEl) taskEl.title = agent.task || '';
+    if (taskEl) {
+      const isMob = window.innerWidth < 768;
+      const maxLen = isMob ? 20 : 40;
+      let taskText = '';
+      if (status === 'working' && agent.task) {
+        taskText = agent.task.length > maxLen ? agent.task.slice(0, maxLen) + '…' : agent.task;
+      } else if (status === 'complete') {
+        let ago = '';
+        const ts = agent.lastActivity || agent.updatedAt;
+        if (ts) {
+          const mins = Math.round((Date.now() - new Date(ts).getTime()) / 60000);
+          ago = mins < 1 ? 'just now' : mins + 'm ago';
+        }
+        taskText = ago ? `✓ Complete · ${ago}` : '✓ Complete';
+      }
+      // idle: show nothing
+      taskEl.textContent = taskText;
+      taskEl.title = agent.task || '';
+    }
 
     // Status class
     el.className = el.className.replace(/status-\w+/g, '').trim();
