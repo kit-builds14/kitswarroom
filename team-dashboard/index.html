@@ -3,377 +3,825 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Command Center — Kit's War Room</title>
+<title>Command Center</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+/* ═══════════════════════════════════════════════════════════
+   COMMAND CENTER — Neural Network Mission Control
+   ═══════════════════════════════════════════════════════════ */
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
 :root {
   --bg: #0D1117;
-  --card: #161B22;
-  --border: #2D333B;
-  --accent: #2B4C7E;
+  --bg-card: rgba(22, 27, 34, 0.75);
+  --border: rgba(48, 54, 61, 0.6);
   --text: #E6EDF3;
-  --text-secondary: #8B949E;
-  --text-muted: #6B7280;
-  --text-body: #C9D1D9;
-  --green: #10B981;
-  --blue: #3B82F6;
-  --red: #EF4444;
-  --time-blue: #5B8FD4;
-  --radius: 12px;
-  --font: 'Inter', -apple-system, sans-serif;
-  --mono: 'JetBrains Mono', monospace;
+  --text-dim: #8B949E;
+  --kit-gold: #C5A55A;
+  --kit-glow: rgba(197, 165, 90, 0.4);
+  --coder: #10B981;
+  --researcher: #3B82F6;
+  --writer: #A855F7;
+  --analyst: #F59E0B;
+  --ops: #6366F1;
+  --comms: #EC4899;
+  --qa: #EF4444;
+  --green-glow: rgba(16, 185, 129, 0.5);
+  --blue-glow: rgba(59, 130, 246, 0.5);
 }
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-body {
+
+html, body {
+  height: 100%;
   background: var(--bg);
   color: var(--text);
-  font-family: var(--font);
+  font-family: 'Inter', -apple-system, sans-serif;
+  overflow-x: hidden;
+}
+
+/* ── Background Grid ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(ellipse 80% 60% at 50% 50%, rgba(197,165,90,0.03) 0%, transparent 70%),
+    linear-gradient(rgba(48,54,61,0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(48,54,61,0.15) 1px, transparent 1px);
+  background-size: 100% 100%, 40px 40px, 40px 40px;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ── Star field canvas ── */
+#starfield {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ── Layout ── */
+.app {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
-  background-image: radial-gradient(rgba(255,255,255,.015) 1px, transparent 1px);
-  background-size: 24px 24px;
 }
 
-/* Header */
+/* ── Header ── */
 .header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 28px;
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border);
-  background: linear-gradient(180deg, rgba(13,17,23,.95), rgba(13,17,23,1));
-  position: sticky; top: 0; z-index: 10;
+  flex-shrink: 0;
+}
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.header-title {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, var(--kit-gold), #E8D5A3);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+}
+.status-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #EF4444;
+  transition: background 0.3s;
+}
+.status-badge.live .status-dot {
+  background: #10B981;
+  box-shadow: 0 0 8px rgba(16,185,129,0.6);
+  animation: dotPulse 2s ease-in-out infinite;
+}
+@keyframes dotPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.header-clock {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--text-dim);
+  letter-spacing: 0.5px;
+}
+
+/* ── Stats Bar ── */
+.stats-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  padding: 10px 28px;
+  background: rgba(13,17,23,0.6);
   backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  flex-shrink: 0;
 }
-.header::after {
-  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-dim);
 }
-.header-left { display: flex; align-items: center; gap: 16px; }
-.header-title { font-size: 20px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
-.live-badge {
-  display: flex; align-items: center; gap: 6px;
-  background: rgba(16,185,129,.08); border: 1px solid rgba(16,185,129,.2);
-  border-radius: 20px; padding: 4px 12px 4px 8px; font-size: 13px; font-weight: 500; color: var(--green);
+.stat-label { font-weight: 500; letter-spacing: 0.5px; }
+.stat-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text);
+  min-width: 24px;
+  text-align: right;
 }
-.live-dot {
-  width: 8px; height: 8px; border-radius: 50%; background: var(--green);
-  animation: pulse 2s ease-in-out infinite;
+.stat-sep {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
 }
-.offline .live-dot { background: var(--red); animation: none; }
-.offline .live-badge { color: var(--red); background: rgba(239,68,68,.08); border-color: rgba(239,68,68,.2); }
-.clock { font-family: var(--mono); font-size: 15px; color: var(--text-secondary); font-weight: 600; }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(16,185,129,.4); }
-  50% { opacity: .7; box-shadow: 0 0 0 6px rgba(16,185,129,0); }
+/* ── Main Content ── */
+.main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
 }
 
-/* Layout */
-.layout {
-  display: grid;
-  grid-template-columns: 1fr 340px;
-  gap: 0;
-  min-height: calc(100vh - 57px);
+/* ── Constellation Area ── */
+.constellation {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 500px;
 }
-.main { padding: 24px 28px; overflow-y: auto; }
+#constellation-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
 
-/* Stats */
-.stats-grid {
-  display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 28px;
+/* ── Nodes Container ── */
+.nodes-container {
+  position: relative;
+  width: 600px;
+  height: 600px;
 }
-.stat-card {
-  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
-  padding: 16px 18px; transition: all .2s ease; cursor: default;
-}
-.stat-card:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 4px 20px rgba(43,76,126,.15); }
-.stat-value { font-family: var(--mono); font-size: 28px; font-weight: 700; color: var(--text); line-height: 1.2; }
-.stat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; color: var(--text-secondary); margin-top: 4px; }
 
-/* Agents */
-.agents-grid {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+/* ── Agent Node ── */
+.node {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: default;
+  transition: transform 0.3s ease, opacity 0.6s ease;
+  opacity: 0;
+  z-index: 2;
 }
-.agent-card {
-  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
-  padding: 20px; display: flex; flex-direction: column; gap: 6px;
-  transition: all .25s ease; cursor: default; min-height: 180px; position: relative;
-}
-.agent-card:hover { border-color: var(--accent); box-shadow: 0 4px 24px rgba(43,76,126,.12); }
-.agent-card.pulse-green { animation: cardPulse .6s ease; }
-@keyframes cardPulse {
-  0% { border-color: var(--border); }
-  50% { border-color: var(--green); box-shadow: 0 0 20px rgba(16,185,129,.15); }
-  100% { border-color: var(--border); }
-}
-.agent-emoji { font-size: 28px; line-height: 1; }
-.agent-name { font-size: 16px; font-weight: 600; color: var(--text); }
-.agent-role { font-size: 12px; color: var(--text-secondary); }
-.agent-model { font-family: var(--mono); font-size: 10px; color: var(--text-muted); margin-top: 2px; }
-.agent-task { font-size: 13px; color: var(--text-body); margin-top: auto; line-height: 1.4;
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.agent-status {
-  display: inline-flex; align-items: center; gap: 6px;
-  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px;
-  padding: 4px 10px; border-radius: 6px; width: fit-content; margin-top: 8px;
-}
-.status-working { color: var(--green); background: rgba(16,185,129,.1); }
-.status-working .status-dot { background: var(--green); animation: pulse 2s ease-in-out infinite; }
-.status-complete { color: var(--blue); background: rgba(59,130,246,.1); }
-.status-idle { color: var(--text-muted); background: rgba(107,114,128,.1); }
-.status-error { color: var(--red); background: rgba(239,68,68,.1); }
-.status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.node.visible { opacity: 1; }
+.node:hover { transform: scale(1.08) !important; }
+.node:hover .node-task { max-width: 260px; white-space: normal; }
 
-/* Activity Feed */
-.activity {
-  border-left: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column;
-  max-height: calc(100vh - 57px); position: sticky; top: 57px;
+.node-circle {
+  width: 86px;
+  height: 86px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 34px;
+  background: rgba(22, 27, 34, 0.9);
+  border: 2px solid var(--border);
+  transition: border-color 0.4s, box-shadow 0.4s, background 0.4s;
+  position: relative;
+}
+.node-circle::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  transition: border-color 0.4s;
+}
+
+/* Kit's central node */
+.node.kit .node-circle {
+  width: 130px;
+  height: 130px;
+  font-size: 52px;
+  border: 2px solid var(--kit-gold);
+  box-shadow: 0 0 30px var(--kit-glow), 0 0 60px rgba(197,165,90,0.15);
+  animation: kitGlow 3s ease-in-out infinite;
+}
+@keyframes kitGlow {
+  0%, 100% { box-shadow: 0 0 30px var(--kit-glow), 0 0 60px rgba(197,165,90,0.15); }
+  50% { box-shadow: 0 0 40px var(--kit-glow), 0 0 80px rgba(197,165,90,0.2); }
+}
+
+.node-name {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.node-role {
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 1px;
+}
+.node-task {
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 4px;
+  max-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  transition: max-width 0.3s;
+  min-height: 14px;
+}
+
+/* Status styles */
+.node.status-working .node-circle {
+  border-color: currentColor;
+  box-shadow: 0 0 20px var(--green-glow);
+  animation: workPulse 2s ease-in-out infinite;
+}
+.node.status-working.kit .node-circle {
+  border-color: var(--kit-gold);
+  animation: kitGlow 2s ease-in-out infinite;
+}
+@keyframes workPulse {
+  0%, 100% { box-shadow: 0 0 15px currentColor; filter: brightness(1); }
+  50% { box-shadow: 0 0 30px currentColor; filter: brightness(1.1); }
+}
+.node.status-complete .node-circle {
+  border-color: #3B82F6;
+  box-shadow: 0 0 15px var(--blue-glow);
+}
+.node.status-idle .node-circle {
+  border-color: var(--border);
+  opacity: 0.7;
+}
+
+/* Activation flash */
+@keyframes activationFlash {
+  0% { box-shadow: 0 0 0px currentColor; }
+  30% { box-shadow: 0 0 50px currentColor; }
+  100% { box-shadow: 0 0 20px currentColor; }
+}
+.node.flash .node-circle { animation: activationFlash 0.6s ease-out; }
+
+/* ── Activity Feed ── */
+.activity-panel {
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  border-left: 1px solid var(--border);
+  flex-shrink: 0;
 }
 .activity-header {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 14px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;
-  letter-spacing: .8px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
+  padding: 16px 20px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--border);
 }
-.activity-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0; }
-.activity-list::-webkit-scrollbar { width: 4px; }
-.activity-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.activity-feed {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+.activity-feed::-webkit-scrollbar { width: 4px; }
+.activity-feed::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
 .activity-item {
-  padding: 10px 0; border-bottom: 1px solid rgba(45,51,59,.5);
-  animation: slideIn .3s ease;
+  padding: 10px 20px;
+  border-bottom: 1px solid rgba(48,54,61,0.3);
+  animation: slideIn 0.3s ease-out;
 }
-@keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
-.activity-time { font-family: var(--mono); font-size: 12px; color: var(--time-blue); margin-bottom: 3px; }
-.activity-text { font-size: 13px; color: var(--text-body); line-height: 1.4; margin-bottom: 4px; }
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.activity-time {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-dim);
+}
 .activity-agent {
-  display: inline-block; font-size: 10px; font-weight: 600; color: var(--accent);
-  background: rgba(43,76,126,.15); border-radius: 4px; padding: 1px 6px; letter-spacing: .3px;
+  font-size: 11px;
+  font-weight: 600;
+  margin: 2px 0;
+}
+.activity-text {
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.4;
 }
 
-/* Comms Lines */
-.agents-wrapper { position: relative; }
-.comms-svg {
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  pointer-events: none; z-index: 1;
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .activity-panel { width: 260px; }
 }
-.comms-line {
-  stroke: var(--green); stroke-width: 2; fill: none;
-  stroke-dasharray: 8 4; animation: dashFlow 1s linear infinite;
-}
-.comms-line.inactive { stroke: var(--text-muted); stroke-width: 1; opacity: .4; animation: none; }
-@keyframes dashFlow { to { stroke-dashoffset: -12; } }
-.comms-dot {
-  fill: var(--green); r: 4;
-}
-.comms-dot.inactive { fill: var(--text-muted); opacity: .4; }
-.comms-label {
-  font-family: var(--mono); font-size: 9px; fill: var(--text-secondary);
-  text-anchor: middle; dominant-baseline: middle;
-}
-.agent-card { position: relative; z-index: 2; }
-
-/* Connecting state */
-.connecting { text-align: center; padding: 60px 20px; color: var(--text-secondary); font-size: 15px; }
-.connecting-spinner { width: 24px; height: 24px; border: 2px solid var(--border); border-top-color: var(--accent);
-  border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 12px; }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* Mobile */
 @media (max-width: 768px) {
-  .layout { grid-template-columns: 1fr; }
-  .activity { border-left: none; border-top: 1px solid var(--border); position: static; max-height: none; }
-  .stats-grid { grid-template-columns: repeat(3, 1fr); }
-  .agents-grid { grid-template-columns: repeat(2, 1fr); }
-  .main { padding: 16px; }
-}
-@media (max-width: 640px) {
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
-  .agents-grid { grid-template-columns: repeat(2, 1fr); }
-  .header { padding: 12px 16px; }
-  .header-title { font-size: 16px; letter-spacing: 1px; }
-  .stat-value { font-size: 22px; }
-  .agent-card { min-height: 160px; padding: 16px; }
+  .main { flex-direction: column; }
+  .constellation { min-height: 400px; }
+  .nodes-container { width: 360px; height: 360px; }
+  .node.kit .node-circle { width: 90px; height: 90px; font-size: 36px; }
+  .node-circle { width: 60px; height: 60px; font-size: 24px; }
+  .activity-panel {
+    width: 100%;
+    max-height: 300px;
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
+  .stats-bar { gap: 16px; }
+  .stat-sep { display: none; }
+  .header { padding: 10px 16px; }
+  .header-title { font-size: 12px; letter-spacing: 3px; }
 }
 </style>
 </head>
 <body>
-<div class="header" id="header">
-  <div class="header-left">
-    <span class="header-title">Command Center</span>
-    <div class="live-badge"><span class="live-dot"></span><span id="liveText">Live</span></div>
-  </div>
-  <span class="clock" id="clock"></span>
-</div>
 
-<div class="layout">
-  <div class="main" id="main">
-    <div class="connecting" id="connecting"><div class="connecting-spinner"></div>Connecting...</div>
+<canvas id="starfield"></canvas>
+
+<div class="app">
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <div class="header-title">Command Center</div>
+      <div class="status-badge" id="statusBadge">
+        <span class="status-dot"></span>
+        <span id="statusText">Connecting</span>
+      </div>
+    </div>
+    <div class="header-clock" id="clock"></div>
+  </header>
+
+  <!-- Stats -->
+  <div class="stats-bar" id="statsBar">
+    <div class="stat-item"><span class="stat-label">Total Sessions</span><span class="stat-value" id="statSessions">—</span></div>
+    <div class="stat-sep"></div>
+    <div class="stat-item"><span class="stat-label">Active Agents</span><span class="stat-value" id="statActive">—</span></div>
+    <div class="stat-sep"></div>
+    <div class="stat-item"><span class="stat-label">Uptime</span><span class="stat-value" id="statUptime">—</span></div>
+    <div class="stat-sep"></div>
+    <div class="stat-item"><span class="stat-label">Commits</span><span class="stat-value" id="statCommits">—</span></div>
+    <div class="stat-sep"></div>
+    <div class="stat-item"><span class="stat-label">Lines of Code</span><span class="stat-value" id="statLines">—</span></div>
   </div>
-  <div class="activity" id="activityPanel" style="display:none">
-    <div class="activity-header"><i data-lucide="activity" style="width:16px;height:16px"></i> Activity Feed</div>
-    <div class="activity-list" id="activityList"></div>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="constellation">
+      <svg id="constellation-svg"></svg>
+      <div class="nodes-container" id="nodesContainer"></div>
+    </div>
+    <aside class="activity-panel">
+      <div class="activity-header">Activity Feed</div>
+      <div class="activity-feed" id="activityFeed"></div>
+    </aside>
   </div>
 </div>
 
 <script>
-const API = '/api/status';
-const KEY = '689b1f85c91ffc61ef7469ea7b4c75f796a7025848bb3c7c';
-let prevStatuses = {};
-let initialized = false;
+/* ═══════════════════════════════════════════════════════════
+   COMMAND CENTER — JavaScript
+   ═══════════════════════════════════════════════════════════ */
 
-// Clock
-function updateClock() {
-  document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-}
-updateClock();
-setInterval(updateClock, 1000);
+// Agent color map
+const COLORS = {
+  Kit: '#C5A55A',
+  Coder: '#10B981',
+  Researcher: '#3B82F6',
+  Writer: '#A855F7',
+  Analyst: '#F59E0B',
+  Ops: '#6366F1',
+  Comms: '#EC4899',
+  Qa: '#EF4444'
+};
 
-// Count-up animation
-function animateValue(el, end, duration, format) {
-  const start = 0;
-  const startTime = performance.now();
-  function step(now) {
-    const progress = Math.min((now - startTime) / duration, 1);
-    const eased = 1 - Math.pow(1 - progress, 3);
-    const current = Math.round(start + (end - start) * eased);
-    el.textContent = format ? format(current) : current.toLocaleString();
-    if (progress < 1) requestAnimationFrame(step);
+// ── Starfield Background ──
+(function initStarfield() {
+  const c = document.getElementById('starfield');
+  const ctx = c.getContext('2d');
+  let stars = [];
+  function resize() {
+    c.width = window.innerWidth;
+    c.height = window.innerHeight;
+    stars = Array.from({ length: 80 }, () => ({
+      x: Math.random() * c.width,
+      y: Math.random() * c.height,
+      r: Math.random() * 1.2 + 0.3,
+      a: Math.random(),
+      s: Math.random() * 0.003 + 0.001
+    }));
   }
-  requestAnimationFrame(step);
-}
-
-function formatUptime(seconds) {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  return h > 0 ? `${h}h ${m}m` : `${m}m`;
-}
-
-function renderStats(stats) {
-  const items = [
-    { label: 'Lines of Code', value: stats.linesOfCode, key: 'loc' },
-    { label: 'Files', value: stats.files, key: 'files' },
-    { label: 'Screens', value: stats.screens, key: 'screens' },
-    { label: 'Components', value: stats.components, key: 'comps' },
-    { label: 'Commits', value: stats.commits, key: 'commits' },
-    { label: 'Uptime', value: stats.uptime, key: 'uptime', format: formatUptime },
-  ];
-  return `<div class="stats-grid">${items.map((s, i) =>
-    `<div class="stat-card"><div class="stat-value" data-key="${s.key}" data-target="${s.value}" data-delay="${i * 100}" data-format="${s.key === 'uptime' ? 'uptime' : ''}">${s.format ? s.format(s.value) : s.value.toLocaleString()}</div><div class="stat-label">${s.label}</div></div>`
-  ).join('')}</div>`;
-}
-
-function statusClass(s) {
-  return ({ working: 'status-working', complete: 'status-complete', idle: 'status-idle', error: 'status-error' })[s] || 'status-idle';
-}
-function statusLabel(s) {
-  return ({ working: 'Working', complete: 'Complete', idle: 'Idle', error: 'Error' })[s] || 'Idle';
-}
-function statusIcon(s) {
-  if (s === 'complete') return '✓';
-  return `<span class="status-dot"></span>`;
-}
-
-function renderAgents(agents) {
-  return `<div class="agents-wrapper"><svg class="comms-svg" id="commsSvg"></svg><div class="agents-grid">${agents.map(a => {
-    const changed = prevStatuses[a.name] && prevStatuses[a.name] !== a.status;
-    return `<div class="agent-card${changed ? ' pulse-green' : ''}" data-agent="${a.name.toLowerCase()}">
-      <div class="agent-emoji">${a.emoji}</div>
-      <div class="agent-name">${a.name}</div>
-      <div class="agent-role">${a.role}</div>
-      <div class="agent-model">${a.model}</div>
-      <div class="agent-task">${a.task}</div>
-      <div class="agent-status ${statusClass(a.status)}">${statusIcon(a.status)} ${statusLabel(a.status)}</div>
-    </div>`;
-  }).join('')}</div></div>`;
-}
-
-function renderCommsLines(links) {
-  if (!links || !links.length) { const svg = document.getElementById('commsSvg'); if(svg) svg.innerHTML = ''; return; }
-  requestAnimationFrame(() => {
-    const svg = document.getElementById('commsSvg');
-    if (!svg) return;
-    const wrapper = svg.parentElement;
-    const wRect = wrapper.getBoundingClientRect();
-    svg.setAttribute('viewBox', `0 0 ${wRect.width} ${wRect.height}`);
-    svg.style.width = wRect.width + 'px';
-    svg.style.height = wRect.height + 'px';
-    let html = '<defs><marker id="arrowG" markerWidth="6" markerHeight="4" refX="6" refY="2" orient="auto"><polygon points="0 0, 6 2, 0 4" fill="#10B981"/></marker><marker id="arrowM" markerWidth="6" markerHeight="4" refX="6" refY="2" orient="auto"><polygon points="0 0, 6 2, 0 4" fill="#6B7280"/></marker></defs>';
-    for (const link of links) {
-      const fromEl = wrapper.querySelector(`[data-agent="${link.from}"]`);
-      const toEl = wrapper.querySelector(`[data-agent="${link.to}"]`);
-      if (!fromEl || !toEl) continue;
-      const fR = fromEl.getBoundingClientRect();
-      const tR = toEl.getBoundingClientRect();
-      const fx = fR.left + fR.width/2 - wRect.left;
-      const fy = fR.top + fR.height/2 - wRect.top;
-      const tx = tR.left + tR.width/2 - wRect.left;
-      const ty = tR.top + tR.height/2 - wRect.top;
-      const cls = link.active ? 'comms-line' : 'comms-line inactive';
-      const marker = link.active ? 'url(#arrowG)' : 'url(#arrowM)';
-      // Curved line
-      const mx = (fx+tx)/2, my = (fy+ty)/2 - 30;
-      html += `<path class="${cls}" d="M${fx},${fy} Q${mx},${my} ${tx},${ty}" marker-end="${marker}"/>`;
-      if (link.label) {
-        const lx = (fx+tx)/2, ly = (fy+ty)/2 - 18;
-        html += `<text class="comms-label" x="${lx}" y="${ly}">${link.label.substring(0,20)}</text>`;
-      }
+  window.addEventListener('resize', resize);
+  resize();
+  function draw() {
+    ctx.clearRect(0, 0, c.width, c.height);
+    for (const s of stars) {
+      s.a += s.s;
+      const alpha = 0.15 + 0.2 * Math.abs(Math.sin(s.a));
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(230,237,243,${alpha})`;
+      ctx.fill();
     }
-    svg.innerHTML = html;
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ── Clock ──
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleString('en-US', {
+    timeZone: 'America/New_York',
+    weekday: 'short', month: 'short', day: 'numeric',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    hour12: true
+  }) + ' ET';
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ── State ──
+let prevAgentStatus = {};
+let prevActivityCount = 0;
+let initialized = false;
+let particles = []; // for SVG line animation
+
+// ── Build nodes ──
+const container = document.getElementById('nodesContainer');
+const svg = document.getElementById('constellation-svg');
+const svgNS = 'http://www.w3.org/2000/svg';
+
+// Agent positions — Kit center, 7 agents around
+const AGENT_ORDER = ['Coder', 'Researcher', 'Writer', 'Analyst', 'Ops', 'Comms', 'Qa'];
+const nodeElements = {};
+const lineElements = {};
+const particleGroups = {};
+
+function buildNodes() {
+  // Kit node (centered)
+  const kitEl = document.createElement('div');
+  kitEl.className = 'node kit status-idle';
+  kitEl.id = 'node-Kit';
+  kitEl.innerHTML = `
+    <div class="node-circle"><span>🤖</span></div>
+    <div class="node-name" style="color:${COLORS.Kit}">Kit</div>
+    <div class="node-role">Orchestrator</div>
+    <div class="node-task" id="task-Kit"></div>
+  `;
+  container.appendChild(kitEl);
+  nodeElements.Kit = kitEl;
+
+  // 7 agents around
+  AGENT_ORDER.forEach((name, i) => {
+    const el = document.createElement('div');
+    el.className = 'node status-idle';
+    el.id = `node-${name}`;
+    el.innerHTML = `
+      <div class="node-circle" style="color:${COLORS[name]}"><span></span></div>
+      <div class="node-name" style="color:${COLORS[name]}">${name}</div>
+      <div class="node-role"></div>
+      <div class="node-task" id="task-${name}"></div>
+    `;
+    container.appendChild(el);
+    nodeElements[name] = el;
+  });
+}
+buildNodes();
+
+// ── Position nodes & draw SVG lines ──
+function layoutNodes() {
+  const rect = container.getBoundingClientRect();
+  const cx = rect.width / 2;
+  const cy = rect.height / 2;
+  const isMobile = window.innerWidth < 768;
+  const kitSize = isMobile ? 90 : 130;
+  const agentSize = isMobile ? 60 : 86;
+  const radius = isMobile ? 140 : 220;
+
+  // Kit
+  const kitEl = nodeElements.Kit;
+  kitEl.style.left = (cx - kitSize / 2) + 'px';
+  kitEl.style.top = (cy - kitSize / 2 - 20) + 'px';
+
+  // Clear SVG
+  svg.innerHTML = '';
+
+  // Create defs for gradients
+  const defs = document.createElementNS(svgNS, 'defs');
+  svg.appendChild(defs);
+
+  // SVG viewBox matches constellation
+  const svgRect = svg.getBoundingClientRect();
+  // Kit center in SVG coords
+  const kitCx = cx + container.offsetLeft;
+  const kitCy = cy - 20 + container.offsetTop;
+
+  AGENT_ORDER.forEach((name, i) => {
+    const angle = (i / 7) * Math.PI * 2 - Math.PI / 2;
+    const ax = cx + Math.cos(angle) * radius;
+    const ay = cy + Math.sin(angle) * radius;
+
+    const el = nodeElements[name];
+    el.style.left = (ax - agentSize / 2) + 'px';
+    el.style.top = (ay - agentSize / 2 - 14) + 'px';
+
+    // SVG line (bezier)
+    const svgCx = cx, svgCy = cy - 20;
+    const svgAx = ax, svgAy = ay - 14;
+    // Control point for curve
+    const mx = (svgCx + svgAx) / 2;
+    const my = (svgCy + svgAy) / 2;
+    const perpX = -(svgAy - svgCy) * 0.1;
+    const perpY = (svgAx - svgCx) * 0.1;
+
+    // Gradient
+    const grad = document.createElementNS(svgNS, 'linearGradient');
+    grad.id = `grad-${name}`;
+    grad.setAttribute('gradientUnits', 'userSpaceOnUse');
+    grad.setAttribute('x1', svgCx); grad.setAttribute('y1', svgCy);
+    grad.setAttribute('x2', svgAx); grad.setAttribute('y2', svgAy);
+    const s1 = document.createElementNS(svgNS, 'stop');
+    s1.setAttribute('offset', '0%'); s1.setAttribute('stop-color', COLORS.Kit);
+    const s2 = document.createElementNS(svgNS, 'stop');
+    s2.setAttribute('offset', '100%'); s2.setAttribute('stop-color', COLORS[name]);
+    grad.appendChild(s1); grad.appendChild(s2);
+    defs.appendChild(grad);
+
+    // Path
+    const path = document.createElementNS(svgNS, 'path');
+    const d = `M ${svgCx} ${svgCy} Q ${mx + perpX} ${my + perpY} ${svgAx} ${svgAy}`;
+    path.setAttribute('d', d);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', `url(#grad-${name})`);
+    path.setAttribute('stroke-width', '1.5');
+    path.setAttribute('opacity', '0.2');
+    path.setAttribute('stroke-dasharray', '4 4');
+    path.id = `line-${name}`;
+    svg.appendChild(path);
+    lineElements[name] = path;
+
+    // Particle group
+    const g = document.createElementNS(svgNS, 'g');
+    g.id = `particles-${name}`;
+    svg.appendChild(g);
+    particleGroups[name] = { group: g, path, particles: [], active: false, reverse: false };
   });
 }
 
-function renderActivity(items) {
-  return items.map(a =>
-    `<div class="activity-item">
-      <div class="activity-time">${a.time}</div>
-      <div class="activity-text">${a.text}</div>
-      <span class="activity-agent">${a.agent}</span>
-    </div>`
-  ).join('');
+// Recalc on resize
+let layoutTimeout;
+window.addEventListener('resize', () => {
+  clearTimeout(layoutTimeout);
+  layoutTimeout = setTimeout(layoutNodes, 100);
+});
+layoutNodes();
+
+// ── Particle Animation ──
+function getPointOnPath(pathEl, t) {
+  const len = pathEl.getTotalLength();
+  const pt = pathEl.getPointAtLength(t * len);
+  return { x: pt.x, y: pt.y };
 }
 
-async function fetchData() {
-  try {
-    const res = await fetch(API, { headers: { 'X-API-Key': KEY } });
-    if (!res.ok) throw new Error(res.status);
-    const data = await res.json();
-
-    document.getElementById('header').classList.remove('offline');
-    document.getElementById('liveText').textContent = 'Live';
-
-    const main = document.getElementById('main');
-    const isFirst = !initialized;
-    main.innerHTML = renderStats(data.stats) + renderAgents(data.agents);
-    renderCommsLines(data.commsLinks || []);
-
-    if (isFirst) {
-      // Animate stats on first load
-      main.querySelectorAll('.stat-value[data-target]').forEach(el => {
-        const target = parseInt(el.dataset.target);
-        const delay = parseInt(el.dataset.delay);
-        const fmt = el.dataset.format;
-        setTimeout(() => {
-          animateValue(el, target, 600, fmt === 'uptime' ? formatUptime : null);
-        }, delay);
-      });
-      initialized = true;
+function animateParticles() {
+  for (const name of AGENT_ORDER) {
+    const pg = particleGroups[name];
+    if (!pg.active) {
+      // Remove any leftover particles
+      while (pg.group.firstChild) pg.group.removeChild(pg.group.firstChild);
+      pg.particles = [];
+      continue;
     }
+    // Ensure 3 particles
+    while (pg.particles.length < 3) {
+      const circle = document.createElementNS(svgNS, 'circle');
+      circle.setAttribute('r', '3');
+      circle.setAttribute('fill', COLORS[name]);
+      circle.setAttribute('opacity', '0.9');
+      pg.group.appendChild(circle);
+      pg.particles.push({ el: circle, t: pg.particles.length * 0.33, speed: 0.008 });
+    }
+    for (const p of pg.particles) {
+      p.t += p.speed;
+      if (p.t > 1) p.t -= 1;
+      const tt = pg.reverse ? 1 - p.t : p.t;
+      const pt = getPointOnPath(pg.path, tt);
+      p.el.setAttribute('cx', pt.x);
+      p.el.setAttribute('cy', pt.y);
+      // Fade near endpoints
+      const edgeDist = Math.min(p.t, 1 - p.t);
+      p.el.setAttribute('opacity', Math.min(1, edgeDist * 5) * 0.85);
+    }
+  }
+  requestAnimationFrame(animateParticles);
+}
+animateParticles();
 
-    // Track status changes
-    data.agents.forEach(a => { prevStatuses[a.name] = a.status; });
+// ── Update line/particle state ──
+function updateLine(name, status) {
+  const line = lineElements[name];
+  const pg = particleGroups[name];
+  if (!line) return;
 
-    // Activity
-    const panel = document.getElementById('activityPanel');
-    panel.style.display = '';
-    document.getElementById('activityList').innerHTML = renderActivity(data.activity);
-
-    lucide.createIcons();
-  } catch (e) {
-    document.getElementById('header').classList.add('offline');
-    document.getElementById('liveText').textContent = 'Offline';
+  if (status === 'working') {
+    line.setAttribute('opacity', '0.6');
+    line.setAttribute('stroke-width', '2');
+    line.setAttribute('stroke-dasharray', 'none');
+    pg.active = true;
+    pg.reverse = false;
+  } else if (status === 'complete') {
+    line.setAttribute('opacity', '0.5');
+    line.setAttribute('stroke-width', '1.5');
+    line.setAttribute('stroke-dasharray', 'none');
+    // Brief reverse particles
+    pg.active = true;
+    pg.reverse = true;
+    setTimeout(() => { pg.active = false; pg.reverse = false; }, 1500);
+  } else {
+    line.setAttribute('opacity', '0.15');
+    line.setAttribute('stroke-width', '1');
+    line.setAttribute('stroke-dasharray', '4 4');
+    pg.active = false;
   }
 }
 
-fetchData();
-setInterval(fetchData, 5000);
+// ── Format uptime ──
+function fmtUptime(sec) {
+  if (!sec && sec !== 0) return '—';
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  return `${h}h ${m}m`;
+}
+
+// ── Activity Feed ──
+function renderActivity(items) {
+  const feed = document.getElementById('activityFeed');
+  if (!items || items.length === 0) return;
+  // Only add new items
+  const newCount = items.length;
+  if (newCount <= prevActivityCount && initialized) return;
+
+  const toAdd = initialized ? items.slice(0, newCount - prevActivityCount) : items.slice(0, 30);
+  prevActivityCount = newCount;
+
+  // Add new items at top
+  for (let i = toAdd.length - 1; i >= 0; i--) {
+    const it = toAdd[i];
+    const div = document.createElement('div');
+    div.className = 'activity-item';
+    const color = COLORS[it.agent] || '#8B949E';
+    div.innerHTML = `
+      <div class="activity-time">${it.time || ''}</div>
+      <div class="activity-agent" style="color:${color}">${it.agent || 'System'}</div>
+      <div class="activity-text">${escHtml(it.text || '')}</div>
+    `;
+    feed.insertBefore(div, feed.firstChild);
+  }
+  // Trim to 50
+  while (feed.children.length > 50) feed.removeChild(feed.lastChild);
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Fetch & Update ──
+let online = false;
+
+async function fetchStatus() {
+  try {
+    const resp = await fetch('/api/status', {
+      headers: { 'X-API-Key': '689b1f85c91ffc61ef7469ea7b4c75f796a7025848bb3c7c' }
+    });
+    if (!resp.ok) throw new Error(resp.status);
+    const data = await resp.json();
+    updateDashboard(data);
+    if (!online) {
+      online = true;
+      document.getElementById('statusBadge').classList.add('live');
+      document.getElementById('statusText').textContent = 'Live';
+    }
+  } catch (e) {
+    if (online) {
+      online = false;
+      document.getElementById('statusBadge').classList.remove('live');
+      document.getElementById('statusText').textContent = 'Offline';
+    }
+  }
+}
+
+function updateDashboard(data) {
+  const agents = data.agents || [];
+
+  // Update each agent node
+  for (const agent of agents) {
+    const el = nodeElements[agent.name];
+    if (!el) continue;
+
+    const prev = prevAgentStatus[agent.name];
+    const status = agent.status || 'idle';
+
+    // Emoji
+    const emojiSpan = el.querySelector('.node-circle span');
+    if (emojiSpan) emojiSpan.textContent = agent.emoji || '';
+
+    // Role
+    const roleEl = el.querySelector('.node-role');
+    if (roleEl && agent.role) roleEl.textContent = agent.role;
+
+    // Task
+    const taskEl = document.getElementById(`task-${agent.name}`);
+    if (taskEl) taskEl.textContent = agent.task ? (agent.task.length > 40 ? agent.task.slice(0, 40) + '…' : agent.task) : '';
+    if (taskEl) taskEl.title = agent.task || '';
+
+    // Status class
+    el.className = el.className.replace(/status-\w+/g, '').trim();
+    el.classList.add(`status-${status}`);
+    if (agent.name === 'Kit') el.classList.add('kit');
+
+    // Flash on idle→working transition
+    if (prev && prev !== status && status === 'working') {
+      el.classList.add('flash');
+      setTimeout(() => el.classList.remove('flash'), 600);
+    }
+
+    // Update lines (not Kit)
+    if (agent.name !== 'Kit') {
+      updateLine(agent.name, status);
+    }
+
+    prevAgentStatus[agent.name] = status;
+  }
+
+  // Stats
+  const s = data.stats || {};
+  document.getElementById('statSessions').textContent = s.files ?? '—';
+  const activeCount = agents.filter(a => a.status === 'working').length;
+  document.getElementById('statActive').textContent = `${activeCount} / ${agents.length}`;
+  document.getElementById('statUptime').textContent = fmtUptime(s.uptime);
+  document.getElementById('statCommits').textContent = s.commits ?? '—';
+  document.getElementById('statLines').textContent = s.linesOfCode ? s.linesOfCode.toLocaleString() : '—';
+
+  // Activity
+  renderActivity(data.activity);
+
+  // Staggered entrance on first load
+  if (!initialized) {
+    initialized = true;
+    const allNodes = [nodeElements.Kit, ...AGENT_ORDER.map(n => nodeElements[n])];
+    allNodes.forEach((el, i) => {
+      setTimeout(() => el.classList.add('visible'), i * 120);
+    });
+  }
+}
+
+// Start polling
+fetchStatus();
+setInterval(fetchStatus, 5000);
 </script>
 </body>
 </html>
