@@ -426,6 +426,25 @@ body {
   .dashboard { grid-template-columns: 1fr; }
   .sidebar { max-height: none; border-left: none; border-top: 1px solid var(--border); }
 }
+@media (max-width: 768px) {
+  .scoreboard { flex-direction: column; text-align: center; padding: 14px 16px; gap: 8px; }
+  .scoreboard .date-display { text-align: center; }
+  .scoreboard .sprint-info { order: -1; }
+  .stats-bar { flex-wrap: wrap; }
+  .stat-item { flex: 1 1 calc(50% - 1px); min-width: 0; padding: 10px 6px; }
+  .stat-item .stat-value { font-size: 20px; }
+  .stat-item .stat-label { font-size: 10px; letter-spacing: 0.5px; }
+  .kanban { grid-template-columns: 1fr; min-width: unset; gap: 10px; }
+  .kanban-column { min-height: auto; }
+  .main-area { padding: 12px; overflow-x: hidden; }
+  .sidebar-panel { padding: 12px; }
+}
+@media (max-width: 480px) {
+  .scoreboard .team-name { font-size: 18px; }
+  .scoreboard .sprint-name { font-size: 14px; }
+  .stat-item .stat-value { font-size: 18px; }
+  #shippedProducts { grid-template-columns: 1fr !important; }
+}
 </style>
 </head>
 <body>
@@ -437,7 +456,7 @@ body {
 <div class="stats-bar" id="statsBar"></div>
 
 <!-- Dashboard Grid -->
-<<!-- Shipped Products Hub -->
+<!-- Shipped Products Hub -->
 <div style="padding:0 28px 24px;">
   <div class="section-header">
     <span class="icon">🚀</span>
