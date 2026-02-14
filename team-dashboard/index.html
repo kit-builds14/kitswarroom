@@ -569,14 +569,24 @@ function layoutNodes() {
     el.style.left = (ax - agentSize / 2) + 'px';
     el.style.top = (ay - agentSize / 2 - 14) + 'px';
 
-    // SVG line (bezier)
-    const svgCx = cx, svgCy = cy - 20;
-    const svgAx = ax, svgAy = ay - 14;
+    // SVG line (bezier) — anchor at circle edges, not centers
+    const rawKitX = cx, rawKitY = cy - 20;
+    const rawAgentX = ax, rawAgentY = ay - 14;
+    // Vector from Kit center to Agent center
+    const dx = rawAgentX - rawKitX;
+    const dy = rawAgentY - rawKitY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const ux = dx / dist, uy = dy / dist;
+    // Offset to circle edges (Kit radius = kitSize/2, Agent radius = agentSize/2)
+    const svgCx = rawKitX + ux * (kitSize / 2);
+    const svgCy = rawKitY + uy * (kitSize / 2);
+    const svgAx = rawAgentX - ux * (agentSize / 2);
+    const svgAy = rawAgentY - uy * (agentSize / 2);
     // Control point for curve
     const mx = (svgCx + svgAx) / 2;
     const my = (svgCy + svgAy) / 2;
-    const perpX = -(svgAy - svgCy) * 0.1;
-    const perpY = (svgAx - svgCx) * 0.1;
+    const perpX = -(svgAy - svgCy) * 0.08;
+    const perpY = (svgAx - svgCx) * 0.08;
 
     // Gradient
     const grad = document.createElementNS(svgNS, 'linearGradient');
