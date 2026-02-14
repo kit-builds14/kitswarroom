@@ -194,8 +194,8 @@ body::before {
 /* ── Nodes Container ── */
 .nodes-container {
   position: relative;
-  width: 600px;
-  height: 600px;
+  width: 560px;
+  height: 560px;
   overflow: visible;
 }
 
@@ -364,7 +364,7 @@ body::before {
 @media (max-width: 768px) {
   .main { flex-direction: column; }
   .constellation { min-height: 420px; }
-  .nodes-container { width: 380px; height: 380px; }
+  .nodes-container { width: 360px; height: 360px; }
   .node.kit .node-circle { width: 80px; height: 80px; font-size: 32px; }
   .node-circle { width: 52px; height: 52px; font-size: 22px; }
   .node-name { font-size: 10px; margin-top: 5px; }
@@ -375,8 +375,8 @@ body::before {
     max-height: 300px;
     border-left: none;
     border-top: 1px solid var(--border);
-    margin-top: 16px;
-    padding-top: 4px;
+    margin-top: 24px;
+    padding-top: 8px;
   }
   .stats-bar { gap: 16px; }
   .stat-sep { display: none; }
@@ -523,6 +523,7 @@ function buildNodes() {
   container.appendChild(kitEl);
   nodeElements.Kit = kitEl;
 
+
   // 7 agents around
   AGENT_ORDER.forEach((name, i) => {
     const el = document.createElement('div');
@@ -548,7 +549,7 @@ function layoutNodes() {
   const isMobile = window.innerWidth < 768;
   const kitSize = isMobile ? 80 : 130;
   const agentSize = isMobile ? 52 : 86;
-  const radius = isMobile ? 155 : 220;
+  const radius = isMobile ? 140 : 200;
 
   // Kit — position so circle center is at (cx, cy)
   const kitEl = nodeElements.Kit;
@@ -792,7 +793,7 @@ function updateDashboard(data) {
       const isMob = window.innerWidth < 768;
       const maxLen = isMob ? 20 : 40;
       let taskText = '';
-      if (status === 'working' && agent.task) {
+      if (status === 'working' && agent.task && agent.task.toLowerCase() !== 'ready') {
         taskText = agent.task.length > maxLen ? agent.task.slice(0, maxLen) + '…' : agent.task;
       } else if (status === 'complete') {
         let ago = '';
