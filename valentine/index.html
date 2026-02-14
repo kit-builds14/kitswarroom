@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Happy Valentine's Day 💕 Blaney & Boaro Families</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;600&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a0a1e 0%, #2d0a0a 30%, #1a0a1e 60%, #0a0a2d 100%);
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Sparkle overlay */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image:
+    radial-gradient(2px 2px at 20px 30px, rgba(255,215,0,0.4), transparent),
+    radial-gradient(2px 2px at 40px 70px, rgba(255,182,193,0.3), transparent),
+    radial-gradient(1px 1px at 90px 40px, rgba(255,255,255,0.4), transparent),
+    radial-gradient(2px 2px at 130px 80px, rgba(255,215,0,0.3), transparent),
+    radial-gradient(1px 1px at 160px 30px, rgba(255,182,193,0.4), transparent);
+  background-size: 200px 100px;
+  animation: sparkle 4s ease-in-out infinite alternate;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes sparkle {
+  0% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+/* Floating hearts */
+.hearts-container {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.floating-heart {
+  position: absolute;
+  bottom: -80px;
+  animation: floatUp linear infinite;
+  opacity: 0.6;
+  filter: blur(0.5px);
+}
+
+@keyframes floatUp {
+  0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 0; }
+  10% { opacity: 0.6; }
+  90% { opacity: 0.6; }
+  100% { transform: translateY(-110vh) rotate(360deg) scale(0.5); opacity: 0; }
+}
+
+/* Teddy bears */
+.teddy {
+  position: fixed;
+  font-size: 3rem;
+  animation: teddyBounce 3s ease-in-out infinite;
+  z-index: 2;
+  filter: drop-shadow(0 0 10px rgba(255,182,193,0.5));
+}
+
+.teddy-1 { bottom: 20px; left: 30px; animation-delay: 0s; }
+.teddy-2 { bottom: 20px; right: 30px; animation-delay: 1.5s; }
+
+@keyframes teddyBounce {
+  0%, 100% { transform: translateY(0) rotate(-5deg); }
+  50% { transform: translateY(-20px) rotate(5deg); }
+}
+
+/* KITT scanner */
+.kitt-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: #111;
+  z-index: 100;
+  overflow: hidden;
+  border-top: 1px solid #333;
+}
+
+.kitt-scanner {
+  position: absolute;
+  top: 0;
+  width: 120px;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, #ff0000, #ff3333, #ff0000, transparent);
+  box-shadow: 0 0 20px #ff0000, 0 0 40px #ff0000;
+  animation: kittScan 2s ease-in-out infinite alternate;
+  border-radius: 50%;
+}
+
+@keyframes kittScan {
+  0% { left: -120px; }
+  100% { left: calc(100% + 0px); }
+}
+
+/* Main content */
+.main-content {
+  position: relative;
+  z-index: 10;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+  text-align: center;
+}
+
+.title-section {
+  margin-bottom: 1.5rem;
+  padding-top: 1rem;
+}
+
+.valentine-emoji {
+  font-size: 2.5rem;
+  display: block;
+  margin-bottom: 0.5rem;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+h1 {
+  font-family: 'Great Vibes', cursive;
+  font-size: clamp(3rem, 8vw, 6rem);
+  background: linear-gradient(135deg, #ff6b9d, #ffa5c3, #ffd700, #ffa5c3, #ff6b9d);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 4s ease-in-out infinite;
+  text-shadow: none;
+  line-height: 1.2;
+  margin-bottom: 0.3rem;
+}
+
+@keyframes shimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.subtitle {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.2rem, 3vw, 2rem);
+  color: #ffc0cb;
+  font-weight: 400;
+  letter-spacing: 2px;
+  opacity: 0.9;
+}
+
+.families {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.4rem, 3.5vw, 2.2rem);
+  color: #ffd700;
+  font-weight: 700;
+  margin-top: 0.5rem;
+  text-shadow: 0 0 20px rgba(255,215,0,0.3);
+}
+
+/* Cards */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.card {
+  background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,182,193,0.2);
+  border-radius: 24px;
+  padding: 2rem;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 60px rgba(255,107,157,0.15);
+}
+
+.card-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.8rem;
+}
+
+.card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem;
+  color: #ffd700;
+  margin-bottom: 0.8rem;
+}
+
+.card-body {
+  font-size: 1rem;
+  color: rgba(255,255,255,0.85);
+  line-height: 1.6;
+}
+
+/* Weather specific */
+.weather-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.weather-card {
+  background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,182,193,0.2);
+  border-radius: 24px;
+  padding: 1.8rem;
+  text-align: center;
+}
+
+.weather-location {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem;
+  color: #ffc0cb;
+  margin-bottom: 0.3rem;
+}
+
+.weather-tag {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 0.8rem;
+}
+
+.weather-temp {
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+}
+
+.weather-desc {
+  font-size: 0.95rem;
+  color: rgba(255,255,255,0.7);
+  margin-top: 0.5rem;
+}
+
+.weather-details {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 0.8rem;
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.6);
+}
+
+/* Schedule */
+.schedule-card {
+  background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,107,157,0.1));
+  border: 1px solid rgba(255,215,0,0.3);
+}
+
+.schedule-event {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+  color: #fff;
+  line-height: 1.5;
+}
+
+.schedule-emoji {
+  font-size: 2rem;
+  margin: 0.5rem 0;
+}
+
+/* Love note */
+.love-note {
+  margin: 2rem auto;
+  max-width: 700px;
+  font-family: 'Great Vibes', cursive;
+  font-size: clamp(1.3rem, 3vw, 1.8rem);
+  color: #ffc0cb;
+  line-height: 1.6;
+  opacity: 0.9;
+  padding: 1.5rem;
+  border-left: 3px solid rgba(255,215,0,0.4);
+  border-right: 3px solid rgba(255,215,0,0.4);
+}
+
+/* Footer / KITT */
+.kitt-footer {
+  margin-top: 3rem;
+  padding: 1.5rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.5);
+  line-height: 1.8;
+}
+
+.kitt-footer .kitt-text {
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 1px;
+}
+
+.kitt-footer .fun-note {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.35);
+  margin-top: 0.3rem;
+}
+
+/* Rose decorations */
+.rose-left, .rose-right {
+  position: fixed;
+  font-size: 4rem;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.3;
+  z-index: 1;
+}
+.rose-left { left: 10px; }
+.rose-right { right: 10px; }
+
+/* Mobile */
+@media (max-width: 768px) {
+  .weather-grid { grid-template-columns: 1fr; }
+  .cards-grid { grid-template-columns: 1fr; }
+  .rose-left, .rose-right { display: none; }
+  .teddy { font-size: 2rem; }
+  .main-content { padding: 1rem 1rem 4rem; }
+  .weather-temp { font-size: 2.5rem; }
+}
+
+/* Loading */
+.loading { color: rgba(255,255,255,0.4); font-size: 0.9rem; }
+</style>
+</head>
+<body>
+
+<!-- Floating Hearts -->
+<div class="hearts-container" id="hearts"></div>
+
+<!-- Teddy Bears -->
+<div class="teddy teddy-1">🧸💕</div>
+<div class="teddy teddy-2">💕🧸</div>
+
+<!-- Rose decorations -->
+<div class="rose-left">🌹</div>
+<div class="rose-right">🌹</div>
+
+<!-- KITT Scanner Bar -->
+<div class="kitt-bar"><div class="kitt-scanner"></div></div>
+
+<!-- Main Content -->
+<div class="main-content">
+
+  <!-- Title -->
+  <div class="title-section">
+    <span class="valentine-emoji">💝</span>
+    <h1>Happy Valentine's Day</h1>
+    <div class="subtitle">with love & warmth from</div>
+    <div class="families">The Blaney & Boaro Families 💕</div>
+  </div>
+
+  <!-- Love Note -->
+  <div class="love-note">
+    "From the shores of Long Island to the sunshine of Vero Beach — love travels with us wherever we go" 🌴🗽
+  </div>
+
+  <!-- Weather -->
+  <div class="weather-grid">
+    <div class="weather-card" id="weather-vero">
+      <div class="weather-location">🌴 Vero Beach, FL</div>
+      <div class="weather-tag">where we are today</div>
+      <div class="weather-temp" id="temp-vero"><span class="loading">...</span></div>
+      <div class="weather-desc" id="desc-vero"></div>
+      <div class="weather-details" id="details-vero"></div>
+    </div>
+    <div class="weather-card" id="weather-li">
+      <div class="weather-location">🗽 Long Island, NY</div>
+      <div class="weather-tag">back home</div>
+      <div class="weather-temp" id="temp-li"><span class="loading">...</span></div>
+      <div class="weather-desc" id="desc-li"></div>
+      <div class="weather-details" id="details-li"></div>
+    </div>
+  </div>
+
+  <!-- Schedule -->
+  <div class="cards-grid">
+    <div class="card schedule-card">
+      <div class="card-icon">📋</div>
+      <div class="card-title">Today's Plan</div>
+      <div class="schedule-emoji">🎡🎪🎠</div>
+      <div class="schedule-event">
+        Stuart Fair<br>
+        <span style="font-size:0.85em; color: rgba(255,255,255,0.7);">with the</span><br>
+        Blaney's, Boaro's &amp; Cummings Families
+      </div>
+      <div style="margin-top:1rem; font-size:0.85rem; color:rgba(255,255,255,0.5);">
+        🎟️ Fun rides • 🍭 Sweet treats • 💕 Great company
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">💌</div>
+      <div class="card-title">Valentine's Fun Facts</div>
+      <div class="card-body">
+        💘 About <strong>145 million</strong> Valentine's cards are exchanged each year<br><br>
+        🍫 Over <strong>58 million lbs</strong> of chocolate are bought during Valentine's week<br><br>
+        🌹 <strong>250 million</strong> roses are produced for Valentine's Day<br><br>
+        🐕 About <strong>9 million</strong> people buy Valentine's gifts for their pets 😂
+      </div>
+    </div>
+  </div>
+
+  <!-- Date & Time -->
+  <div class="card" style="max-width:500px; margin: 1.5rem auto; text-align:center;">
+    <div class="card-icon">⏰</div>
+    <div class="card-title" id="current-date">February 14, 2026</div>
+    <div id="current-time" style="font-size:2rem; font-weight:300; color:#ffc0cb;"></div>
+    <div style="margin-top:0.8rem; font-size:1.5rem;">
+      💖 Happy Valentine's Day! 💖
+    </div>
+  </div>
+
+  <!-- KITT Footer -->
+  <div class="kitt-footer">
+    <div class="kitt-text">Made with ❤️ by <strong>Kit</strong></div>
+    <div class="fun-note">(the AI, not the car... though the car is pretty cool too 🚗💨)</div>
+    <div class="fun-note" style="margin-top:0.2rem;">🔴 Yes, that red scanner bar at the bottom is a KITT tribute. You're welcome, Michael.</div>
+  </div>
+
+</div>
+
+<script>
+// Create floating hearts
+const heartsContainer = document.getElementById('hearts');
+const heartEmojis = ['❤️','💕','💖','💗','💘','💝','💓','💞','🌹','✨','💐','🥰'];
+
+function createHeart() {
+  const heart = document.createElement('div');
+  heart.className = 'floating-heart';
+  heart.textContent = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
+  heart.style.left = Math.random() * 100 + 'vw';
+  heart.style.fontSize = (1.5 + Math.random() * 2.5) + 'rem';
+  heart.style.animationDuration = (8 + Math.random() * 12) + 's';
+  heart.style.animationDelay = Math.random() * 2 + 's';
+  heartsContainer.appendChild(heart);
+  setTimeout(() => heart.remove(), 22000);
+}
+
+// Initial burst
+for (let i = 0; i < 15; i++) setTimeout(createHeart, i * 300);
+setInterval(createHeart, 1500);
+
+// Weather
+function getWeatherEmoji(code) {
+  const c = parseInt(code);
+  if (c === 113) return '☀️';
+  if (c === 116) return '⛅';
+  if (c === 119 || c === 122) return '☁️';
+  if ([176,263,266,293,296,299,302,305,308,311,314,353,356,359].includes(c)) return '🌧️';
+  if ([200,386,389,392,395].includes(c)) return '⛈️';
+  if ([227,230,323,326,329,332,335,338,368,371,374,377].includes(c)) return '🌨️';
+  if (c === 143 || c === 248 || c === 260) return '🌫️';
+  return '🌤️';
+}
+
+async function fetchWeather(location, tempId, descId, detailsId) {
+  try {
+    const url = `https://wttr.in/${encodeURIComponent(location)}?format=j1`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const cur = data.current_condition[0];
+    const emoji = getWeatherEmoji(cur.weatherCode);
+    document.getElementById(tempId).innerHTML = `${emoji} ${cur.temp_F}°F`;
+    document.getElementById(descId).textContent = cur.weatherDesc[0].value;
+    document.getElementById(detailsId).innerHTML =
+      `<span>💨 ${cur.windspeedMiles}mph</span><span>💧 ${cur.humidity}%</span><span>🌡️ Feels ${cur.FeelsLikeF}°F</span>`;
+  } catch(e) {
+    document.getElementById(tempId).innerHTML = '—';
+  }
+}
+
+function loadWeather() {
+  fetchWeather('Vero Beach,FL', 'temp-vero', 'desc-vero', 'details-vero');
+  fetchWeather('Long Island,NY', 'temp-li', 'desc-li', 'details-li');
+}
+
+loadWeather();
+setInterval(loadWeather, 300000); // 5 min refresh
+
+// Clock
+function updateTime() {
+  const now = new Date();
+  document.getElementById('current-time').textContent =
+    now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true, timeZone: 'America/New_York' });
+  document.getElementById('current-date').textContent =
+    now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/New_York' });
+}
+updateTime();
+setInterval(updateTime, 1000);
+</script>
+
+</body>
+</html>
